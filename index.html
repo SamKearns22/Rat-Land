@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Rat Land</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="help">
+  Rat Land — 20th Anniversary Edition. Arrows/WASD or the pad to move.
+  Walk into Rat Town Hall or The Rusty Pipe to go inside; walk onto the
+  door to leave. Press E / Space or the talk button near the Town Crier.
+</div>
+
+<div id="dialogue-box">
+  <div id="dialogue-name"></div>
+  <div id="dialogue-text"></div>
+</div>
+
+<div id="controls">
+  <button id="btn-up" class="pad-btn" aria-label="Move up">&#9650;</button>
+  <button id="btn-left" class="pad-btn" aria-label="Move left">&#9664;</button>
+  <button id="btn-right" class="pad-btn" aria-label="Move right">&#9654;</button>
+  <button id="btn-down" class="pad-btn" aria-label="Move down">&#9660;</button>
+  <button id="btn-interact" class="pad-btn" aria-label="Talk">TALK</button>
+</div>
+
+<script src="js/map.js"></script>
+<script src="js/npc.js"></script>
+<script src="js/player.js"></script>
+<script src="js/rendering.js"></script>
+<script src="js/transitions.js"></script>
+<script src="js/input.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

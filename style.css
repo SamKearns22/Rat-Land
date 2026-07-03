@@ -1,0 +1,118 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #111;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#game {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  touch-action: none;
+  image-rendering: pixelated;
+}
+
+#help {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  color: #eee;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: none;
+  max-width: 480px;
+}
+
+#dialogue-box {
+  position: fixed;
+  left: 50%;
+  bottom: 130px;
+  transform: translate(-50%, 20px);
+  width: min(90vw, 420px);
+  background: rgba(10, 10, 10, 0.88);
+  border: 1px solid #c9a227;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #f4f4f4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+#dialogue-box.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+#dialogue-name {
+  font-weight: bold;
+  color: #c9a227;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+#dialogue-text {
+  font-size: 14px;
+}
+
+#controls {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pad-btn {
+  position: fixed;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(240, 240, 240, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-size: 22px;
+  line-height: 56px;
+  text-align: center;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.pad-btn:active {
+  background: rgba(240, 240, 240, 0.4);
+}
+
+#btn-up    { left: 68px;  bottom: 148px; }
+#btn-down  { left: 68px;  bottom: 76px;  }
+#btn-left  { left: 8px;   bottom: 112px; }
+#btn-right { left: 128px; bottom: 112px; }
+
+#btn-interact {
+  right: 24px;
+  bottom: 96px;
+  width: 68px;
+  height: 68px;
+  line-height: 68px;
+  font-size: 14px;
+  border-radius: 50%;
+  background: rgba(201, 162, 39, 0.35);
+  border: 1px solid rgba(201, 162, 39, 0.8);
+}
+
+@media (min-width: 900px) {
+  #controls { display: none; }
+}

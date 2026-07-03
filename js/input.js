@@ -1,0 +1,74 @@
+// input.js — keyboard (arrow keys / WASD) and on-screen touch controls.
+var RatLand = window.RatLand || {};
+window.RatLand = RatLand;
+
+RatLand.input = { up: false, down: false, left: false, right: false };
+
+RatLand.initKeyboard = function () {
+  var keyMap = {
+    ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+    KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right',
+  };
+  var interactKeys = { Space: true, Enter: true, KeyE: true };
+
+  window.addEventListener('keydown', function (e) {
+    var dir = keyMap[e.code];
+    if (dir) {
+      RatLand.input[dir] = true;
+      e.preventDefault();
+    } else if (interactKeys[e.code] && !e.repeat) {
+      RatLand.onInteractPressed();
+      e.preventDefault();
+    }
+  });
+
+  window.addEventListener('keyup', function (e) {
+    var dir = keyMap[e.code];
+    if (dir) {
+      RatLand.input[dir] = false;
+      e.preventDefault();
+    }
+  });
+};
+
+RatLand.initTouchControls = function () {
+  function bindHold(id, dir) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var setTrue = function (e) { RatLand.input[dir] = true; e.preventDefault(); };
+    var setFalse = function (e) { RatLand.input[dir] = false; if (e) e.preventDefault(); };
+    el.addEventListener('pointerdown', setTrue);
+    el.addEventListener('pointerup', setFalse);
+    el.addEventListener('pointerleave', setFalse);
+    el.addEventListener('pointercancel', setFalse);
+  }
+
+  bindHold('btn-up', 'up');
+  bindHold('btn-down', 'down');
+  bindHold('btn-left', 'left');
+  bindHold('btn-right', 'right');
+
+  var interactBtn = document.getElementById('btn-interact');
+  if (interactBtn) {
+    interactBtn.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      RatLand.onInteractPressed();
+    });
+  }
+};
+
+// Talk to the Town Crier when adjacent, otherwise close any open dialogue.
+RatLand.onInteractPressed = function () {
+  var game = RatLand.game;
+  if (!game || game.mode !== 'overworld') return;
+
+  var ts = RatLand.TILE_SIZE;
+  var col = Math.floor((game.player.x + game.player.size / 2) / ts);
+  var row = Math.floor((game.player.y + game.player.size / 2) / ts);
+
+  if (RatLand.distanceToCrier(col, row) <= 1) {
+    RatLand.showDialogue(RatLand.townCrier.name, RatLand.getCrierLine());
+  } else {
+    RatLand.hideDialogue();
+  }
+};
