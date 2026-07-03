@@ -41,6 +41,7 @@ RatLand.NPC_ROSTER = [
   // --- Group 1: political rats ---
   {
     id: 'nutkin', name: 'Colonel Bartholomew Nutkin', group: 'political',
+    col: 6, row: 6,
     color: '#6b4a3a',
     accessories: [
       { type: 'hat', style: 'bowler' },
@@ -51,6 +52,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'gristle', name: 'Gristle', group: 'political',
+    col: 19, row: 19,
     color: '#4a3a2a',
     accessories: [
       { type: 'hat', style: 'flatcap' },
@@ -60,6 +62,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'marguerite', name: 'Marguerite Thistlewood-Vole', group: 'political',
+    col: 8, row: 7,
     color: '#8a7a78',
     accessories: [
       { type: 'eyewear', style: 'monocle' },
@@ -69,6 +72,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'pip', name: 'Pip', group: 'political',
+    col: 12, row: 10,
     color: '#8a6a4a',
     accessories: [
       { type: 'body', style: 'patched' },
@@ -78,6 +82,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'drainwatcher', name: 'The Drain-Watcher', group: 'political',
+    col: 12, row: 12,
     color: '#7a7a72',
     accessories: [
       { type: 'body', style: 'hivis', color: '#9c9060' },
@@ -86,6 +91,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'twitchy', name: 'Twitchy Nostrum', group: 'political',
+    col: 22, row: 5,
     color: '#7d8266',
     accessories: [
       { type: 'hat', style: 'tin' },
@@ -95,6 +101,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'nangribble', name: 'Nan Gribble', group: 'political',
+    col: 5, row: 9,
     color: '#9c9488',
     accessories: [
       { type: 'body', style: 'faded' },
@@ -105,6 +112,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'bramwell', name: 'Bramwell', group: 'political',
+    col: 15, row: 3,
     color: '#6a7278',
     accessories: [
       { type: 'pin', style: 'locket' },
@@ -113,6 +121,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'ferdycobb', name: 'Ferdy Cobb', group: 'political',
+    col: 12, row: 19,
     color: '#5a6068',
     accessories: [
       { type: 'hat', style: 'flatcap' },
@@ -122,6 +131,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'wavering', name: 'The Wavering Rat', group: 'political',
+    col: 11, row: 2,
     color: '#8a8a82',
     accessories: [
       { type: 'pin', style: 'ribbon-mismatched' },
@@ -130,6 +140,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'regcutwater', name: 'Reg Cutwater', group: 'political',
+    col: 13, row: 18,
     color: '#6b5240',
     accessories: [
       { type: 'prop', style: 'toolbelt' },
@@ -139,6 +150,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'sisterbramble', name: 'Sister Bramble', group: 'political',
+    col: 3, row: 11,
     color: '#6a5a68',
     accessories: [
       { type: 'hat', style: 'hood', color: '#5a4a58' },
@@ -148,6 +160,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'fenwicket', name: 'Fen Wicket', group: 'political',
+    col: 14, row: 11,
     color: '#5c6a68',
     accessories: [
       { type: 'body', style: 'damp' },
@@ -157,6 +170,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'dredge', name: 'Dredge', group: 'political',
+    col: 16, row: 19,
     color: '#6a5c4a',
     accessories: [
       { type: 'hat', style: 'flatcap' },
@@ -166,6 +180,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'pembertonvole', name: 'Mrs. Pemberton-Vole', group: 'political',
+    col: 25, row: 5,
     color: '#8a7268',
     accessories: [
       { type: 'eyewear', style: 'monocle' },
@@ -175,6 +190,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'marsh', name: 'Marsh', group: 'political',
+    col: 4, row: 2,
     color: '#5c5c48',
     accessories: [
       { type: 'pin', style: 'ribbon-crumpled' },
@@ -183,6 +199,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'wetherby', name: 'Wetherby', group: 'political',
+    col: 9, row: 2,
     color: '#787870',
     accessories: [
       { type: 'eyewear', style: 'spectacles' },
@@ -192,6 +209,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'nettle', name: 'Corporal Nettle', group: 'political',
+    col: 24, row: 12,
     color: '#6a7052',
     accessories: [
       { type: 'neck', style: 'sash', color: '#4a5a3a' },
@@ -203,6 +221,7 @@ RatLand.NPC_ROSTER = [
   // --- Group 2: ordinary rats ---
   {
     id: 'doreen', name: 'Doreen', group: 'ordinary',
+    col: 20, row: 5,
     color: '#9c7a52',
     accessories: [
       { type: 'neck', style: 'apron', color: '#7a5a3a' },
@@ -212,6 +231,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'sooty', name: 'Sooty', group: 'ordinary',
+    col: 22, row: 12,
     color: '#4a4a46',
     accessories: [
       { type: 'neck', style: 'scarf', color: '#3a3a38' },
@@ -220,6 +240,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'chalky', name: 'Chalky', group: 'ordinary',
+    col: 21, row: 13,
     color: '#b8b4a8',
     accessories: [
       { type: 'neck', style: 'scarf', color: '#d8d4c8' },
@@ -228,6 +249,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'oldfenwick', name: 'Old Fenwick', group: 'ordinary',
+    col: 25, row: 8,
     color: '#9c8868',
     accessories: [
       { type: 'prop', style: 'walkingstick' },
@@ -237,6 +259,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'scrapgrumbler', name: 'The Scrap Grumbler', group: 'ordinary',
+    col: 22, row: 8,
     color: '#8a8a80',
     accessories: [
       { type: 'prop', style: 'bag', color: '#6a6a60' },
@@ -245,6 +268,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'countrysidedreamer', name: 'The Countryside Dreamer', group: 'ordinary',
+    col: 5, row: 15,
     color: '#7a8268',
     accessories: [
       { type: 'pin', style: 'leaf' },
@@ -253,6 +277,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'weatherA', name: 'Rat A (weather)', group: 'ordinary',
+    col: 8, row: 11,
     color: '#8a8a82',
     accessories: [
       { type: 'neck', style: 'scarf', color: '#6a6a5c' },
@@ -261,6 +286,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'weatherB', name: 'Rat B (weather)', group: 'ordinary',
+    col: 10, row: 11,
     color: '#8a7c6a',
     accessories: [
       { type: 'prop', style: 'dripgauge', color: '#5a5a52' },
@@ -269,6 +295,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'queuecomplainer', name: 'The Queue Complainer', group: 'ordinary',
+    col: 19, row: 3,
     color: '#6a7876',
     accessories: [
       { type: 'prop', style: 'bag', color: '#5a6a68' },
@@ -277,6 +304,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'allotmentbragger', name: 'The Allotment Bragger', group: 'ordinary',
+    col: 4, row: 16,
     color: '#6a7a5a',
     accessories: [
       { type: 'pin', style: 'moss' },
@@ -285,6 +313,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'paradegossip', name: 'The Parade Gossip', group: 'ordinary',
+    col: 6, row: 2,
     color: '#9c8478',
     accessories: [
       { type: 'pin', style: 'bunting' },
@@ -293,6 +322,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'bindaygrumbler', name: 'The Bin Day Grumbler', group: 'ordinary',
+    col: 19, row: 13,
     color: '#7c7266',
     accessories: [
       { type: 'prop', style: 'toolbelt', color: '#5a4a3a' },
@@ -303,6 +333,7 @@ RatLand.NPC_ROSTER = [
   // --- Outsider ---
   {
     id: 'kevin', name: 'Kevin', group: 'mouse', species: 'mouse',
+    col: 21, row: 3,
     color: '#9a92a0',
     accessories: [],
     note: 'Drawn with the separate mouse silhouette (bigger, forward-set ears, pointed snout, smaller frame) in a cool lavender-grey found nowhere in the rat palette — an outsider by design, not just by color.',

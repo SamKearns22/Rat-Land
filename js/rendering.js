@@ -537,6 +537,12 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   RatLand.drawRat(ctx, crierX, crierY, ts, crier.color, 'down');
   RatLand.drawLabel(ctx, crier.name, crierX + ts / 2, crierY - 4);
 
+  RatLand.NPC_ROSTER.forEach(function (spec) {
+    var nx = spec.col * ts, ny = spec.row * ts;
+    RatLand.drawNpcRat(ctx, nx, ny, ts, spec, 'down');
+    RatLand.drawLabel(ctx, spec.name, nx + ts / 2, ny - 4);
+  });
+
   RatLand.drawRat(ctx, game.player.x, game.player.y, game.player.size, '#9a9a9a', game.player.facing);
 
   ctx.restore();
