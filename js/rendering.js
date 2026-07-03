@@ -101,10 +101,14 @@ RatLand.drawLabel = function (ctx, text, cx, bottomY) {
 };
 
 // A simple, spriteless rat: body ellipse, two ears, a tail, and a facing dot.
-RatLand.drawRat = function (ctx, x, y, size, color, facing) {
+// `highlight`, when true, marks this rat as "whoever you'd talk to right
+// now" with a soft green glow and a green outline instead of the usual
+// dark one.
+RatLand.drawRat = function (ctx, x, y, size, color, facing, highlight) {
   var cx = x + size / 2;
   var cy = y + size / 2;
   var r = size / 2;
+  var outlineStyle = highlight ? 'rgba(90, 230, 130, 0.95)' : 'rgba(15, 12, 10, 0.85)';
 
   var tailDX = facing === 'left' ? 1 : facing === 'right' ? -1 : 0;
   var tailDY = facing === 'up' ? 1 : facing === 'down' ? -1 : 0;
@@ -117,12 +121,18 @@ RatLand.drawRat = function (ctx, x, y, size, color, facing) {
   ctx.lineTo(cx + tailDX * r * 1.6, cy + tailDY * r * 1.6);
   ctx.stroke();
 
+  if (highlight) {
+    ctx.save();
+    ctx.shadowColor = 'rgba(80, 220, 120, 0.9)';
+    ctx.shadowBlur = r * 0.9;
+  }
+
   ctx.beginPath();
   ctx.ellipse(cx, cy, r * 0.9, r * 0.75, 0, 0, Math.PI * 2);
   ctx.fillStyle = color;
   ctx.fill();
-  ctx.strokeStyle = 'rgba(15, 12, 10, 0.85)';
-  ctx.lineWidth = 1.25;
+  ctx.strokeStyle = outlineStyle;
+  ctx.lineWidth = highlight ? 2 : 1.25;
   ctx.stroke();
 
   ctx.beginPath();
@@ -130,9 +140,13 @@ RatLand.drawRat = function (ctx, x, y, size, color, facing) {
   ctx.arc(cx + r * 0.5, cy - r * 0.6, r * 0.28, 0, Math.PI * 2);
   ctx.fillStyle = color;
   ctx.fill();
-  ctx.strokeStyle = 'rgba(15, 12, 10, 0.85)';
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = outlineStyle;
+  ctx.lineWidth = highlight ? 1.5 : 1;
   ctx.stroke();
+
+  if (highlight) {
+    ctx.restore();
+  }
 
   var snoutX = cx, snoutY = cy;
   if (facing === 'up') snoutY -= r * 0.8;
@@ -411,21 +425,11 @@ function drawPin(ctx, cx, cy, r, style, color) {
   }
 }
 
-// Draws one NPC from the roster: base rat body (shared with the player),
-// a body-level treatment if any, then hat/eyewear/neckwear/prop/pin
-// accessories layered on top in a sensible order.
-RatLand.drawNpcRat = function (ctx, x, y, size, spec, facing) {
-  if (spec.species === 'mouse') {
-    RatLand.drawMouseNpc(ctx, x, y, size, spec, facing);
-    return;
-  }
-
-  RatLand.drawRat(ctx, x, y, size, spec.color, facing || 'down');
-
-  var cx = x + size / 2, cy = y + size / 2, r = size / 2;
-  var accessories = spec.accessories || [];
+// Shared by both the rat and mouse renderers: layers hat/eyewear/neckwear/
+// prop/pin accessories (and any body-level treatment) onto a body already
+// drawn at (cx, cy) with radius r.
+function applyAccessories(ctx, cx, cy, r, accessories) {
   var propSide = 1;
-
   accessories.forEach(function (acc) {
     if (acc.type === 'body') applyBodyTreatment(ctx, cx, cy, r, acc.style, acc.color);
   });
@@ -439,13 +443,32 @@ RatLand.drawNpcRat = function (ctx, x, y, size, spec, facing) {
       propSide = 2;
     }
   });
+}
+
+// Draws one NPC from the roster: base rat (or mouse) body shared with the
+// player, a body-level treatment if any, then hat/eyewear/neckwear/prop/pin
+// accessories layered on top in a sensible order. `highlight` marks this
+// as the character the player is currently close enough to talk to.
+RatLand.drawNpcRat = function (ctx, x, y, size, spec, facing, highlight) {
+  if (spec.species === 'mouse') {
+    RatLand.drawMouseNpc(ctx, x, y, size, spec, facing, highlight);
+    return;
+  }
+
+  RatLand.drawRat(ctx, x, y, size, spec.color, facing || 'down', highlight);
+
+  var cx = x + size / 2, cy = y + size / 2, r = size / 2;
+  applyAccessories(ctx, cx, cy, r, spec.accessories || []);
 };
 
 // The mouse gets a genuinely different silhouette, not just a new color:
-// bigger, more forward ears, a pointed snout, and a smaller frame.
-RatLand.drawMouseNpc = function (ctx, x, y, size, spec, facing) {
+// bigger, more forward ears, a pointed snout, and a smaller frame. Still
+// gets the same thin outline as the rats, the same accessory layering,
+// and the same green "talking to" glow when highlighted.
+RatLand.drawMouseNpc = function (ctx, x, y, size, spec, facing, highlight) {
   var cx = x + size / 2, cy = y + size / 2, r = size / 2 * 0.85;
   var color = spec.color;
+  var outlineStyle = highlight ? 'rgba(90, 230, 130, 0.95)' : 'rgba(15, 12, 10, 0.85)';
 
   var tailDX = facing === 'left' ? 1 : facing === 'right' ? -1 : 0;
   var tailDY = facing === 'up' ? 1 : facing === 'down' ? -1 : 0;
@@ -458,16 +481,33 @@ RatLand.drawMouseNpc = function (ctx, x, y, size, spec, facing) {
   ctx.lineTo(cx + tailDX * r * 1.8, cy + tailDY * r * 1.8);
   ctx.stroke();
 
-  ctx.fillStyle = color;
+  if (highlight) {
+    ctx.save();
+    ctx.shadowColor = 'rgba(80, 220, 120, 0.9)';
+    ctx.shadowBlur = r * 0.9;
+  }
+
   ctx.beginPath();
   ctx.ellipse(cx, cy, r * 0.75, r * 0.62, 0, 0, Math.PI * 2);
+  ctx.fillStyle = color;
   ctx.fill();
+  ctx.strokeStyle = outlineStyle;
+  ctx.lineWidth = highlight ? 2 : 1.1;
+  ctx.stroke();
 
   // Big, forward-set ears — the clearest "mouse, not rat" tell at a glance.
   ctx.beginPath();
   ctx.arc(cx - r * 0.42, cy - r * 0.72, r * 0.36, 0, Math.PI * 2);
   ctx.arc(cx + r * 0.42, cy - r * 0.72, r * 0.36, 0, Math.PI * 2);
+  ctx.fillStyle = color;
   ctx.fill();
+  ctx.strokeStyle = outlineStyle;
+  ctx.lineWidth = highlight ? 1.5 : 0.9;
+  ctx.stroke();
+
+  if (highlight) {
+    ctx.restore();
+  }
 
   var snoutX = cx, snoutY = cy;
   var tipX = cx, tipY = cy;
@@ -488,6 +528,8 @@ RatLand.drawMouseNpc = function (ctx, x, y, size, spec, facing) {
   ctx.beginPath();
   ctx.arc(tipX, tipY, r * 0.1, 0, Math.PI * 2);
   ctx.fill();
+
+  applyAccessories(ctx, cx, cy, r, spec.accessories || []);
 };
 
 RatLand.render = function (ctx, game, viewW, viewH) {
@@ -539,11 +581,6 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
     RatLand.drawLabel(ctx, loc.name, wx + ts / 2, wy - 4);
   });
 
-  var crier = RatLand.townCrier;
-  var crierX = crier.col * ts, crierY = crier.row * ts;
-  RatLand.drawRat(ctx, crierX, crierY, ts, crier.color, 'down');
-  RatLand.drawLabel(ctx, crier.name, crierX + ts / 2, crierY - 4);
-
   // With 31 NPCs, several are deliberately clustered near the same
   // building — showing every name at once turns into an unreadable pile
   // of overlapping text. Sprites always render; a name label only joins
@@ -552,9 +589,19 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   var playerCol = Math.floor((game.player.x + game.player.size / 2) / ts);
   var playerRow = Math.floor((game.player.y + game.player.size / 2) / ts);
 
+  // Whichever character the Talk button would actually reach right now
+  // gets a green glow, so it's never a guess which of several nearby
+  // NPCs you're about to speak to.
+  var talkTarget = RatLand.findTalkTarget(playerCol, playerRow);
+
+  var crier = RatLand.townCrier;
+  var crierX = crier.col * ts, crierY = crier.row * ts;
+  RatLand.drawRat(ctx, crierX, crierY, ts, crier.color, 'down', talkTarget === crier);
+  RatLand.drawLabel(ctx, crier.name, crierX + ts / 2, crierY - 4);
+
   RatLand.NPC_ROSTER.forEach(function (spec) {
     var nx = spec.col * ts, ny = spec.row * ts;
-    RatLand.drawNpcRat(ctx, nx, ny, ts, spec, 'down');
+    RatLand.drawNpcRat(ctx, nx, ny, ts, spec, 'down', talkTarget === spec);
     var dist = Math.max(Math.abs(spec.col - playerCol), Math.abs(spec.row - playerRow));
     if (dist <= NPC_LABEL_RADIUS) {
       RatLand.drawLabel(ctx, spec.name, nx + ts / 2, ny - 4);

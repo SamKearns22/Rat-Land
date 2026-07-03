@@ -48,7 +48,7 @@ window.RatLand = RatLand;
 
     var isSolidFn;
     if (game.mode === 'overworld') {
-      isSolidFn = RatLand.isSolidOverworldTile;
+      isSolidFn = RatLand.isOverworldBlocked;
     } else {
       var interior = RatLand.INTERIORS[game.currentInteriorId];
       isSolidFn = function (col, row) { return RatLand.isSolidInteriorTile(interior, col, row); };

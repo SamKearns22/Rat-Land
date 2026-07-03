@@ -43,6 +43,23 @@ RatLand.findTalkTarget = function (playerCol, playerRow) {
   return best;
 };
 
+// True if the Town Crier or any roster NPC is standing on this tile.
+// Characters are physically solid, so this tile is off-limits to the
+// player the same way a wall or the river is.
+RatLand.isNpcAt = function (col, row) {
+  var crier = RatLand.townCrier;
+  if (crier.col === col && crier.row === row) return true;
+  return RatLand.NPC_ROSTER.some(function (npc) {
+    return npc.col === col && npc.row === row;
+  });
+};
+
+// Overworld solidity used for player movement: the ordinary tile/location
+// rules, plus NPCs blocking their own tile.
+RatLand.isOverworldBlocked = function (col, row) {
+  return RatLand.isSolidOverworldTile(col, row) || RatLand.isNpcAt(col, row);
+};
+
 // --- NPC sprite roster --------------------------------------------------
 // One entry per named or distinct NPC in NPC_DIALOGUE.md. Every rat is
 // drawn from the same base rat shape (see rendering.js: drawNpcRat) —
@@ -103,7 +120,7 @@ RatLand.NPC_ROSTER = [
     note: 'Posh but socialite-posh, not military-posh like Nutkin: a monocle and a draped fur stole rather than a sash.',
   },
   {
-    id: 'pip', name: 'Pip', group: 'political',
+    id: 'pip', name: 'Pip', group: 'political', species: 'mouse',
     col: 12, row: 10,
     lines: [
       "Me mum always said a full sewer's a happy sewer. More whiskers, more warmth, that's what I reckon.",
@@ -115,7 +132,7 @@ RatLand.NPC_ROSTER = [
       { type: 'body', style: 'patched' },
       { type: 'neck', style: 'scarf', color: '#a8987c' },
     ],
-    note: 'Poor but cared-for, not neglected: a mended patch (not Gristle\'s scruff) and a plain scarf.',
+    note: 'Poor but cared-for, not neglected: a mended patch (not Gristle\'s scruff) and a plain scarf. Drawn as a mouse, not a rat — one of the few political characters who isn\'t anti-mouse actually is one, which is exactly why "a rat\'s a rat" reads as more than a slogan for him.',
   },
   {
     id: 'drainwatcher', name: 'The Drain-Watcher', group: 'political',
@@ -229,7 +246,7 @@ RatLand.NPC_ROSTER = [
     note: 'A dock foreman\'s toolbelt, plus a darker, tenser tone reflecting how shaken he was by the riot he witnessed.',
   },
   {
-    id: 'sisterbramble', name: 'Sister Bramble', group: 'political',
+    id: 'sisterbramble', name: 'Sister Bramble', group: 'political', species: 'mouse',
     col: 3, row: 11,
     lines: [
       "I was there the night it turned. It wasn't wickedness, it was despair with nowhere left to go. Doesn't make it less frightening.",
@@ -242,7 +259,7 @@ RatLand.NPC_ROSTER = [
       { type: 'hat', style: 'hood', color: '#5a4a58' },
       { type: 'body', style: 'droopy' },
     ],
-    note: 'A church hood (echoing the Church of the Rat God\'s purple, muted down) and a tired, drooping posture — sympathy fatigue, not anger.',
+    note: 'A church hood (echoing the Church of the Rat God\'s purple, muted down) and a tired, drooping posture — sympathy fatigue, not anger. Drawn as a mouse: she volunteers at the Intake Culvert because she has a stake in it, not out of detached charity.',
   },
   {
     id: 'fenwicket', name: 'Fen Wicket', group: 'political',

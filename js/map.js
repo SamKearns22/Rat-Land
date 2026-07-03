@@ -80,10 +80,14 @@ RatLand.buildOverworldMap = function () {
     }
   }
 
-  // Bridges crossing the river.
+  // Bridges crossing the river. Each is three rows deep (not just one) so
+  // there's a lane to step into if someone's standing on the crossing —
+  // NPCs are physically solid, and a single-file bridge would be a dead end.
   RatLand.BRIDGE_ROWS.forEach(function (r3) {
-    for (var c3 = RatLand.RIVER_COL_START; c3 <= RatLand.RIVER_COL_END; c3++) {
-      grid[r3][c3] = TILE.BRIDGE;
+    for (var r4 = r3 - 1; r4 <= r3 + 1; r4++) {
+      for (var c3 = RatLand.RIVER_COL_START; c3 <= RatLand.RIVER_COL_END; c3++) {
+        grid[r4][c3] = TILE.BRIDGE;
+      }
     }
   });
 
