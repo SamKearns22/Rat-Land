@@ -138,6 +138,351 @@ RatLand.drawRat = function (ctx, x, y, size, color, facing) {
   ctx.fill();
 };
 
+// --- NPC sprites: the player rat shape plus procedural accessories -----
+// No new art assets — every NPC is the same body drawn in drawRat, with
+// a fur tone and a short accessory list layered on top. See
+// RatLand.NPC_ROSTER in npc.js for what each character gets and why.
+
+// Body-level treatments alter the rat shape/tone itself before the ears
+// and accessories go on, e.g. patchy fur or a washed-out nostalgic tone.
+function applyBodyTreatment(ctx, cx, cy, r, style, color) {
+  if (style === 'scruffy') {
+    ctx.fillStyle = 'rgba(20, 15, 10, 0.45)';
+    [[-0.35, 0.1, 0.14], [0.3, 0.35, 0.12], [0.05, -0.1, 0.1]].forEach(function (p) {
+      ctx.beginPath();
+      ctx.arc(cx + p[0] * r, cy + p[1] * r, p[2] * r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  } else if (style === 'patched') {
+    ctx.fillStyle = 'rgba(120, 100, 70, 0.55)';
+    ctx.fillRect(cx - r * 0.3, cy + r * 0.05, r * 0.32, r * 0.28);
+  } else if (style === 'hivis' || style === 'wary-light') {
+    ctx.strokeStyle = color || 'rgba(180, 170, 100, 0.6)';
+    ctx.lineWidth = r * 0.18;
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.7, cy - r * 0.05);
+    ctx.lineTo(cx + r * 0.7, cy + r * 0.2);
+    ctx.stroke();
+  } else if (style === 'twitch') {
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx + r * 0.6, cy + r * 0.1);
+    ctx.lineTo(cx + r * 0.85, cy - r * 0.05);
+    ctx.lineTo(cx + r * 0.7, cy + r * 0.15);
+    ctx.lineTo(cx + r * 0.95, cy + r * 0.1);
+    ctx.stroke();
+  } else if (style === 'faded') {
+    ctx.fillStyle = 'rgba(255, 255, 250, 0.25)';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, r * 0.9, r * 0.75, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (style === 'wary') {
+    ctx.fillStyle = 'rgba(10, 8, 6, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, r * 0.9, r * 0.75, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.55, cy - r * 0.55);
+    ctx.lineTo(cx - r * 0.3, cy - r * 0.45);
+    ctx.stroke();
+  } else if (style === 'droopy') {
+    ctx.fillStyle = 'rgba(10, 8, 10, 0.18)';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + r * 0.1, r * 0.85, r * 0.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (style === 'damp' || style === 'damp-light') {
+    var strength = style === 'damp' ? 0.4 : 0.2;
+    ctx.fillStyle = 'rgba(60, 90, 100, ' + strength + ')';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, r * 0.9, r * 0.75, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(120, 160, 180, ' + (strength + 0.15) + ')';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.2, cy + r * 0.7);
+    ctx.lineTo(cx - r * 0.25, cy + r * 0.95);
+    ctx.stroke();
+  }
+}
+
+function drawHat(ctx, cx, cy, r, style, color) {
+  var topY = cy - r * 0.95;
+  if (style === 'bowler') {
+    ctx.fillStyle = color || '#2a2420';
+    ctx.beginPath();
+    ctx.ellipse(cx, topY - r * 0.15, r * 0.48, r * 0.38, 0, Math.PI, 0, true);
+    ctx.fill();
+    ctx.fillRect(cx - r * 0.62, topY, r * 1.24, r * 0.12);
+  } else if (style === 'flatcap') {
+    ctx.fillStyle = color || '#3a3228';
+    ctx.beginPath();
+    ctx.ellipse(cx - r * 0.05, topY, r * 0.55, r * 0.26, -0.1, Math.PI, 0, true);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx + r * 0.42, topY + r * 0.06, r * 0.16, r * 0.08, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (style === 'tin') {
+    ctx.fillStyle = color || '#9a9a90';
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.5, topY + r * 0.12);
+    ctx.lineTo(cx, topY - r * 0.5);
+    ctx.lineTo(cx + r * 0.5, topY + r * 0.12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.15, topY - r * 0.22);
+    ctx.lineTo(cx + r * 0.05, topY + r * 0.05);
+    ctx.stroke();
+  } else if (style === 'hood') {
+    ctx.fillStyle = color || '#5a4a58';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - r * 0.25, r * 0.95, r * 1.05, 0, Math.PI * 1.12, Math.PI * 1.88);
+    ctx.fill();
+  }
+}
+
+function drawEyewear(ctx, cx, cy, r, style) {
+  var ex = cx - r * 0.5, ey = cy - r * 0.6;
+  ctx.strokeStyle = 'rgba(20,20,20,0.85)';
+  ctx.lineWidth = 1.2;
+  if (style === 'monocle') {
+    ctx.beginPath();
+    ctx.arc(ex, ey, r * 0.22, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(ex + r * 0.2, ey + r * 0.15);
+    ctx.lineTo(ex + r * 0.35, ey + r * 0.5);
+    ctx.stroke();
+  } else if (style === 'spectacles') {
+    ctx.beginPath();
+    ctx.arc(ex, ey, r * 0.18, 0, Math.PI * 2);
+    ctx.arc(cx + r * 0.5, ey, r * 0.18, 0, Math.PI * 2);
+    ctx.moveTo(ex + r * 0.18, ey);
+    ctx.lineTo(cx + r * 0.32, ey);
+    ctx.stroke();
+  }
+}
+
+function drawNeckwear(ctx, cx, cy, r, style, color) {
+  ctx.fillStyle = color || '#6a5a4a';
+  if (style === 'scarf') {
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - r * 0.15, r * 0.7, r * 0.22, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (style === 'sash') {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(-0.6);
+    ctx.fillRect(-r * 0.15, -r * 0.9, r * 0.3, r * 1.8);
+    ctx.restore();
+  } else if (style === 'stole') {
+    ctx.beginPath();
+    ctx.ellipse(cx - r * 0.15, cy - r * 0.1, r * 0.75, r * 0.2, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (style === 'apron') {
+    ctx.fillRect(cx - r * 0.35, cy, r * 0.7, r * 0.55);
+  } else if (style === 'shawl') {
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + r * 0.1, r * 0.85, r * 0.5, 0, 0, Math.PI, false);
+    ctx.fill();
+  }
+}
+
+function drawHeldProp(ctx, cx, cy, r, style, color, side) {
+  var px = cx + (side === 2 ? -r * 1.05 : r * 1.05);
+  var py = cy + r * 0.2;
+  ctx.fillStyle = color || '#5a5a50';
+  if (style === 'bag') {
+    ctx.fillRect(px - r * 0.22, py - r * 0.2, r * 0.44, r * 0.4);
+    ctx.strokeStyle = ctx.fillStyle;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(px - r * 0.15, py - r * 0.2);
+    ctx.lineTo(px - r * 0.15, py - r * 0.4);
+    ctx.stroke();
+  } else if (style === 'bundle') {
+    ctx.fillRect(px - r * 0.2, py - r * 0.16, r * 0.4, r * 0.32);
+    ctx.strokeStyle = 'rgba(240,235,220,0.6)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(px - r * 0.2, py);
+    ctx.lineTo(px + r * 0.2, py);
+    ctx.moveTo(px, py - r * 0.16);
+    ctx.lineTo(px, py + r * 0.16);
+    ctx.stroke();
+  } else if (style === 'newspaper') {
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(0.9);
+    ctx.fillRect(-r * 0.12, -r * 0.35, r * 0.24, r * 0.7);
+    ctx.restore();
+  } else if (style === 'cheese') {
+    ctx.beginPath();
+    ctx.moveTo(px - r * 0.2, py + r * 0.18);
+    ctx.lineTo(px + r * 0.2, py + r * 0.18);
+    ctx.lineTo(px, py - r * 0.18);
+    ctx.closePath();
+    ctx.fill();
+  } else if (style === 'dripgauge') {
+    ctx.beginPath();
+    ctx.arc(px, py, r * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(240,235,220,0.7)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(px + r * 0.12, py - r * 0.12);
+    ctx.stroke();
+  } else if (style === 'toolbelt') {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(0.5);
+    ctx.fillRect(-r * 0.12, -r * 0.85, r * 0.24, r * 1.7);
+    ctx.restore();
+    ctx.fillRect(cx + r * 0.15, cy + r * 0.3, r * 0.18, r * 0.18);
+  } else if (style === 'crust') {
+    ctx.beginPath();
+    ctx.ellipse(px, py, r * 0.22, r * 0.14, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawPin(ctx, cx, cy, r, style, color) {
+  var px = cx + r * 0.35, py = cy + r * 0.15;
+  if (style === 'ribbon-proud' || style === 'ribbon-crumpled' || style === 'ribbon-mismatched') {
+    var offsetX = style === 'ribbon-mismatched' ? -r * 0.55 : r * 0.35;
+    ctx.strokeStyle = '#9c8a4a';
+    ctx.lineWidth = r * 0.16;
+    ctx.beginPath();
+    if (style === 'ribbon-crumpled') {
+      ctx.moveTo(cx + offsetX - r * 0.1, cy - r * 0.15);
+      ctx.lineTo(cx + offsetX + r * 0.05, cy);
+      ctx.lineTo(cx + offsetX - r * 0.05, cy + r * 0.1);
+      ctx.lineTo(cx + offsetX + r * 0.1, cy + r * 0.25);
+    } else {
+      ctx.moveTo(cx + offsetX, cy - r * 0.15);
+      ctx.lineTo(cx + offsetX, cy + r * 0.25);
+    }
+    ctx.stroke();
+  } else if (style === 'badge' || style === 'tollcoin') {
+    ctx.fillStyle = color || '#9c8a3a';
+    ctx.beginPath();
+    ctx.arc(px, py, r * 0.14, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (style === 'locket') {
+    ctx.fillStyle = 'rgba(200, 190, 160, 0.8)';
+    ctx.beginPath();
+    ctx.arc(cx, cy + r * 0.1, r * 0.09, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (style === 'leaf') {
+    ctx.fillStyle = '#5c7a3a';
+    ctx.beginPath();
+    ctx.ellipse(cx - r * 0.45, cy - r * 0.75, r * 0.16, r * 0.08, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (style === 'moss') {
+    ctx.fillStyle = '#5c7a3a';
+    [[-0.1, -0.9], [0.08, -0.85], [-0.02, -0.78]].forEach(function (p) {
+      ctx.beginPath();
+      ctx.arc(cx + p[0] * r, cy + p[1] * r, r * 0.1, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  } else if (style === 'bunting') {
+    ctx.fillStyle = '#9c5a4a';
+    for (var i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(cx - r * 0.4 + i * r * 0.3, cy - r * 0.85);
+      ctx.lineTo(cx - r * 0.25 + i * r * 0.3, cy - r * 0.85);
+      ctx.lineTo(cx - r * 0.32 + i * r * 0.3, cy - r * 0.65);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+}
+
+// Draws one NPC from the roster: base rat body (shared with the player),
+// a body-level treatment if any, then hat/eyewear/neckwear/prop/pin
+// accessories layered on top in a sensible order.
+RatLand.drawNpcRat = function (ctx, x, y, size, spec, facing) {
+  if (spec.species === 'mouse') {
+    RatLand.drawMouseNpc(ctx, x, y, size, spec, facing);
+    return;
+  }
+
+  RatLand.drawRat(ctx, x, y, size, spec.color, facing || 'down');
+
+  var cx = x + size / 2, cy = y + size / 2, r = size / 2;
+  var accessories = spec.accessories || [];
+  var propSide = 1;
+
+  accessories.forEach(function (acc) {
+    if (acc.type === 'body') applyBodyTreatment(ctx, cx, cy, r, acc.style, acc.color);
+  });
+  accessories.forEach(function (acc) {
+    if (acc.type === 'neck') drawNeckwear(ctx, cx, cy, r, acc.style, acc.color);
+    if (acc.type === 'hat') drawHat(ctx, cx, cy, r, acc.style, acc.color);
+    if (acc.type === 'eyewear') drawEyewear(ctx, cx, cy, r, acc.style);
+    if (acc.type === 'pin') drawPin(ctx, cx, cy, r, acc.style, acc.color);
+    if (acc.type === 'prop' || acc.type === 'prop2') {
+      drawHeldProp(ctx, cx, cy, r, acc.style, acc.color, propSide);
+      propSide = 2;
+    }
+  });
+};
+
+// The mouse gets a genuinely different silhouette, not just a new color:
+// bigger, more forward ears, a pointed snout, and a smaller frame.
+RatLand.drawMouseNpc = function (ctx, x, y, size, spec, facing) {
+  var cx = x + size / 2, cy = y + size / 2, r = size / 2 * 0.85;
+  var color = spec.color;
+
+  var tailDX = facing === 'left' ? 1 : facing === 'right' ? -1 : 0;
+  var tailDY = facing === 'up' ? 1 : facing === 'down' ? -1 : 0;
+  if (tailDX === 0 && tailDY === 0) tailDY = 1;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + tailDX * r * 1.8, cy + tailDY * r * 1.8);
+  ctx.stroke();
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, r * 0.75, r * 0.62, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Big, forward-set ears — the clearest "mouse, not rat" tell at a glance.
+  ctx.beginPath();
+  ctx.arc(cx - r * 0.42, cy - r * 0.72, r * 0.36, 0, Math.PI * 2);
+  ctx.arc(cx + r * 0.42, cy - r * 0.72, r * 0.36, 0, Math.PI * 2);
+  ctx.fill();
+
+  var snoutX = cx, snoutY = cy;
+  var tipX = cx, tipY = cy;
+  if (facing === 'up') { snoutY -= r * 0.5; tipY -= r * 1.0; }
+  else if (facing === 'down') { snoutY += r * 0.5; tipY += r * 1.0; }
+  else if (facing === 'left') { snoutX -= r * 0.5; tipX -= r * 1.0; }
+  else { snoutX += r * 0.5; tipX += r * 1.0; }
+
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(snoutX - (snoutY === cy ? 0 : r * 0.25), snoutY - (snoutX === cx ? 0 : r * 0.25));
+  ctx.lineTo(snoutX + (snoutY === cy ? 0 : r * 0.25), snoutY + (snoutX === cx ? 0 : r * 0.25));
+  ctx.lineTo(tipX, tipY);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.arc(tipX, tipY, r * 0.1, 0, Math.PI * 2);
+  ctx.fill();
+};
+
 RatLand.render = function (ctx, game, viewW, viewH) {
   ctx.fillStyle = '#111';
   ctx.fillRect(0, 0, viewW, viewH);
