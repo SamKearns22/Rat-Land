@@ -537,10 +537,21 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   RatLand.drawRat(ctx, crierX, crierY, ts, crier.color, 'down');
   RatLand.drawLabel(ctx, crier.name, crierX + ts / 2, crierY - 4);
 
+  // With 31 NPCs, several are deliberately clustered near the same
+  // building — showing every name at once turns into an unreadable pile
+  // of overlapping text. Sprites always render; a name label only joins
+  // in once the player is close enough to plausibly be looking at them.
+  var NPC_LABEL_RADIUS = 2;
+  var playerCol = Math.floor((game.player.x + game.player.size / 2) / ts);
+  var playerRow = Math.floor((game.player.y + game.player.size / 2) / ts);
+
   RatLand.NPC_ROSTER.forEach(function (spec) {
     var nx = spec.col * ts, ny = spec.row * ts;
     RatLand.drawNpcRat(ctx, nx, ny, ts, spec, 'down');
-    RatLand.drawLabel(ctx, spec.name, nx + ts / 2, ny - 4);
+    var dist = Math.max(Math.abs(spec.col - playerCol), Math.abs(spec.row - playerRow));
+    if (dist <= NPC_LABEL_RADIUS) {
+      RatLand.drawLabel(ctx, spec.name, nx + ts / 2, ny - 4);
+    }
   });
 
   RatLand.drawRat(ctx, game.player.x, game.player.y, game.player.size, '#9a9a9a', game.player.facing);
