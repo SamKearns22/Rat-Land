@@ -12,6 +12,7 @@ RatLand.TILE = {
   WALL: 4,
   DOOR: 5,
   PROP: 6,
+  PATH_WORN: 7,
 };
 
 RatLand.TILE_COLORS = {
@@ -22,6 +23,7 @@ RatLand.TILE_COLORS = {
   4: '#242424', // WALL — tunnel brick
   5: '#c9a227', // DOOR — exit
   6: '#5a3a22', // PROP — furniture / fixtures
+  7: '#6b5f4e', // PATH_WORN — grimy, heavily-trodden stone
 };
 
 RatLand.OVERWORLD_COLS = 32;
@@ -88,17 +90,23 @@ RatLand.buildOverworldMap = function () {
   // Walkways connecting every building entrance, radiating outward from
   // Rat Town Hall as the town's central hub. These only ever cross the
   // river at the three bridges — a straight carve never touches water,
-  // since carveH/carveV skip any tile that isn't plain ground.
-  function carveH(row, colA, colB) {
+  // since carveH/carveV only ever pave over ground or an existing path.
+  // A tileType can be passed to lay (or re-lay) a segment as worn/grimy
+  // instead of the default clean stone.
+  function carveH(row, colA, colB, tileType) {
+    var t = tileType || TILE.PATH;
     var lo = Math.min(colA, colB), hi = Math.max(colA, colB);
     for (var c = lo; c <= hi; c++) {
-      if (grid[row][c] === TILE.GROUND) grid[row][c] = TILE.PATH;
+      var cur = grid[row][c];
+      if (cur === TILE.GROUND || cur === TILE.PATH || cur === TILE.PATH_WORN) grid[row][c] = t;
     }
   }
-  function carveV(col, rowA, rowB) {
+  function carveV(col, rowA, rowB, tileType) {
+    var t = tileType || TILE.PATH;
     var lo = Math.min(rowA, rowB), hi = Math.max(rowA, rowB);
     for (var r = lo; r <= hi; r++) {
-      if (grid[r][col] === TILE.GROUND) grid[r][col] = TILE.PATH;
+      var cur = grid[r][col];
+      if (cur === TILE.GROUND || cur === TILE.PATH || cur === TILE.PATH_WORN) grid[r][col] = t;
     }
   }
 
@@ -127,6 +135,19 @@ RatLand.buildOverworldMap = function () {
 
   // Main Street: the middle-bridge crossing, tying the two spines together.
   carveH(RatLand.BRIDGE_ROWS[1], 1, COLS - 2);
+
+  // Civic widening: the roads that lead straight to Town Hall get a second
+  // lane, reflecting its importance. The spine narrows back to a single
+  // lane south of Main Street, on its way out to the quieter Rat Park and
+  // Rat Beach.
+  carveV(7, 3, 11);  // second lane alongside the Town Hall spine
+  carveH(2, 6, 19);  // second lane alongside Town Hall's frontage road
+
+  // Foot traffic: the routes to The Gilded Rat and The Rusty Pipe get worn
+  // down and grimy from heavy use, in contrast to the cleaner stone leading
+  // to the Church and the School.
+  carveH(7, 6, 9, TILE.PATH_WORN);    // approach to The Gilded Rat
+  carveV(20, 12, 19, TILE.PATH_WORN); // approach to The Rusty Pipe
 
   return grid;
 };
