@@ -40,6 +40,41 @@ function overworldFillFor(tile) {
   return RatLand.TILE_COLORS[tile];
 }
 
+function isPathTileType(tile) {
+  return tile === RatLand.TILE.PATH || tile === RatLand.TILE.PATH_WORN;
+}
+
+function tileAt(row, col) {
+  var grid = RatLand.overworldGrid;
+  if (row < 0 || col < 0 || row >= grid.length || col >= grid[0].length) return null;
+  return grid[row][col];
+}
+
+// Paths and the sewer floor use similarly dark, busy textures, so on their
+// own they're hard to tell apart at a glance. A tint keeps clean paths a
+// lighter stone grey and worn paths a darker grime brown — both clearly
+// apart from the mossy ground — and a curb-line stroke along any edge that
+// borders non-path tiles reinforces the road's shape regardless of texture
+// noise underneath.
+function paintPathContrast(ctx, tile, row, col, ts) {
+  var TILE = RatLand.TILE;
+  var worn = tile === TILE.PATH_WORN;
+
+  ctx.fillStyle = worn ? 'rgba(40, 28, 14, 0.5)' : 'rgba(215, 210, 198, 0.32)';
+  ctx.fillRect(col * ts, row * ts, ts, ts);
+
+  ctx.strokeStyle = worn ? 'rgba(18, 12, 6, 0.7)' : 'rgba(240, 235, 220, 0.6)';
+  ctx.lineWidth = 2;
+  var x0 = col * ts, y0 = row * ts;
+
+  ctx.beginPath();
+  if (!isPathTileType(tileAt(row - 1, col))) { ctx.moveTo(x0, y0 + 1); ctx.lineTo(x0 + ts, y0 + 1); }
+  if (!isPathTileType(tileAt(row + 1, col))) { ctx.moveTo(x0, y0 + ts - 1); ctx.lineTo(x0 + ts, y0 + ts - 1); }
+  if (!isPathTileType(tileAt(row, col - 1))) { ctx.moveTo(x0 + 1, y0); ctx.lineTo(x0 + 1, y0 + ts); }
+  if (!isPathTileType(tileAt(row, col + 1))) { ctx.moveTo(x0 + ts - 1, y0); ctx.lineTo(x0 + ts - 1, y0 + ts); }
+  ctx.stroke();
+}
+
 function clamp(v, lo, hi) {
   return Math.max(lo, Math.min(v, hi));
 }
@@ -136,10 +171,8 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
       var tile = RatLand.overworldGrid[row][col];
       ctx.fillStyle = overworldFillFor(tile);
       ctx.fillRect(col * ts, row * ts, ts, ts);
-      // Worn paths keep their grimy tint layered on top of the brick texture.
-      if (tile === TILE.PATH_WORN) {
-        ctx.fillStyle = 'rgba(55, 40, 20, 0.35)';
-        ctx.fillRect(col * ts, row * ts, ts, ts);
+      if (isPathTileType(tile)) {
+        paintPathContrast(ctx, tile, row, col, ts);
       }
     }
   }
