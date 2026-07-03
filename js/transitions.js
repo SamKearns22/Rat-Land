@@ -37,6 +37,7 @@ RatLand.enterInterior = function (game, loc) {
   game.player.facing = 'up';
 
   RatLand.hideDialogue();
+  RatLand.saveGame(game);
 };
 
 RatLand.exitInterior = function (game) {
@@ -48,4 +49,6 @@ RatLand.exitInterior = function (game) {
   game.player.x = tile.col * ts + (ts - game.player.size) / 2;
   game.player.y = tile.row * ts + (ts - game.player.size) / 2;
   game.player.facing = 'down';
+
+  RatLand.saveGame(game);
 };

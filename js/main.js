@@ -8,6 +8,8 @@ window.RatLand = RatLand;
   var dialogueBox = document.getElementById('dialogue-box');
   var dialogueName = document.getElementById('dialogue-name');
   var dialogueText = document.getElementById('dialogue-text');
+  var reputationEl = document.getElementById('reputation');
+  var resetSaveBtn = document.getElementById('reset-save');
 
   RatLand.showDialogue = function (name, text) {
     dialogueName.textContent = name;
@@ -25,8 +27,35 @@ window.RatLand = RatLand;
     returnTile: null,
     player: RatLand.createPlayer(5, 6),
     camera: RatLand.createCamera(),
+    reputation: 0,
+    unlockedMoves: [], // combat comes later; the save format already carries this
   };
   RatLand.game = game;
+
+  function updateReputationDisplay() {
+    if (reputationEl) reputationEl.textContent = 'Reputation: ' + game.reputation;
+  }
+
+  // Load automatically on page open. A missing/corrupt save just leaves
+  // the freshly-created defaults above in place.
+  RatLand.applySaveData(game, RatLand.loadSaveData());
+  updateReputationDisplay();
+
+  if (resetSaveBtn) {
+    resetSaveBtn.addEventListener('click', function () {
+      if (window.confirm('Reset your save? This clears your position, Reputation, and unlocked moves.')) {
+        RatLand.resetSave(game);
+        RatLand.hideDialogue();
+        updateReputationDisplay();
+      }
+    });
+  }
+
+  // Auto-save every 30 seconds, in addition to the transition-triggered
+  // saves in transitions.js.
+  window.setInterval(function () { RatLand.saveGame(game); }, 30000);
+  // Best-effort save if the tab closes between 30-second ticks.
+  window.addEventListener('pagehide', function () { RatLand.saveGame(game); });
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -62,6 +91,7 @@ window.RatLand = RatLand;
     }
 
     RatLand.render(ctx, game, canvas.width, canvas.height);
+    updateReputationDisplay();
 
     requestAnimationFrame(frame);
   }
