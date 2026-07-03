@@ -214,7 +214,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'regcutwater', name: 'Reg Cutwater', group: 'political',
-    col: 13, row: 18,
+    col: 13, row: 17,
     lines: [
       "I've hauled scrap alongside all sorts for thirty years and never said a wrong word. But what happened down the Intake Culvert — that's not on. That's not on at all.",
       "Say what you like about me now. I know what I saw.",
@@ -371,7 +371,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'chalky', name: 'Chalky', group: 'ordinary',
-    col: 21, row: 13,
+    col: 21, row: 14,
     lines: [
       "Against ten rats and a ref who couldn't see past his own whiskers.",
     ],
@@ -469,7 +469,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'allotmentbragger', name: 'The Allotment Bragger', group: 'ordinary',
-    col: 4, row: 16,
+    col: 4, row: 17,
     lines: [
       "My moss patch took Best in Show at the tunnel fair. Third year running.",
       "Secret's compost. Don't let anyone tell you otherwise.",

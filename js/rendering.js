@@ -117,15 +117,22 @@ RatLand.drawRat = function (ctx, x, y, size, color, facing) {
   ctx.lineTo(cx + tailDX * r * 1.6, cy + tailDY * r * 1.6);
   ctx.stroke();
 
-  ctx.fillStyle = color;
   ctx.beginPath();
   ctx.ellipse(cx, cy, r * 0.9, r * 0.75, 0, 0, Math.PI * 2);
+  ctx.fillStyle = color;
   ctx.fill();
+  ctx.strokeStyle = 'rgba(15, 12, 10, 0.85)';
+  ctx.lineWidth = 1.25;
+  ctx.stroke();
 
   ctx.beginPath();
   ctx.arc(cx - r * 0.5, cy - r * 0.6, r * 0.28, 0, Math.PI * 2);
   ctx.arc(cx + r * 0.5, cy - r * 0.6, r * 0.28, 0, Math.PI * 2);
+  ctx.fillStyle = color;
   ctx.fill();
+  ctx.strokeStyle = 'rgba(15, 12, 10, 0.85)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
 
   var snoutX = cx, snoutY = cy;
   if (facing === 'up') snoutY -= r * 0.8;
