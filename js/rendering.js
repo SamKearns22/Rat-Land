@@ -13,9 +13,11 @@ RatLand.createCamera = function () {
 RatLand.assets = {
   mossy: new Image(),
   brick: new Image(),
+  fenwicket: new Image(),
 };
 RatLand.assets.mossy.src = 'assets/tile-mossy-damp.png';
 RatLand.assets.brick.src = 'assets/tile-cracked-brick.png';
+RatLand.assets.fenwicket.src = 'assets/fenwicket-sprite.png';
 
 RatLand._mossyPattern = null;
 RatLand._brickPattern = null;
@@ -445,11 +447,44 @@ function applyAccessories(ctx, cx, cy, r, accessories) {
   });
 }
 
+// Draws a raster-image NPC sprite (currently just Fen Wicket) centered on
+// the tile at its native resolution, which is already sized to match the
+// procedural sprites' body footprint. Same green glow treatment as the
+// code-drawn characters when highlighted.
+function drawImageSprite(ctx, x, y, size, img, highlight) {
+  var w = img.naturalWidth, h = img.naturalHeight;
+  var cx = x + size / 2, cy = y + size / 2;
+  var dx = cx - w / 2, dy = cy - h / 2;
+
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  if (highlight) {
+    ctx.shadowColor = 'rgba(80, 220, 120, 0.9)';
+    ctx.shadowBlur = size * 0.3;
+  }
+  ctx.drawImage(img, dx, dy, w, h);
+  ctx.restore();
+}
+
 // Draws one NPC from the roster: base rat (or mouse) body shared with the
 // player, a body-level treatment if any, then hat/eyewear/neckwear/prop/pin
 // accessories layered on top in a sensible order. `highlight` marks this
 // as the character the player is currently close enough to talk to.
+//
+// If spec.spriteAsset names a loaded RatLand.assets image, that image is
+// drawn instead of the procedural body — used for the one-off hand-picked
+// sprite swap on Fen Wicket. Falls back to the procedural rat while the
+// image is still loading, same graceful-degradation pattern as the tile
+// textures.
 RatLand.drawNpcRat = function (ctx, x, y, size, spec, facing, highlight) {
+  if (spec.spriteAsset) {
+    var img = RatLand.assets[spec.spriteAsset];
+    if (img && img.complete && img.naturalWidth) {
+      drawImageSprite(ctx, x, y, size, img, highlight);
+      return;
+    }
+  }
+
   if (spec.species === 'mouse') {
     RatLand.drawMouseNpc(ctx, x, y, size, spec, facing, highlight);
     return;

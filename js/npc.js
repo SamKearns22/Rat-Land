@@ -262,7 +262,7 @@ RatLand.NPC_ROSTER = [
     note: 'A church hood (echoing the Church of the Rat God\'s purple, muted down) and a tired, drooping posture — sympathy fatigue, not anger. Drawn as a mouse: she volunteers at the Intake Culvert because she has a stake in it, not out of detached charity.',
   },
   {
-    id: 'fenwicket', name: 'Fen Wicket', group: 'political',
+    id: 'fenwicket', name: 'Fen Wicket', group: 'political', spriteAsset: 'fenwicket',
     col: 14, row: 11,
     lines: [
       "They come across on whatever floats. Bottle crates, half a shoe, once a rat came over on what I'm fairly sure was a biscuit tin lid.",
@@ -275,7 +275,7 @@ RatLand.NPC_ROSTER = [
       { type: 'body', style: 'damp' },
       { type: 'pin', style: 'tollcoin', color: '#9c9060' },
     ],
-    note: 'Heavily damp and bedraggled from years at the toll-house watching the river, plus the coin he collects tolls with.',
+    note: 'Now uses a hand-drawn 29x24 sprite (assets/fenwicket-sprite.png, background removed and resized) instead of the procedural rat body -- a tubby, hunched, chip-on-his-shoulder look that fits his "I know why but I don\'t like saying it" weariness. Accessories/body treatments no longer apply since the image is the whole sprite.',
   },
   {
     id: 'dredge', name: 'Dredge', group: 'political',
