@@ -24,15 +24,14 @@ html, body {
   position: fixed;
   top: 8px;
   left: 8px;
-  right: 8px;
   color: #eee;
   background: rgba(0, 0, 0, 0.5);
-  padding: 6px 10px;
+  padding: 6px 12px;
   border-radius: 6px;
-  font-size: 12px;
-  line-height: 1.4;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.03em;
   pointer-events: none;
-  max-width: 480px;
 }
 
 #dialogue-box {
