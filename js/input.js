@@ -57,7 +57,8 @@ RatLand.initTouchControls = function () {
   }
 };
 
-// Talk to the Town Crier when adjacent, otherwise close any open dialogue.
+// Talk to whichever NPC (Town Crier or any of the 31 NPC_ROSTER
+// characters) is adjacent, otherwise close any open dialogue.
 RatLand.onInteractPressed = function () {
   var game = RatLand.game;
   if (!game || game.mode !== 'overworld') return;
@@ -66,8 +67,9 @@ RatLand.onInteractPressed = function () {
   var col = Math.floor((game.player.x + game.player.size / 2) / ts);
   var row = Math.floor((game.player.y + game.player.size / 2) / ts);
 
-  if (RatLand.distanceToCrier(col, row) <= 1) {
-    RatLand.showDialogue(RatLand.townCrier.name, RatLand.getCrierLine());
+  var target = RatLand.findTalkTarget(col, row);
+  if (target) {
+    RatLand.showDialogue(target.name, RatLand.getNpcLine(target));
   } else {
     RatLand.hideDialogue();
   }

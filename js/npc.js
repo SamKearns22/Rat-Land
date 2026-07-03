@@ -17,17 +17,30 @@ RatLand.townCrier = {
   lineIndex: 0,
 };
 
-RatLand.getCrierLine = function () {
-  var crier = RatLand.townCrier;
-  var line = crier.lines[crier.lineIndex];
-  crier.lineIndex = (crier.lineIndex + 1) % crier.lines.length;
+// Cycles an NPC's dialogue one line at a time. Works for the Town Crier
+// and every RatLand.NPC_ROSTER entry alike, since both shapes carry
+// col/row/name/lines/lineIndex.
+RatLand.getNpcLine = function (npc) {
+  var line = npc.lines[npc.lineIndex];
+  npc.lineIndex = (npc.lineIndex + 1) % npc.lines.length;
   return line;
 };
 
-// Chebyshev (tile) distance from the player's current tile to the crier.
-RatLand.distanceToCrier = function (playerCol, playerRow) {
-  var crier = RatLand.townCrier;
-  return Math.max(Math.abs(playerCol - crier.col), Math.abs(playerRow - crier.row));
+// Finds the closest talkable NPC (Town Crier or roster) within one tile
+// (Chebyshev distance) of the player's tile, or null if nobody's close
+// enough. Same adjacency rule the Crier always used.
+RatLand.findTalkTarget = function (playerCol, playerRow) {
+  var candidates = [RatLand.townCrier].concat(RatLand.NPC_ROSTER);
+  var best = null;
+  var bestDist = Infinity;
+  candidates.forEach(function (npc) {
+    var dist = Math.max(Math.abs(npc.col - playerCol), Math.abs(npc.row - playerRow));
+    if (dist <= 1 && dist < bestDist) {
+      best = npc;
+      bestDist = dist;
+    }
+  });
+  return best;
 };
 
 // --- NPC sprite roster --------------------------------------------------
@@ -42,6 +55,13 @@ RatLand.NPC_ROSTER = [
   {
     id: 'nutkin', name: 'Colonel Bartholomew Nutkin', group: 'political',
     col: 6, row: 6,
+    lines: [
+      "We didn't spend twenty years excavating this borough for it to become a thoroughfare, thank you very much.",
+      "I've nothing against the mice personally. Splendid whiskers, some of them. It's a matter of principle.",
+      "A rat who won't defend his own drainpipe is no rat at all. Chin up. Tail straight.",
+      "Twenty years, and the old drainpipe's still standing! Do buff your medals for the parade, there's a good chap.",
+    ],
+    lineIndex: 0,
     color: '#6b4a3a',
     accessories: [
       { type: 'hat', style: 'bowler' },
@@ -53,6 +73,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'gristle', name: 'Gristle', group: 'political',
     col: 19, row: 19,
+    lines: [
+      "Shut the grate, that's what I say. Simple as.",
+      "Every time I try to complain about somethin', someone tells me I'm 'not looking at the bigger picture.' I am. It's smaller than it used to be, is what.",
+      "Nothin' personal. Well. It's a bit personal.",
+    ],
+    lineIndex: 0,
     color: '#4a3a2a',
     accessories: [
       { type: 'hat', style: 'flatcap' },
@@ -63,6 +89,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'marguerite', name: 'Marguerite Thistlewood-Vole', group: 'political',
     col: 8, row: 7,
+    lines: [
+      "One does wonder how some rats sleep at night, frankly, with views like that rattling round such small burrows.",
+      "We ought to be a touch more hospitable, don't you think? It costs nothing to be gracious. Well — it costs a little. But one absorbs it.",
+      "I had the most marvellous mouse caterer for my anniversary do. Divine little vol-au-vents. It's really opened my eyes.",
+    ],
+    lineIndex: 0,
     color: '#8a7a78',
     accessories: [
       { type: 'eyewear', style: 'monocle' },
@@ -73,6 +105,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'pip', name: 'Pip', group: 'political',
     col: 12, row: 10,
+    lines: [
+      "Me mum always said a full sewer's a happy sewer. More whiskers, more warmth, that's what I reckon.",
+      "Dunno about all the fuss, honestly. A rat's a rat. A mouse works just as hard for a crust as the rest of us.",
+    ],
+    lineIndex: 0,
     color: '#8a6a4a',
     accessories: [
       { type: 'body', style: 'patched' },
@@ -83,6 +120,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'drainwatcher', name: 'The Drain-Watcher', group: 'political',
     col: 12, row: 12,
+    lines: [
+      "Separation, unification, whatever — none of it's fixed my leaky pipe, has it.",
+      "They're all up there shouting past each other. I just want the shouting to happen somewhere drier.",
+      "Vote for whoever you like. I'm voting for a nap.",
+    ],
+    lineIndex: 0,
     color: '#7a7a72',
     accessories: [
       { type: 'body', style: 'hivis', color: '#9c9060' },
@@ -92,6 +135,13 @@ RatLand.NPC_ROSTER = [
   {
     id: 'twitchy', name: 'Twitchy Nostrum', group: 'political',
     col: 22, row: 5,
+    lines: [
+      "You don't hear much about who's really running the cheese supply, do you? Funny, that.",
+      "The whole separation debate? Distraction. Someone up top wants us squabbling so we don't look at the U-bend.",
+      "I'm not saying it's the Overground rats. I'm saying nobody's ruled it out.",
+      "Nobody wants to talk about what happened at Grate Nine. I've noticed. I've written it down.",
+    ],
+    lineIndex: 0,
     color: '#7d8266',
     accessories: [
       { type: 'hat', style: 'tin' },
@@ -102,6 +152,13 @@ RatLand.NPC_ROSTER = [
   {
     id: 'nangribble', name: 'Nan Gribble', group: 'political',
     col: 5, row: 9,
+    lines: [
+      "In my day the water ran browner and nobody made a fuss about it.",
+      "We didn't have 'sides.' We had one good tunnel and you were grateful for it.",
+      "Mouse Land, Rat Land — in my day it was just 'the wet bit' and 'the wetter bit.'",
+      "Riots at the Culvert. Shocking, everyone says. I say it's the first shocking thing to happen down there in about six years, which if you ask me is the real shock.",
+    ],
+    lineIndex: 0,
     color: '#9c9488',
     accessories: [
       { type: 'body', style: 'faded' },
@@ -113,6 +170,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'bramwell', name: 'Bramwell', group: 'political',
     col: 15, row: 3,
+    lines: [
+      "Best thing we ever did, drawing that line. Keeps things tidy.",
+      "...My sister crossed over, you know. Mouse Land side. Eleven years this spring. Not that I'm counting.",
+      "Anyway. Tidy. That's the main thing.",
+    ],
+    lineIndex: 0,
     color: '#6a7278',
     accessories: [
       { type: 'pin', style: 'locket' },
@@ -122,6 +185,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'ferdycobb', name: 'Ferdy Cobb', group: 'political',
     col: 12, row: 19,
+    lines: [
+      "It's not about mice, personally, it's about wages. Cheese-hauling work's been split three ways since the crossing opened.",
+      "Man's got to feed his kits. Nothin' fancy about it, whatever the Colonel dresses it up as.",
+    ],
+    lineIndex: 0,
     color: '#5a6068',
     accessories: [
       { type: 'hat', style: 'flatcap' },
@@ -132,6 +200,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'wavering', name: 'The Wavering Rat', group: 'political',
     col: 11, row: 2,
+    lines: [
+      "I go back and forth, don't I. Monday I'm all for the wall. Tuesday I feel dreadful about it.",
+      "Honestly I just nod along with whoever's talking. Saves an argument.",
+      "Twenty years, is it. I keep meaning to have a view on that.",
+    ],
+    lineIndex: 0,
     color: '#8a8a82',
     accessories: [
       { type: 'pin', style: 'ribbon-mismatched' },
@@ -141,6 +215,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'regcutwater', name: 'Reg Cutwater', group: 'political',
     col: 13, row: 18,
+    lines: [
+      "I've hauled scrap alongside all sorts for thirty years and never said a wrong word. But what happened down the Intake Culvert — that's not on. That's not on at all.",
+      "Say what you like about me now. I know what I saw.",
+      "A packed pipe with no way out isn't a shelter, it's a kettle. Somebody should've known that before it went off.",
+    ],
+    lineIndex: 0,
     color: '#6b5240',
     accessories: [
       { type: 'prop', style: 'toolbelt' },
@@ -151,6 +231,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'sisterbramble', name: 'Sister Bramble', group: 'political',
     col: 3, row: 11,
+    lines: [
+      "I was there the night it turned. It wasn't wickedness, it was despair with nowhere left to go. Doesn't make it less frightening.",
+      "We'd had complaints about that Culvert for months. Nobody funded the fix. Now everyone's very interested indeed.",
+      "The Rat God doesn't ask which side of the river you were born on. I try to follow His example, on the days I've got the energy for it.",
+    ],
+    lineIndex: 0,
     color: '#6a5a68',
     accessories: [
       { type: 'hat', style: 'hood', color: '#5a4a58' },
@@ -161,6 +247,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'fenwicket', name: 'Fen Wicket', group: 'political',
     col: 14, row: 11,
+    lines: [
+      "They come across on whatever floats. Bottle crates, half a shoe, once a rat came over on what I'm fairly sure was a biscuit tin lid.",
+      "I've fished three mice out of the current this year. Alive, thank goodness, all three. Doesn't mean the next one goes the same way.",
+      "There's a perfectly good bridge forty yards from where most of them go in. I don't know why they don't use it. I expect I do know, actually. I just don't like saying it.",
+    ],
+    lineIndex: 0,
     color: '#5c6a68',
     accessories: [
       { type: 'body', style: 'damp' },
@@ -171,6 +263,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'dredge', name: 'Dredge', group: 'political',
     col: 16, row: 19,
+    lines: [
+      "Bridge is right there. Toll's four scraps. I paid it. Everyone can pay it.",
+      "Funny how it's always a tragedy right up until someone suggests they use the bridge like the rest of us.",
+      "Not saying send 'em back. Saying there's a queue, and I stood in it, and it wasn't fun for me either.",
+    ],
+    lineIndex: 0,
     color: '#6a5c4a',
     accessories: [
       { type: 'hat', style: 'flatcap' },
@@ -181,6 +279,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'pembertonvole', name: 'Mrs. Pemberton-Vole', group: 'political',
     col: 25, row: 5,
+    lines: [
+      "Well, I shan't name the shop, but there's a cheese emporium by the Shopping District that's sold suspiciously little cheese for a place with quite so many customers.",
+      "They say the same fellow arranges 'crossings' for a fee, if you follow. Dreadful business. I heard it over sherry, obviously, so do take it with a pinch of salt.",
+      "One simply repeats what one hears. It isn't gossip if it's concerning, is it.",
+    ],
+    lineIndex: 0,
     color: '#8a7268',
     accessories: [
       { type: 'eyewear', style: 'monocle' },
@@ -191,6 +295,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'marsh', name: 'Marsh', group: 'political',
     col: 4, row: 2,
+    lines: [
+      "Twenty years! Marvellous. Meanwhile half the town's arguing about a shelter fire and nobody's fixed the Culvert roof.",
+      "Bunting doesn't paper over a crack. Well — it can, actually, if you've got enough bunting. That seems to be the plan.",
+      "Happy anniversary to us. Let's hang some flags and not discuss any of it.",
+    ],
+    lineIndex: 0,
     color: '#5c5c48',
     accessories: [
       { type: 'pin', style: 'ribbon-crumpled' },
@@ -200,6 +310,12 @@ RatLand.NPC_ROSTER = [
   {
     id: 'wetherby', name: 'Wetherby', group: 'political',
     col: 9, row: 2,
+    lines: [
+      "Between us — and I do mean between us — His Worship didn't jump so much as get a firm nudge from his own back benches.",
+      "Some say good riddance, the sewage contracts wanted looking at anyway. Others are furious — say he was hounded out over nothing worse than bad timing.",
+      "I couldn't possibly comment on who leaked the minutes. I will say I typed them, and I know my own typeface.",
+    ],
+    lineIndex: 0,
     color: '#787870',
     accessories: [
       { type: 'eyewear', style: 'spectacles' },
@@ -210,6 +326,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'nettle', name: 'Corporal Nettle', group: 'political',
     col: 24, row: 12,
+    lines: [
+      "Half my unit's rations are going to 'the war effort' now. What war effort. I've never seen a cockroach in my life.",
+      "They say it's solidarity. Feels like a tax with extra steps.",
+    ],
+    lineIndex: 0,
     color: '#6a7052',
     accessories: [
       { type: 'neck', style: 'sash', color: '#4a5a3a' },
@@ -222,6 +343,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'doreen', name: 'Doreen', group: 'ordinary',
     col: 20, row: 5,
+    lines: [
+      "Damp again today. Mind you, it's always damp. I mean proper wet-through damp.",
+      "Saved you the good crusts, love — oh, not you, I meant the fella behind you. But you can have one too.",
+    ],
+    lineIndex: 0,
     color: '#9c7a52',
     accessories: [
       { type: 'neck', style: 'apron', color: '#7a5a3a' },
@@ -232,6 +358,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'sooty', name: 'Sooty', group: 'ordinary',
     col: 22, row: 12,
+    lines: [
+      "Outfall Rovers put four past Sump on Sunday. Four!",
+      "Excuses are the only thing Sump's any good at collecting these days.",
+    ],
+    lineIndex: 0,
     color: '#4a4a46',
     accessories: [
       { type: 'neck', style: 'scarf', color: '#3a3a38' },
@@ -241,6 +372,10 @@ RatLand.NPC_ROSTER = [
   {
     id: 'chalky', name: 'Chalky', group: 'ordinary',
     col: 21, row: 13,
+    lines: [
+      "Against ten rats and a ref who couldn't see past his own whiskers.",
+    ],
+    lineIndex: 0,
     color: '#b8b4a8',
     accessories: [
       { type: 'neck', style: 'scarf', color: '#d8d4c8' },
@@ -250,6 +385,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'oldfenwick', name: 'Old Fenwick', group: 'ordinary',
     col: 25, row: 8,
+    lines: [
+      "Cheddar's up again. At this rate we'll be back to gnawing candle stubs.",
+      "Used to get a whole rind for tuppence. Now they charge you to look at it.",
+    ],
+    lineIndex: 0,
     color: '#9c8868',
     accessories: [
       { type: 'prop', style: 'walkingstick' },
@@ -260,6 +400,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'scrapgrumbler', name: 'The Scrap Grumbler', group: 'ordinary',
     col: 22, row: 8,
+    lines: [
+      "Bottle caps are through the floor. Through the floor! And I've got a whole hoard of the things.",
+      "Man down the shopping district offered me half what he did last spring. Half!",
+    ],
+    lineIndex: 0,
     color: '#8a8a80',
     accessories: [
       { type: 'prop', style: 'bag', color: '#6a6a60' },
@@ -269,6 +414,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'countrysidedreamer', name: 'The Countryside Dreamer', group: 'ordinary',
     col: 5, row: 15,
+    lines: [
+      "Sometimes I dream about grass. Actual grass. Not the mossy sort — the proper green kind, up top.",
+      "They say there's a garden two streets over with real soil. I'm saving my scraps for the trip.",
+    ],
+    lineIndex: 0,
     color: '#7a8268',
     accessories: [
       { type: 'pin', style: 'leaf' },
@@ -278,6 +428,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'weatherA', name: 'Rat A (weather)', group: 'ordinary',
     col: 8, row: 11,
+    lines: [
+      "Damp again.",
+      "You have a drip gauge?",
+    ],
+    lineIndex: 0,
     color: '#8a8a82',
     accessories: [
       { type: 'neck', style: 'scarf', color: '#6a6a5c' },
@@ -287,6 +442,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'weatherB', name: 'Rat B (weather)', group: 'ordinary',
     col: 10, row: 11,
+    lines: [
+      "Extra damp, actually. I checked the drip gauge this morning.",
+      "Everyone should have a drip gauge.",
+    ],
+    lineIndex: 0,
     color: '#8a7c6a',
     accessories: [
       { type: 'prop', style: 'dripgauge', color: '#5a5a52' },
@@ -296,6 +456,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'queuecomplainer', name: 'The Queue Complainer', group: 'ordinary',
     col: 19, row: 3,
+    lines: [
+      "Twenty minutes for a coffee-rind and a nibble. Twenty minutes!",
+      "Whole town's queuing for something these days. Queuing's basically our national pastime.",
+    ],
+    lineIndex: 0,
     color: '#6a7876',
     accessories: [
       { type: 'prop', style: 'bag', color: '#5a6a68' },
@@ -305,6 +470,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'allotmentbragger', name: 'The Allotment Bragger', group: 'ordinary',
     col: 4, row: 16,
+    lines: [
+      "My moss patch took Best in Show at the tunnel fair. Third year running.",
+      "Secret's compost. Don't let anyone tell you otherwise.",
+    ],
+    lineIndex: 0,
     color: '#6a7a5a',
     accessories: [
       { type: 'pin', style: 'moss' },
@@ -314,6 +484,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'paradegossip', name: 'The Parade Gossip', group: 'ordinary',
     col: 6, row: 2,
+    lines: [
+      "Twenty years! Can you believe it. They're doing bunting all down Main Street.",
+      "I heard the Mayor's ordering a whole new sash for the occasion. Velvet, apparently.",
+    ],
+    lineIndex: 0,
     color: '#9c8478',
     accessories: [
       { type: 'pin', style: 'bunting' },
@@ -323,6 +498,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'bindaygrumbler', name: 'The Bin Day Grumbler', group: 'ordinary',
     col: 19, row: 13,
+    lines: [
+      "Scrap collection's moved again. Third time this year. Nobody tells you anything round here.",
+      "I had a perfectly good bottle cap out for collection Tuesday. Still there Friday. Tragic.",
+    ],
+    lineIndex: 0,
     color: '#7c7266',
     accessories: [
       { type: 'prop', style: 'toolbelt', color: '#5a4a3a' },
@@ -334,6 +514,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'kevin', name: 'Kevin', group: 'mouse', species: 'mouse',
     col: 21, row: 3,
+    lines: [
+      "Colonel Nutkin tips his hat to me every morning — right before asking when I'm 'heading back.' Lovely manners. Terrible math. I was born on Culvert Street.",
+      "Doreen saves me the good crusts down the Café. Reckons a mouse who queues properly is alright by her. That's about the whole of it, really.",
+    ],
+    lineIndex: 0,
     color: '#9a92a0',
     accessories: [],
     note: 'Drawn with the separate mouse silhouette (bigger, forward-set ears, pointed snout, smaller frame) in a cool lavender-grey found nowhere in the rat palette — an outsider by design, not just by color.',
