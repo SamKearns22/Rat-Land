@@ -6,6 +6,40 @@ RatLand.createCamera = function () {
   return { x: 0, y: 0 };
 };
 
+// Ground textures: a mossy/damp tile for the sewer floor, and a cracked
+// brick tile for walls and paths. Images load in the background; until
+// they're ready (and if they ever fail), tiles just use their flat
+// TILE_COLORS fallback, so the game never blocks on assets.
+RatLand.assets = {
+  mossy: new Image(),
+  brick: new Image(),
+};
+RatLand.assets.mossy.src = 'assets/tile-mossy-damp.png';
+RatLand.assets.brick.src = 'assets/tile-cracked-brick.png';
+
+RatLand._mossyPattern = null;
+RatLand._brickPattern = null;
+
+function ensureGroundPatterns(ctx) {
+  if (!RatLand._mossyPattern && RatLand.assets.mossy.complete && RatLand.assets.mossy.naturalWidth) {
+    RatLand._mossyPattern = ctx.createPattern(RatLand.assets.mossy, 'repeat');
+  }
+  if (!RatLand._brickPattern && RatLand.assets.brick.complete && RatLand.assets.brick.naturalWidth) {
+    RatLand._brickPattern = ctx.createPattern(RatLand.assets.brick, 'repeat');
+  }
+}
+
+// Which fill to use for a given overworld tile: textured where we have a
+// loaded pattern for it, otherwise its plain TILE_COLORS fallback.
+function overworldFillFor(tile) {
+  var TILE = RatLand.TILE;
+  if (tile === TILE.GROUND && RatLand._mossyPattern) return RatLand._mossyPattern;
+  if ((tile === TILE.WALL || tile === TILE.PATH || tile === TILE.PATH_WORN) && RatLand._brickPattern) {
+    return RatLand._brickPattern;
+  }
+  return RatLand.TILE_COLORS[tile];
+}
+
 function clamp(v, lo, hi) {
   return Math.max(lo, Math.min(v, hi));
 }
@@ -83,39 +117,51 @@ RatLand.render = function (ctx, game, viewW, viewH) {
 RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   var ts = RatLand.TILE_SIZE;
   var cam = game.camera;
+  var TILE = RatLand.TILE;
+
+  ensureGroundPatterns(ctx);
 
   var startCol = Math.max(0, Math.floor(cam.x / ts));
   var endCol = Math.min(RatLand.OVERWORLD_COLS - 1, Math.ceil((cam.x + viewW) / ts));
   var startRow = Math.max(0, Math.floor(cam.y / ts));
   var endRow = Math.min(RatLand.OVERWORLD_ROWS - 1, Math.ceil((cam.y + viewH) / ts));
 
+  // Draw everything in world coordinates so the tiled textures line up
+  // seamlessly as the camera scrolls, instead of swimming per-frame.
+  ctx.save();
+  ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
+
   for (var row = startRow; row <= endRow; row++) {
     for (var col = startCol; col <= endCol; col++) {
       var tile = RatLand.overworldGrid[row][col];
-      ctx.fillStyle = RatLand.TILE_COLORS[tile];
-      ctx.fillRect(Math.round(col * ts - cam.x), Math.round(row * ts - cam.y), ts, ts);
+      ctx.fillStyle = overworldFillFor(tile);
+      ctx.fillRect(col * ts, row * ts, ts, ts);
+      // Worn paths keep their grimy tint layered on top of the brick texture.
+      if (tile === TILE.PATH_WORN) {
+        ctx.fillStyle = 'rgba(55, 40, 20, 0.35)';
+        ctx.fillRect(col * ts, row * ts, ts, ts);
+      }
     }
   }
 
   RatLand.LOCATIONS.forEach(function (loc) {
-    var sx = loc.col * ts - cam.x;
-    var sy = loc.row * ts - cam.y;
-    if (sx < -ts || sy < -ts || sx > viewW || sy > viewH) return;
+    var wx = loc.col * ts, wy = loc.row * ts;
     ctx.fillStyle = loc.color;
-    ctx.fillRect(Math.round(sx), Math.round(sy), ts, ts);
+    ctx.fillRect(wx, wy, ts, ts);
     ctx.strokeStyle = 'rgba(0,0,0,0.55)';
     ctx.lineWidth = 1;
-    ctx.strokeRect(Math.round(sx) + 0.5, Math.round(sy) + 0.5, ts - 1, ts - 1);
-    RatLand.drawLabel(ctx, loc.name, sx + ts / 2, sy - 4);
+    ctx.strokeRect(wx + 0.5, wy + 0.5, ts - 1, ts - 1);
+    RatLand.drawLabel(ctx, loc.name, wx + ts / 2, wy - 4);
   });
 
   var crier = RatLand.townCrier;
-  var crierX = crier.col * ts - cam.x;
-  var crierY = crier.row * ts - cam.y;
+  var crierX = crier.col * ts, crierY = crier.row * ts;
   RatLand.drawRat(ctx, crierX, crierY, ts, crier.color, 'down');
   RatLand.drawLabel(ctx, crier.name, crierX + ts / 2, crierY - 4);
 
-  RatLand.drawRat(ctx, game.player.x - cam.x, game.player.y - cam.y, game.player.size, '#9a9a9a', game.player.facing);
+  RatLand.drawRat(ctx, game.player.x, game.player.y, game.player.size, '#9a9a9a', game.player.facing);
+
+  ctx.restore();
 };
 
 RatLand.renderInterior = function (ctx, game, viewW, viewH) {
