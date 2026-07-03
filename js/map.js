@@ -85,19 +85,48 @@ RatLand.buildOverworldMap = function () {
     }
   });
 
-  // Main Street: a horizontal road through the middle bridge...
-  var mainStreetRow = RatLand.BRIDGE_ROWS[1];
-  for (var c4 = 1; c4 < COLS - 1; c4++) {
-    if (grid[mainStreetRow][c4] === TILE.GROUND) grid[mainStreetRow][c4] = TILE.PATH;
+  // Walkways connecting every building entrance, radiating outward from
+  // Rat Town Hall as the town's central hub. These only ever cross the
+  // river at the three bridges — a straight carve never touches water,
+  // since carveH/carveV skip any tile that isn't plain ground.
+  function carveH(row, colA, colB) {
+    var lo = Math.min(colA, colB), hi = Math.max(colA, colB);
+    for (var c = lo; c <= hi; c++) {
+      if (grid[row][c] === TILE.GROUND) grid[row][c] = TILE.PATH;
+    }
+  }
+  function carveV(col, rowA, rowB) {
+    var lo = Math.min(rowA, rowB), hi = Math.max(rowA, rowB);
+    for (var r = lo; r <= hi; r++) {
+      if (grid[r][col] === TILE.GROUND) grid[r][col] = TILE.PATH;
+    }
   }
 
-  // ...and two north-south spines, one on each riverbank, tying the
-  // neighborhoods together.
-  [6, 24].forEach(function (roadCol) {
-    for (var r5 = 1; r5 < ROWS - 1; r5++) {
-      if (grid[r5][roadCol] === TILE.GROUND) grid[r5][roadCol] = TILE.PATH;
-    }
-  });
+  // West-bank spine, rooted at Town Hall's column (the hub), running the
+  // length of the west bank down to Rat Beach.
+  carveV(6, 3, 20);
+  // Town Hall's own row, running east across the top bridge to Rat Café.
+  carveH(3, 6, 19);
+
+  // Branches off the west spine to each west-bank location.
+  carveH(9, 3, 6);    // Church of the Rat God
+  carveH(7, 6, 9);    // The Gilded Rat
+  carveH(15, 4, 6);   // Rat Park
+  carveH(20, 6, 11);  // Rat Beach
+
+  // Beach connector up to the bottom bridge, then across to the east bank.
+  carveV(11, 19, 20);
+  carveH(19, 11, 20);
+
+  // East-bank spine, running past Rat School and Rat Gymnasium down to
+  // The Rusty Pipe.
+  carveV(20, 4, 19);
+  carveH(4, 19, 20);   // Rat Café
+  carveH(6, 20, 24);   // Rat Shopping District
+  carveH(12, 18, 23);  // Rat School <-> Rat Gymnasium
+
+  // Main Street: the middle-bridge crossing, tying the two spines together.
+  carveH(RatLand.BRIDGE_ROWS[1], 1, COLS - 2);
 
   return grid;
 };
