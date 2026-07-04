@@ -14,7 +14,7 @@ window.RatLand = RatLand;
   // --- Test moveset (§13/§14 — explicitly TEST/THROWAWAY per the design doc) ---
 
   var PLAYER_START = { hp: 20, maxHp: 20, effort: 10, maxEffort: 10 };
-  var FEN_START = { hp: 18, maxHp: 18, effort: 10, maxEffort: 10 };
+  var FEN_START = { hp: 14, maxHp: 14, effort: 10, maxEffort: 10 };
 
   // Damage/heal math shared by every move. `computeDamage` applies Defence
   // first (flat, pre-modifier — §4a), then the Confident reduction for

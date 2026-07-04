@@ -280,7 +280,17 @@ missing dialogue lines — all folded into §4a, §4b, §14.)*
 | | HP | Effort | Effort regen |
 |---|---|---|---|
 | Player | 20 | 10 | +2 / turn |
-| Fen Wicket | 18 | 10 | +2 / turn |
+| Fen Wicket | 14 | 10 | +2 / turn |
+
+Fen's HP was reduced from an earlier value of 18 (see §15) after an
+exhaustive win-path search showed 18 made this tutorial-style first
+fight too much of a grind — the fastest possible win took 18 rounds.
+Below 14 HP, the fight reliably ends before Fen's Defence-stacking
+moves (Drown, on top of Persecution Complex) ever compound, keeping
+the player's damage effective for the whole fight; 14 was the highest
+HP value that still cleared a "well under 15 rounds" target with real
+margin (fastest win: 10 rounds), rather than just barely scraping
+under it.
 
 ## 14. Test Movesets — TEST / THROWAWAY, NOT FINAL
 
@@ -320,6 +330,11 @@ saying it").
 | Feeling — "I just want to understand" | 3 C + 4 Effort | "I just want to understand" | −1 enemy Defence; small self-heal (2) |
 
 ## 15. Internal Playtest: Does Stockpiling Break the Move-Mix Skill Test?
+
+*(This playtest predates the Fen HP 18→14 change in §13/§16 — it ran
+against the older stats. The finding is unaffected: it's about the
+Effort regen-vs-cost ratio, not Fen's HP, so lowering his HP afterward
+doesn't change the conclusion below.)*
 
 **Question asked:** does banking free Rhetoric/Consideration uses to
 stockpile Effort/R/C, then unloading Facts/Feelings back-to-back,
@@ -370,3 +385,55 @@ timing/tactics choice most turn-based games embrace, not a
 throughput exploit — it doesn't let them deal more total damage or
 finish the fight faster than disciplined immediate play, per the
 table above.
+
+## 16. Internal Playtest: Fastest Possible Win (Tutorial Pacing)
+
+**Question asked:** this is meant to be a tutorial-style first fight,
+not a grind — how many rounds does the *fastest possible* skilled win
+actually take, and is that reasonable?
+
+**Method:** an exhaustive search (not a heuristic playthrough) over
+every legal player move at every turn, using Fen's real deterministic
+AI (§11/§14) as the opponent, with iterative deepening to guarantee
+the *shortest* winning sequence is the one reported, not just "a"
+winning sequence. Each candidate sequence was then replayed against
+the actual implemented battle code (not just the search's own model of
+it) to confirm the two agree.
+
+**Finding, round 1 (Persecution Complex at +2 Defence, Fen HP 18):**
+fastest possible win took **40 rounds** — far too long for a tutorial
+fight. Persecution Complex's Defence gain compounding with Drown's own
+Defence gain made the player's basic attacks nearly worthless for most
+of the fight, forcing a long grind of repeated "I just want to
+understand" casts just to keep Fen's Defence in check.
+
+**Finding, round 2 (Persecution Complex reduced to +1 Defence, Fen HP
+still 18):** fastest possible win dropped to **18 rounds** — better,
+but still above a "well under 15 rounds" target.
+
+**Finding, round 3 (Fen HP reduced 18→14, Persecution Complex still
++1):** fastest possible win dropped to **10 rounds**. Comparison of
+single-number changes tested at this stage, all starting from the
+18-round baseline:
+
+| Change | Fastest win |
+|---|---|
+| (baseline) Fen HP 18 | 18 rounds |
+| Fen HP → 16 | 17 rounds |
+| **Fen HP → 14 (adopted)** | **10 rounds** |
+| Fen HP → 12 or 10 | 10 rounds (no further gain) |
+| Player's "Actually" damage 3→5 instead | 11 rounds |
+| Player's "I just want to understand" C-cost 3→2 instead | 14 rounds (barely clears target) |
+
+There's a sharp cliff between Fen HP 16 (17 rounds) and 14 (10 rounds):
+below 14 HP, the fight reliably ends before Fen's Defence-stacking
+moves (Drown, on top of Persecution Complex) ever get a chance to
+compound, so the player's damage stays effective for the whole fight
+instead of getting ground down partway through. Fen's HP was the
+cleanest lever — a pure stat change rather than a move redesign — and
+the only one of the tested options that cleared the target with real
+margin rather than barely scraping under it.
+
+**Adopted: Fen HP 14** (§13). Fastest possible win is now 10 rounds,
+confirmed against the live battle code, not just this search's model
+of it.
