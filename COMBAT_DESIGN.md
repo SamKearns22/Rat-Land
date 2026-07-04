@@ -78,7 +78,7 @@ other modifiers.** Order of operations for incoming damage:
 
 Defence itself is a battle-only modifier, not one of the three
 resource pools in §2 — several Facts/Feelings raise or lower it
-(e.g. "-1 enemy Defence," "+2 Fen Defence"). Whether a given
+(e.g. "-1 enemy Defence," "+1 Fen Defence"). Whether a given
 Defence change persists for the rest of the battle or decays after
 some number of turns isn't specified — flagged in §12.
 
@@ -301,7 +301,7 @@ R amount **+ 3 Effort**; Feelings cost their C amount **+ 4 Effort**
 | Consideration | 0 | "…alright, fair point." | Heals 2 (self), +1 C |
 | Fact — "Council Tax Correction" | 2 R + 3 Effort | "The Church gets more funding than my street does, and everyone knows it." | 3 dmg; −1 enemy Defence |
 | Fact — "Someone's Going to Drown" | 2 R + 3 Effort | "If a mouse drowns crossing that river, that's on whoever let them try." | 3 dmg; +1 Fen Defence |
-| Feeling — "Persecution Complex" (turn 3–4 only) | 3 C + 4 Effort | "Everyone's against blokes like me these days." | Lowers enemy Effort significantly; +2 Fen Defence; the next enemy Fact used against Fen deals bonus damage; **Fen gains Confident for 1 turn** (§4b — note this actually happens on *any* Fen Fact, not just this move) |
+| Feeling — "Persecution Complex" (turn 3–4 only) | 3 C + 4 Effort | "Everyone's against blokes like me these days." | Lowers enemy Effort significantly; +1 Fen Defence; the next enemy Fact used against Fen deals bonus damage; **Fen gains Confident for 1 turn** (§4b — note this actually happens on *any* Fen Fact, not just this move) |
 
 Note on "Persecution Complex": the "next enemy Fact deals bonus
 damage" clause is a real vulnerability, not a typo — Fen's

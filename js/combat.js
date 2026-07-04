@@ -151,7 +151,7 @@ window.RatLand = RatLand;
         // doc calls out: raising his own Defence generally, but leaving
         // himself open to a well-aimed Fact specifically.
         battle[def].effort = Math.max(0, battle[def].effort - 4);
-        battle[atk].defence += 2;
+        battle[atk].defence += 1;
         battle[atk].vulnerableNextFact = true;
       },
     },
