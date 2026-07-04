@@ -480,17 +480,17 @@ RatLand.NPC_ROSTER = [
     // targets both together and cycles the shared exchange in
     // RatLand.NPC_PAIRS.weatherpair rather than her own independent lines.
     id: 'nora', name: 'Nora Sopwell', group: 'ordinary', pairId: 'weatherpair',
-    col: 7, row: 17,
+    col: 21, row: 17, facing: 'right', // faces Barry, across the gap tile between them
     color: '#8a8a82',
     accessories: [
       { type: 'neck', style: 'scarf', color: '#6a6a5c' },
     ],
-    note: 'Plain damp-weather scarf, nothing more — the straight man in the exchange. Placed directly beside Barry Trench so they read as a conversational pair, not two separate rats.',
+    note: 'Plain damp-weather scarf, nothing more — the straight man in the exchange. Placed a tile apart from Barry Trench, facing him, so they read as two rats mid-conversation rather than a single blob standing shoulder to shoulder.',
   },
   {
     // Placeholder name — was "Rat B (weather)". See Nora's note on pairId.
     id: 'barry', name: 'Barry Trench', group: 'ordinary', pairId: 'weatherpair',
-    col: 8, row: 17,
+    col: 23, row: 17, facing: 'left', // faces Nora
     color: '#8a7c6a',
     accessories: [
       { type: 'prop', style: 'dripgauge', color: '#5a5a52' },

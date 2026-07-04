@@ -637,7 +637,7 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   RatLand.drawRat(ctx, crierX, crierY, ts, crier.color, 'down', talkTarget === crier);
   RatLand.drawLabel(ctx, crier.name, crierX + ts / 2, crierY - 4);
 
-  // Linked pairs (e.g. Nora & Barry) stand one tile apart, so their own
+  // Linked pairs (e.g. Nora & Barry) stand close together, so their own
   // name labels would otherwise sit close enough to touch/overlap. Since
   // they're always talked to and highlighted as a single unit anyway, they
   // share one combined label (drawn once, centered between them) instead
@@ -648,7 +648,7 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
     var nx = spec.col * ts, ny = spec.row * ts;
     var highlight = talkTarget === spec ||
       (!!spec.pairId && !!talkTarget && talkTarget.pairId === spec.pairId);
-    RatLand.drawNpcRat(ctx, nx, ny, ts, spec, 'down', highlight);
+    RatLand.drawNpcRat(ctx, nx, ny, ts, spec, spec.facing || 'down', highlight);
     var dist = Math.max(Math.abs(spec.col - playerCol), Math.abs(spec.row - playerRow));
 
     if (spec.pairId) {
