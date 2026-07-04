@@ -12,9 +12,15 @@
 
 <div id="help">Rat Land</div>
 
-<div id="reputation">Reputation: 0</div>
-<button id="reset-save" type="button">Reset Save</button>
-<button id="mute-toggle" type="button" aria-label="Mute sound">🔊</button>
+<!-- Single fixed container for the whole top-right HUD cluster, instead
+     of three independently `position: fixed` elements each hand-computing
+     its own top/right offset -- one source of truth for this corner's
+     position (see style.css for why). -->
+<div id="hud-top-right">
+  <div id="reputation">Reputation: 0</div>
+  <button id="reset-save" type="button">Reset Save</button>
+  <button id="mute-toggle" type="button" aria-label="Mute sound">🔊</button>
+</div>
 
 <div id="dialogue-box">
   <div id="dialogue-name"></div>
@@ -96,10 +102,15 @@
 </div>
 
 <div id="controls">
-  <button id="btn-up" class="pad-btn" aria-label="Move up">&#9650;</button>
-  <button id="btn-left" class="pad-btn" aria-label="Move left">&#9664;</button>
-  <button id="btn-right" class="pad-btn" aria-label="Move right">&#9654;</button>
-  <button id="btn-down" class="pad-btn" aria-label="Move down">&#9660;</button>
+  <!-- D-pad is one fixed+CSS-grid container instead of four independently
+       `position: fixed` buttons each with their own hand-tuned pixel
+       coordinates -- one source of truth for this corner (see style.css). -->
+  <div id="dpad">
+    <button id="btn-up" class="pad-btn" aria-label="Move up">&#9650;</button>
+    <button id="btn-left" class="pad-btn" aria-label="Move left">&#9664;</button>
+    <button id="btn-right" class="pad-btn" aria-label="Move right">&#9654;</button>
+    <button id="btn-down" class="pad-btn" aria-label="Move down">&#9660;</button>
+  </div>
   <button id="btn-interact" class="pad-btn" aria-label="Talk">TALK</button>
 </div>
 

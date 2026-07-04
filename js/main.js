@@ -57,12 +57,36 @@ window.RatLand = RatLand;
   // Best-effort save if the tab closes between 30-second ticks.
   window.addEventListener('pagehide', function () { RatLand.saveGame(game); });
 
+  // Mobile Safari (and some other mobile browsers) can let the *layout*
+  // viewport (window.innerWidth/innerHeight) diverge from the actual
+  // *visible* area -- during pinch-zoom, while the dynamic address-bar/
+  // toolbar is animating, or with an on-screen keyboard open. Sizing the
+  // canvas (and everything anchored to "the viewport") off innerWidth/
+  // innerHeight in that state renders content wider/taller than what's
+  // actually on screen, which reads as edge content being clipped. The
+  // VisualViewport API reports the real visible area when available;
+  // fall back to innerWidth/innerHeight on browsers without it.
+  function viewportSize() {
+    if (window.visualViewport) {
+      return { width: window.visualViewport.width, height: window.visualViewport.height };
+    }
+    return { width: window.innerWidth, height: window.innerHeight };
+  }
+
   function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    var size = viewportSize();
+    canvas.width = size.width;
+    canvas.height = size.height;
   }
   window.addEventListener('resize', resizeCanvas);
   window.addEventListener('orientationchange', resizeCanvas);
+  // window's resize event doesn't reliably fire for every visualViewport
+  // change (e.g. some pinch-zoom or toolbar-collapse cases) -- listen to
+  // visualViewport directly too, when it exists.
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', resizeCanvas);
+    window.visualViewport.addEventListener('scroll', resizeCanvas);
+  }
   resizeCanvas();
 
   RatLand.initKeyboard();

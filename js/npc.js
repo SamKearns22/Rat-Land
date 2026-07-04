@@ -389,9 +389,17 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'barrygutt', name: 'Barry Gutt', group: 'political',
-    // Positioned one tile from the player's spawn (createPlayer(5, 6) in
-    // save.js) so he's one of the very first rats a new player meets.
-    col: 6, row: 6,
+    // Near the player's spawn (createPlayer(5, 6) in save.js) so he's one
+    // of the very first rats a new player meets. col 8 (not 6) specifically
+    // because Nutkin's unusually long name ("Colonel Bartholomew Nutkin")
+    // still collides with Barry's label at only a 2-tile gap -- measured
+    // via the game's actual label font/padding (10px monospace, drawLabel's
+    // +3px box padding in rendering.js): at col 6 the two label boxes
+    // overlap by ~50px; col 8 clears Nutkin's box by ~14px. Same underlying
+    // pattern as the Nora Sopwell/Barry Trench label fix, just needing a
+    // wider gap here since Nutkin's title-heavy name is much longer than
+    // either of theirs.
+    col: 8, row: 6,
     lines: [
       "Yeah, I voted Ratxit. What's it to you?",
       "Mayor made a mess of it, of course. Time to get Terry in. He'll sort it out.",

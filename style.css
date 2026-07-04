@@ -48,10 +48,24 @@ html, body {
   pointer-events: none;
 }
 
-#reputation {
+/* One fixed anchor point for the whole top-right HUD cluster (previously
+   three independently `position: fixed` elements each hand-computing their
+   own top offset to stack below one another -- easy to get subtly
+   inconsistent, and each one is its own chance to get the edge math
+   wrong). Children are plain flow items laid out with flexbox; only this
+   wrapper needs a position/inset calculation at all. */
+#hud-top-right {
   position: fixed;
   top: calc(8px + env(safe-area-inset-top, 0px));
   right: calc(8px + env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: calc(100vw - 16px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+}
+
+#reputation {
   color: rgba(230, 230, 220, 0.75);
   background: rgba(0, 0, 0, 0.4);
   padding: 4px 10px;
@@ -62,9 +76,6 @@ html, body {
 }
 
 #reset-save {
-  position: fixed;
-  top: calc(34px + env(safe-area-inset-top, 0px));
-  right: calc(8px + env(safe-area-inset-right, 0px));
   color: rgba(220, 210, 190, 0.55);
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -79,9 +90,6 @@ html, body {
 }
 
 #mute-toggle {
-  position: fixed;
-  top: calc(60px + env(safe-area-inset-top, 0px));
-  right: calc(8px + env(safe-area-inset-right, 0px));
   color: rgba(220, 210, 190, 0.7);
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -148,16 +156,39 @@ html, body {
   pointer-events: none;
 }
 
-.pad-btn {
+/* D-pad is one fixed anchor + a 3x3 CSS grid, not four independently
+   `position: fixed` buttons each with their own hand-tuned left/bottom
+   pixel pair (previously easy to nudge one arrow without the others,
+   and the actual source of the "sits slightly off-screen" report --
+   four separate offset calculations is four separate chances to get the
+   edge math wrong). The classic plus/cross D-pad shape falls out of grid
+   placement alone; --pad-size is the one number that controls it. */
+#dpad {
+  --pad-size: 48px;
   position: fixed;
-  width: 56px;
-  height: 56px;
+  left: calc(8px + env(safe-area-inset-left, 0px));
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  display: grid;
+  grid-template-columns: repeat(3, var(--pad-size));
+  grid-template-rows: repeat(3, var(--pad-size));
+  gap: 6px;
+}
+
+#btn-up    { grid-column: 2; grid-row: 1; }
+#btn-left  { grid-column: 1; grid-row: 2; }
+#btn-right { grid-column: 3; grid-row: 2; }
+#btn-down  { grid-column: 2; grid-row: 3; }
+
+.pad-btn {
+  width: 48px;
+  height: 48px;
+  box-sizing: border-box;
   border-radius: 50%;
   background: rgba(240, 240, 240, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.35);
   color: #fff;
-  font-size: 22px;
-  line-height: 56px;
+  font-size: 20px;
+  line-height: 46px;
   text-align: center;
   pointer-events: auto;
   touch-action: none;
@@ -169,18 +200,14 @@ html, body {
   background: rgba(240, 240, 240, 0.4);
 }
 
-#btn-up    { left: calc(68px + env(safe-area-inset-left, 0px));  bottom: calc(148px + env(safe-area-inset-bottom, 0px)); }
-#btn-down  { left: calc(68px + env(safe-area-inset-left, 0px));  bottom: calc(76px + env(safe-area-inset-bottom, 0px));  }
-#btn-left  { left: calc(8px + env(safe-area-inset-left, 0px));   bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
-#btn-right { left: calc(128px + env(safe-area-inset-left, 0px)); bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
-
 #btn-interact {
-  right: calc(24px + env(safe-area-inset-right, 0px));
-  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-  width: 68px;
-  height: 68px;
-  line-height: 68px;
-  font-size: 14px;
+  position: fixed;
+  right: calc(20px + env(safe-area-inset-right, 0px));
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  width: 58px;
+  height: 58px;
+  line-height: 56px;
+  font-size: 13px;
   border-radius: 50%;
   background: rgba(201, 162, 39, 0.35);
   border: 1px solid rgba(201, 162, 39, 0.8);
