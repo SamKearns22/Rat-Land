@@ -263,6 +263,10 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'fenwicket', name: 'Fen Wicket', group: 'political', spriteAsset: 'fenwicket',
+    // Combat test dummy (see COMBAT_DESIGN.md). `talkFightMode: 'independent'`
+    // means his Talk and Fight options never affect each other — this is
+    // his own per-NPC setting, not a hardcoded rule for every fightable NPC.
+    fightable: true, talkFightMode: 'independent',
     col: 14, row: 11,
     lines: [
       "They come across on whatever floats. Bottle crates, half a shoe, once a rat came over on what I'm fairly sure was a biscuit tin lid.",

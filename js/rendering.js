@@ -571,10 +571,13 @@ RatLand.render = function (ctx, game, viewW, viewH) {
   ctx.fillStyle = '#111';
   ctx.fillRect(0, 0, viewW, viewH);
 
-  if (game.mode === 'overworld') {
-    RatLand.renderOverworld(ctx, game, viewW, viewH);
-  } else {
+  // The pre-battle menu and battle screen (js/combat.js) are DOM overlays
+  // on top of a frozen overworld frame, not a distinct canvas view, so
+  // they render the same as 'overworld' here.
+  if (game.mode === 'interior') {
     RatLand.renderInterior(ctx, game, viewW, viewH);
+  } else {
+    RatLand.renderOverworld(ctx, game, viewW, viewH);
   }
 };
 

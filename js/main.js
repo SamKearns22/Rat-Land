@@ -67,6 +67,7 @@ window.RatLand = RatLand;
 
   RatLand.initKeyboard();
   RatLand.initTouchControls();
+  RatLand.initBattleUI();
 
   var lastTime = null;
 
@@ -75,19 +76,24 @@ window.RatLand = RatLand;
     var dt = Math.min(0.05, (timestamp - lastTime) / 1000); // clamp to avoid big jumps on tab switch
     lastTime = timestamp;
 
-    var isSolidFn;
-    if (game.mode === 'overworld') {
-      isSolidFn = RatLand.isOverworldBlocked;
-    } else {
-      var interior = RatLand.INTERIORS[game.currentInteriorId];
-      isSolidFn = function (col, row) { return RatLand.isSolidInteriorTile(interior, col, row); };
-    }
+    // The pre-battle menu and the battle itself freeze the overworld
+    // underneath (COMBAT_DESIGN.md §8/§10) — no player movement, no
+    // transitions, no camera follow, while either is open.
+    if (game.mode === 'overworld' || game.mode === 'interior') {
+      var isSolidFn;
+      if (game.mode === 'overworld') {
+        isSolidFn = RatLand.isOverworldBlocked;
+      } else {
+        var interior = RatLand.INTERIORS[game.currentInteriorId];
+        isSolidFn = function (col, row) { return RatLand.isSolidInteriorTile(interior, col, row); };
+      }
 
-    RatLand.updatePlayer(game.player, RatLand.input, dt, isSolidFn);
-    RatLand.checkTransitions(game);
+      RatLand.updatePlayer(game.player, RatLand.input, dt, isSolidFn);
+      RatLand.checkTransitions(game);
 
-    if (game.mode === 'overworld') {
-      RatLand.updateCamera(game.camera, game.player, canvas.width, canvas.height);
+      if (game.mode === 'overworld') {
+        RatLand.updateCamera(game.camera, game.player, canvas.width, canvas.height);
+      }
     }
 
     RatLand.render(ctx, game, canvas.width, canvas.height);

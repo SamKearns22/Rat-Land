@@ -20,6 +20,30 @@
   <div id="dialogue-text"></div>
 </div>
 
+<div id="prebattle-menu" class="overlay-menu">
+  <div id="prebattle-name" class="overlay-title"></div>
+  <button id="prebattle-talk" class="overlay-btn" type="button">Talk</button>
+  <button id="prebattle-fight" class="overlay-btn" type="button">Fight</button>
+  <button id="prebattle-walk" class="overlay-btn" type="button">Walk Away</button>
+</div>
+
+<div id="battle-screen" class="overlay-menu">
+  <div id="battle-title" class="overlay-title"></div>
+  <div id="battle-stats">
+    <div id="battle-stats-player"></div>
+    <div id="battle-stats-enemy"></div>
+  </div>
+  <div id="battle-log"></div>
+  <div id="battle-result"></div>
+  <div id="battle-moves">
+    <button id="battle-move-0" class="overlay-btn move-btn" type="button"></button>
+    <button id="battle-move-1" class="overlay-btn move-btn" type="button"></button>
+    <button id="battle-move-2" class="overlay-btn move-btn" type="button"></button>
+    <button id="battle-move-3" class="overlay-btn move-btn" type="button"></button>
+  </div>
+  <button id="battle-continue" class="overlay-btn" type="button">Continue</button>
+</div>
+
 <div id="controls">
   <button id="btn-up" class="pad-btn" aria-label="Move up">&#9650;</button>
   <button id="btn-left" class="pad-btn" aria-label="Move left">&#9664;</button>
@@ -35,6 +59,7 @@
 <script src="js/transitions.js"></script>
 <script src="js/input.js"></script>
 <script src="js/save.js"></script>
+<script src="js/combat.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
