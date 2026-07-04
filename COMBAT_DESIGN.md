@@ -17,6 +17,47 @@ emotional appeal. The thematic point (see §5) is that out-shouting or
 out-soothing someone isn't a real win — landing both a Fact and a
 Feeling is what actually convinces anyone.
 
+## 1a. Standing Progression & Moveset Design Rules
+
+Documentation only — no implementation yet. These are **standing
+constraints on all future fight and move design** across the planned
+15-fight arc (including the 4 bosses within it), not a one-off note
+about Fen Wicket. Any new fight, move, or enemy added later must be
+checked against both rules below before it's considered done.
+
+**Progression rule.** Each new move/skill the player unlocks from
+defeating an opponent must be the key mechanic needed to solve the
+*next* fight in the sequence — not a nice-to-have, the actual answer
+to that fight's specific challenge. Difficulty rises across the
+15-fight arc through three levers together, not just raw numbers:
+- more aggressive enemy movesets (more moves in rotation, more
+  frequent/earlier use of their strongest options),
+- stronger move potency (bigger numbers on both sides — damage,
+  healing, Defence, meter costs), and
+- more advanced move/status combinations required to win (later
+  fights ask the player to sequence and combine tools, not just spam
+  whichever move currently hits hardest).
+
+**Player moveset rule.** The player's moveset must grow over the
+course of the 15-fight arc — later fights add new moves rather than
+replacing earlier ones. Two things must both hold at every point in
+that growth:
+- **No obsolescence:** every previously-unlocked move stays viable in
+  later fights. A move earned from fight 2 should still have a real
+  reason to be pressed by fight 14, even if it's no longer the star.
+- **No power creep:** no move should become overpowered relative to
+  the others in the player's kit. A newer, flashier move must not
+  strictly dominate an older one across the board — each move keeps
+  its own niche (cost, condition, or combo it's best suited for)
+  rather than the moveset collapsing into "always use the newest one."
+
+Fen Wicket (§13–§21) is the test dummy for the underlying engine
+mechanics, not an example of the full 15-fight arc's balance — it's a
+single fight, so the progression rule (which is inherently about the
+*sequence* of fights) doesn't yet have anything to apply to. Both
+rules above take effect starting with whatever content actually builds
+out that sequence.
+
 ## 2. Resource Pools
 
 Three pools, tracked per combatant:
