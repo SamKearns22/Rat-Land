@@ -205,26 +205,91 @@ html, body {
   background: rgba(255, 255, 255, 0.05);
 }
 
-#battle-stats {
-  font-size: 12px;
-  line-height: 1.6;
+/* Combatant panels: opponent on top, player on the bottom-opposite corner,
+   the same top/bottom split classic Pokémon battle screens use. */
+.combatant-panel {
+  border-radius: 8px;
+  padding: 8px 10px;
   margin-bottom: 8px;
-  white-space: pre-line;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-#battle-stats-player {
-  color: #cfe8d8;
+.combatant-enemy {
+  border-left: 3px solid #d98a8a;
+  margin-right: 15%;
 }
 
-#battle-stats-enemy {
-  color: #e8cfcf;
+.combatant-player {
+  border-right: 3px solid #8ad9a8;
+  margin-left: 15%;
+  text-align: right;
 }
+
+.combatant-name {
+  font-weight: bold;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.combatant-enemy .combatant-name { color: #e8b8b8; }
+.combatant-player .combatant-name { color: #b8e8cc; }
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  margin-bottom: 3px;
+}
+
+.combatant-player .bar-row {
+  flex-direction: row-reverse;
+}
+
+.bar-label {
+  width: 20px;
+  flex: none;
+  opacity: 0.75;
+}
+
+.bar-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.15s ease;
+}
+
+.bar-fill-hp { background: #5fbf6a; }
+.bar-fill-hp.bar-low { background: #d9534f; }
+.bar-fill-effort { background: #4f83c9; }
+
+.bar-value {
+  flex: none;
+  width: 52px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.combatant-player .bar-value { text-align: left; }
+.combatant-enemy .bar-value { text-align: right; }
 
 .status-icons {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
-  margin: 2px 0 6px;
+  margin: 4px 0 0;
+}
+
+.combatant-player .status-icons {
+  justify-content: flex-end;
 }
 
 .status-icons:empty {
@@ -244,6 +309,13 @@ html, body {
 
 .status-icon:active {
   background: rgba(255, 255, 255, 0.28);
+}
+
+/* Inactive icons (R/C at 0, no Defence, not Confident) stay visible per
+   COMBAT_DESIGN.md §9 -- always present, just visually muted -- rather
+   than appearing/disappearing, so the tap targets never move around. */
+.status-icon.icon-inactive {
+  opacity: 0.4;
 }
 
 #battle-icon-explain {
@@ -270,7 +342,7 @@ html, body {
   border-radius: 6px;
   padding: 8px;
   margin-bottom: 10px;
-  max-height: 26vh;
+  max-height: 18vh;
   overflow-y: auto;
   white-space: pre-line;
 }
@@ -284,6 +356,48 @@ html, body {
 
 #battle-result:empty {
   margin-bottom: 0;
+}
+
+/* Move description: shows the highlighted/selected move's plain-text
+   effect above the grid, before the player confirms it. */
+#battle-move-desc {
+  font-size: 12px;
+  color: #cfe0f4;
+  background: rgba(79, 131, 201, 0.14);
+  border: 1px solid rgba(79, 131, 201, 0.4);
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  min-height: 1em;
+}
+
+#battle-move-desc:empty {
+  display: none;
+  padding: 0;
+  margin: 0;
+  border: none;
+  min-height: 0;
+}
+
+.move-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.move-grid .move-btn {
+  margin: 0;
+}
+
+.move-btn.move-selected {
+  background: rgba(201, 162, 39, 0.4);
+  border-color: #f4d060;
+}
+
+#battle-confirm-move {
+  display: none;
+  background: rgba(95, 191, 106, 0.2);
+  border-color: rgba(95, 191, 106, 0.8);
 }
 
 #battle-continue {

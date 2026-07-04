@@ -27,23 +27,53 @@
   <button id="prebattle-walk" class="overlay-btn" type="button">Walk Away</button>
 </div>
 
-<div id="battle-screen" class="overlay-menu">
+<div id="battle-screen" class="overlay-menu battle-screen">
   <div id="battle-title" class="overlay-title"></div>
-  <div id="battle-stats">
-    <div id="battle-stats-player"></div>
-    <div id="battle-icons-player" class="status-icons"></div>
-    <div id="battle-stats-enemy"></div>
+
+  <!-- Opponent panel: top, per classic Pokémon-style layout. -->
+  <div class="combatant-panel combatant-enemy" id="battle-panel-enemy">
+    <div class="combatant-name" id="battle-name-enemy"></div>
+    <div class="bar-row">
+      <span class="bar-label">HP</span>
+      <div class="bar-track"><div class="bar-fill bar-fill-hp" id="battle-hp-fill-enemy"></div></div>
+      <span class="bar-value" id="battle-hp-text-enemy"></span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-label">EF</span>
+      <div class="bar-track"><div class="bar-fill bar-fill-effort" id="battle-effort-fill-enemy"></div></div>
+      <span class="bar-value" id="battle-effort-text-enemy"></span>
+    </div>
     <div id="battle-icons-enemy" class="status-icons"></div>
   </div>
+
+  <!-- Player panel: bottom-opposite corner from the opponent. -->
+  <div class="combatant-panel combatant-player" id="battle-panel-player">
+    <div class="combatant-name">You</div>
+    <div class="bar-row">
+      <span class="bar-label">HP</span>
+      <div class="bar-track"><div class="bar-fill bar-fill-hp" id="battle-hp-fill-player"></div></div>
+      <span class="bar-value" id="battle-hp-text-player"></span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-label">EF</span>
+      <div class="bar-track"><div class="bar-fill bar-fill-effort" id="battle-effort-fill-player"></div></div>
+      <span class="bar-value" id="battle-effort-text-player"></span>
+    </div>
+    <div id="battle-icons-player" class="status-icons"></div>
+  </div>
+
   <div id="battle-icon-explain"></div>
   <div id="battle-log"></div>
   <div id="battle-result"></div>
-  <div id="battle-moves">
+
+  <div id="battle-move-desc"></div>
+  <div id="battle-moves" class="move-grid">
     <button id="battle-move-0" class="overlay-btn move-btn" type="button"></button>
     <button id="battle-move-1" class="overlay-btn move-btn" type="button"></button>
     <button id="battle-move-2" class="overlay-btn move-btn" type="button"></button>
     <button id="battle-move-3" class="overlay-btn move-btn" type="button"></button>
   </div>
+  <button id="battle-confirm-move" class="overlay-btn" type="button">Use Move</button>
   <button id="battle-continue" class="overlay-btn" type="button">Continue</button>
 </div>
 

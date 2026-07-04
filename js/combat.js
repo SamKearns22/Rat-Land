@@ -2,10 +2,14 @@
 // Implements COMBAT_DESIGN.md: pre-battle Talk/Fight/Walk Away menu (§8),
 // enemy-first turn order (§3), Rhetoric/Consideration/Facts/Feelings (§4),
 // Defence (§4a), Confident (§4b), the Fact+Feeling win condition with a
-// soft HP floor (§5), the no-penalty loss state (§6), and Reputation-on-win
-// via the existing save system (§7). Text-only UI: plain DOM panels, no
-// battle-transition animation and no status icons yet (§9/§10 are future
-// work — see the report accompanying this change for what was deferred).
+// soft HP floor (§5), the no-penalty loss state (§6), Reputation-on-win via
+// the existing save system (§7), and a Pokémon-style battle screen layout
+// (§9/§10): opponent panel on top, player panel on the bottom-opposite
+// corner, HP/Effort bars, always-visible R/C/Defence/Confident status
+// icons (text/symbol only, tap for a plain-text explanation), and a 2x2
+// move grid with a select-then-confirm flow that previews a move's
+// plain-text description before it's used. Still no battle-transition
+// animation (§10) and no illustrated sprite art — DOM panels only.
 var RatLand = window.RatLand || {};
 window.RatLand = RatLand;
 
@@ -74,10 +78,16 @@ window.RatLand = RatLand;
     c[meter] = Math.min(METER_CAP, c[meter] + amount);
   }
 
+  // Ordered [Rhetoric, Actually, Consideration, Understand] rather than by
+  // introduction order, so the 2x2 move grid pairs each basic move with the
+  // special it fuels: top row is the damage track (Rhetoric feeds R, which
+  // Actually spends), bottom row is the sustain track (Consideration feeds
+  // C, which Understand spends).
   var PLAYER_MOVES = [
     {
       id: 'rhetoric', label: 'Rhetoric', type: 'basic', cost: null,
       dialogue: 'I just think… we should hear them out?',
+      description: 'Deals small damage and gives you 1 R.',
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 2, this);
         applyDamage(battle, atk, def, dmg);
@@ -85,26 +95,29 @@ window.RatLand = RatLand;
       },
     },
     {
-      id: 'consideration', label: 'Consideration', type: 'basic', cost: null,
-      dialogue: 'Okay. Let me think about that.',
-      effect: function (battle, atk, def) {
-        heal(battle, atk, 2);
-        gainMeter(battle, atk, 'c', 1);
-      },
-    },
-    {
       id: 'actually', label: 'Fact: "Actually…"', type: 'fact',
       cost: { meter: 'r', amount: 2, effort: 3 },
       dialogue: 'Actually…',
+      description: 'Bigger damage. Costs R + Effort. Deals half damage against a Confident opponent.',
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 3, this);
         applyDamage(battle, atk, def, dmg);
       },
     },
     {
+      id: 'consideration', label: 'Consideration', type: 'basic', cost: null,
+      dialogue: 'Okay. Let me think about that.',
+      description: 'Heals yourself a little and gives you 1 C.',
+      effect: function (battle, atk, def) {
+        heal(battle, atk, 2);
+        gainMeter(battle, atk, 'c', 1);
+      },
+    },
+    {
       id: 'understand', label: 'Feeling: "I just want to understand"', type: 'feeling',
       cost: { meter: 'c', amount: 3, effort: 4 },
       dialogue: 'I just want to understand',
+      description: 'Heals yourself a little and lowers the opponent’s Defence by 1. Costs C + Effort.',
       effect: function (battle, atk, def) {
         battle[def].defence = Math.max(0, battle[def].defence - 1);
         heal(battle, atk, 2);
@@ -312,6 +325,7 @@ window.RatLand = RatLand;
       log: [],
       player: freshCombatant(PLAYER_START),
       enemy: freshCombatant(FEN_START),
+      selectedMoveId: null, // UI-only: highlighted move awaiting confirmation
     };
     game.battle = battle;
     game.mode = 'battle';
@@ -320,10 +334,37 @@ window.RatLand = RatLand;
     if (screen) screen.classList.add('visible');
     var titleEl = document.getElementById('battle-title');
     if (titleEl) titleEl.textContent = 'Debate: You vs. ' + npc.name;
+    var enemyNameEl = document.getElementById('battle-name-enemy');
+    if (enemyNameEl) enemyNameEl.textContent = npc.name;
 
     runEnemyTurn(battle);
     RatLand.renderBattleUI(game);
     if (battle.outcome) endBattle(game);
+  };
+
+  // Highlights a move without executing it, showing its plain-text
+  // description above the grid (per this task's request) so the player can
+  // review before confirming. A second tap on the "Use Move" button (or
+  // tapping the same already-selected move again) actually executes it.
+  RatLand.selectMove = function (game, moveId) {
+    var battle = game.battle;
+    if (!battle || battle.outcome) return;
+    var move = PLAYER_MOVES_BY_ID[moveId];
+    if (!move || !canAfford(battle, 'player', move)) return;
+    if (battle.selectedMoveId === moveId) {
+      RatLand.confirmSelectedMove(game);
+      return;
+    }
+    battle.selectedMoveId = moveId;
+    RatLand.renderBattleUI(game);
+  };
+
+  RatLand.confirmSelectedMove = function (game) {
+    var battle = game.battle;
+    if (!battle || battle.outcome || !battle.selectedMoveId) return;
+    var moveId = battle.selectedMoveId;
+    battle.selectedMoveId = null;
+    RatLand.playerUseMove(game, moveId);
   };
 
   RatLand.playerUseMove = function (game, moveId) {
@@ -332,6 +373,7 @@ window.RatLand = RatLand;
     var move = PLAYER_MOVES_BY_ID[moveId];
     if (!move || !canAfford(battle, 'player', move)) return;
 
+    battle.selectedMoveId = null;
     useMove(battle, 'player', 'enemy', move);
     if (!battle.outcome) {
       upkeep(battle);
@@ -360,6 +402,10 @@ window.RatLand = RatLand;
     if (resultEl) resultEl.textContent = '';
     var continueBtn = document.getElementById('battle-continue');
     if (continueBtn) continueBtn.style.display = 'none';
+    var confirmBtn = document.getElementById('battle-confirm-move');
+    if (confirmBtn) confirmBtn.style.display = 'none';
+    var moveDescEl = document.getElementById('battle-move-desc');
+    if (moveDescEl) moveDescEl.textContent = '';
     var iconExplainEl = document.getElementById('battle-icon-explain');
     if (iconExplainEl) iconExplainEl.textContent = '';
     var playerIcons = document.getElementById('battle-icons-player');
@@ -368,54 +414,56 @@ window.RatLand = RatLand;
     if (enemyIcons) enemyIcons.innerHTML = '';
   };
 
-  // --- UI rendering (text-only, per this task's scope) ---------------------
+  // --- UI rendering: Pokémon-style top (opponent) / bottom (player) panels,
+  // text/symbol-only status icons, and a 2x2 move grid. ---------------------
 
-  function formatCombatant(name, c) {
-    var tags = c.confidentTurns > 0 ? ' [Confident]' : '';
-    return name + ' — HP ' + c.hp + '/' + c.maxHp + '  Effort ' + c.effort + '/' + c.maxEffort +
-      '  R:' + c.r + ' C:' + c.c + '  Defence ' + c.defence + tags;
+  function renderBar(fillEl, textEl, current, max, lowClass) {
+    if (fillEl) {
+      var pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
+      fillEl.style.width = pct + '%';
+      if (lowClass) fillEl.classList.toggle('bar-low', current <= max * 0.25);
+    }
+    if (textEl) textEl.textContent = current + '/' + max;
   }
 
-  // Status icons (§9): text/symbol only, no illustrated art. One icon per
-  // active resource/status on a combatant, each carrying its own
-  // tap-to-reveal explanation (mobile has no hover state). An icon only
-  // shows up while its condition is actually true, so e.g. Defence
-  // disappears again once it's back to 0.
+  // Status icons (§9): text/symbol only, no illustrated art. R, C, Defence,
+  // and Confident are always shown for both combatants — never appearing
+  // or disappearing — so their tap targets stay in a fixed, predictable
+  // spot; an icon just looks muted (`icon-inactive`) when its value/status
+  // isn't currently doing anything.
   function buildStatusIcons(name, c) {
     var isPlayer = name === 'You';
     var possessive = isPlayer ? 'Your' : name + '’s';
     var subjectIs = isPlayer ? 'You are' : name + ' is';
-    var icons = [];
-    if (c.r > 0) {
-      icons.push({
-        symbol: '👄', badge: c.r, // mouth — Rhetoric build-up
-        explain: possessive + ' R (Rhetoric build-up): ' + c.r + '. Builds by 1 each time ' +
-          'Rhetoric is used; a Fact spends some of it to cast.',
-      });
-    }
-    if (c.c > 0) {
-      icons.push({
-        symbol: '🧠', badge: c.c, // brain — Consideration build-up
-        explain: possessive + ' C (Consideration build-up): ' + c.c + '. Builds by 1 each time ' +
-          'Consideration is used; a Feeling spends some of it to cast.',
-      });
-    }
-    if (c.defence !== 0) {
-      icons.push({
-        symbol: '🛡️', badge: (c.defence > 0 ? '+' : '') + c.defence, // shield + signed number
+    var confidentActive = c.confidentTurns > 0;
+    var defenceActive = c.defence !== 0;
+
+    return [
+      {
+        symbol: '👄', badge: c.r, active: c.r > 0, // mouth — Rhetoric build-up
+        explain: possessive + ' R (Rhetoric build-up): ' + c.r + '/10. Builds by 1 each time ' +
+          'Rhetoric is used (capped at 10); a Fact spends some of it to cast.',
+      },
+      {
+        symbol: '🧠', badge: c.c, active: c.c > 0, // brain — Consideration build-up
+        explain: possessive + ' C (Consideration build-up): ' + c.c + '/10. Builds by 1 each time ' +
+          'Consideration is used (capped at 10); a Feeling spends some of it to cast.',
+      },
+      {
+        symbol: '🛡️', badge: (c.defence > 0 ? '+' : '') + c.defence, active: defenceActive, // shield + signed number
         explain: possessive + ' Defence: ' + c.defence + '. A flat reduction applied to ' +
-          'incoming damage before any other modifier.',
-      });
-    }
-    if (c.confidentTurns > 0) {
-      icons.push({
-        symbol: '😤', badge: null, // distinct icon for Confident
-        explain: subjectIs + ' Confident (' + c.confidentTurns + ' turn' +
-          (c.confidentTurns === 1 ? '' : 's') + ' left): the player’s Fact "Actually…" ' +
-          'deals half damage against a Confident target.',
-      });
-    }
-    return icons;
+          'incoming damage before any other modifier.' + (defenceActive ? '' : ' Currently no Defence bonus.'),
+      },
+      {
+        symbol: '😤', badge: null, active: confidentActive, // distinct icon for Confident
+        explain: confidentActive
+          ? subjectIs + ' Confident (' + c.confidentTurns + ' turn' +
+            (c.confidentTurns === 1 ? '' : 's') + ' left): the player’s Fact "Actually…" ' +
+            'deals half damage against a Confident target.'
+          : subjectIs + ' not currently Confident. When active, the player’s Fact ' +
+            '"Actually…" deals half damage against him.',
+      },
+    ];
   }
 
   function renderStatusIcons(containerEl, icons) {
@@ -424,7 +472,7 @@ window.RatLand = RatLand;
     icons.forEach(function (icon) {
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'status-icon';
+      btn.className = 'status-icon' + (icon.active ? '' : ' icon-inactive');
       btn.textContent = icon.symbol + (icon.badge !== null && icon.badge !== undefined ? ' ' + icon.badge : '');
       btn.setAttribute('data-explain', icon.explain);
       containerEl.appendChild(btn);
@@ -435,10 +483,22 @@ window.RatLand = RatLand;
     var battle = game.battle;
     if (!battle) return;
 
-    var playerStatsEl = document.getElementById('battle-stats-player');
-    var enemyStatsEl = document.getElementById('battle-stats-enemy');
-    if (playerStatsEl) playerStatsEl.textContent = formatCombatant('You', battle.player);
-    if (enemyStatsEl) enemyStatsEl.textContent = formatCombatant(battle.npcName, battle.enemy);
+    renderBar(
+      document.getElementById('battle-hp-fill-player'), document.getElementById('battle-hp-text-player'),
+      battle.player.hp, battle.player.maxHp, true
+    );
+    renderBar(
+      document.getElementById('battle-effort-fill-player'), document.getElementById('battle-effort-text-player'),
+      battle.player.effort, battle.player.maxEffort, false
+    );
+    renderBar(
+      document.getElementById('battle-hp-fill-enemy'), document.getElementById('battle-hp-text-enemy'),
+      battle.enemy.hp, battle.enemy.maxHp, true
+    );
+    renderBar(
+      document.getElementById('battle-effort-fill-enemy'), document.getElementById('battle-effort-text-enemy'),
+      battle.enemy.effort, battle.enemy.maxEffort, false
+    );
 
     renderStatusIcons(document.getElementById('battle-icons-player'), buildStatusIcons('You', battle.player));
     renderStatusIcons(document.getElementById('battle-icons-enemy'), buildStatusIcons(battle.npcName, battle.enemy));
@@ -456,6 +516,8 @@ window.RatLand = RatLand;
 
     var resultEl = document.getElementById('battle-result');
     var continueBtn = document.getElementById('battle-continue');
+    var confirmBtn = document.getElementById('battle-confirm-move');
+    var moveDescEl = document.getElementById('battle-move-desc');
 
     for (var i = 0; i < PLAYER_MOVES.length; i++) {
       var move = PLAYER_MOVES[i];
@@ -467,6 +529,15 @@ window.RatLand = RatLand;
       btn.textContent = move.label + costStr;
       btn.setAttribute('data-move-id', move.id);
       btn.disabled = !!battle.outcome || !canAfford(battle, 'player', move);
+      btn.classList.toggle('move-selected', battle.selectedMoveId === move.id);
+    }
+
+    if (moveDescEl) {
+      var selected = battle.selectedMoveId && PLAYER_MOVES_BY_ID[battle.selectedMoveId];
+      moveDescEl.textContent = selected ? selected.label + ' — ' + selected.description : '';
+    }
+    if (confirmBtn) {
+      confirmBtn.style.display = (!battle.outcome && battle.selectedMoveId) ? 'block' : 'none';
     }
 
     if (battle.outcome) {
@@ -483,7 +554,7 @@ window.RatLand = RatLand;
       }
     } else {
       var movesEl2 = document.getElementById('battle-moves');
-      if (movesEl2) movesEl2.style.display = 'block';
+      if (movesEl2) movesEl2.style.display = 'grid';
       if (continueBtn) continueBtn.style.display = 'none';
       if (resultEl) resultEl.textContent = '';
     }
@@ -532,9 +603,17 @@ window.RatLand = RatLand;
         btn.addEventListener('pointerdown', function (e) {
           e.preventDefault();
           var moveId = btn.getAttribute('data-move-id');
-          if (moveId) RatLand.playerUseMove(RatLand.game, moveId);
+          if (moveId) RatLand.selectMove(RatLand.game, moveId);
         });
       })(i);
+    }
+
+    var confirmMoveBtn = document.getElementById('battle-confirm-move');
+    if (confirmMoveBtn) {
+      confirmMoveBtn.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        RatLand.confirmSelectedMove(RatLand.game);
+      });
     }
 
     var continueBtn = document.getElementById('battle-continue');
