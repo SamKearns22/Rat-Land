@@ -75,12 +75,30 @@ window.RatLand = RatLand;
     el.classList.add(kind === 'attack' ? 'sprite-attack' : 'sprite-hurt');
   }
 
+  // HP damage/heal flash (§23): mirrors the Effort regen-flash's structure
+  // (battle-level transient state, read by renderBattleUI) but uses a
+  // nonce, not a "did the displayed text change" comparison, to decide
+  // whether to restart the pop animation. Damage/heal amounts repeat
+  // constantly in practice (Rhetoric always deals the same 2 damage), and
+  // a text-comparison retrigger -- the pattern renderRegenFlash uses --
+  // would silently skip re-showing the flash whenever the same amount
+  // lands twice in a row. Left renderRegenFlash itself untouched (this is
+  // additive, not a fix to that one), but didn't want to copy a gap I'd
+  // already spotted into new code that's going to hit it far more often.
+  function recordHpFlash(battle, side, amount) {
+    if (amount === 0) return;
+    var f = battle.hpFlash[side];
+    f.amount = amount;
+    f.nonce += 1;
+  }
+
   // The win condition (§5): a hit that reduces a combatant to 0 HP ends the
   // battle immediately, always — no soft floor, no Fact+Feeling requirement.
   // Applied symmetrically to both sides.
   function applyDamage(battle, atkSide, defSide, dmg) {
     if (dmg <= 0) return 0;
     if (defSide === 'enemy') triggerFenSpriteAnim('hurt');
+    recordHpFlash(battle, defSide, -dmg);
     var defender = battle[defSide];
     var newHp = defender.hp - dmg;
     if (newHp <= 0) {
@@ -96,7 +114,9 @@ window.RatLand = RatLand;
 
   function heal(battle, side, amount) {
     var c = battle[side];
+    var before = c.hp;
     c.hp = Math.min(c.maxHp, c.hp + amount);
+    recordHpFlash(battle, side, c.hp - before);
   }
 
   // R and C build-up meters are capped at 10, same as Effort — previously
@@ -521,6 +541,7 @@ window.RatLand = RatLand;
       turnGapPending: false, // UI-only: see ENEMY_TURN_GAP_MS below
       regenFlash: { player: 0, enemy: 0 }, // §22: actual regen applied last upkeep
       intentHint: '', // §22: vague category-level hint of the enemy's next move
+      hpFlash: { player: { amount: 0, nonce: 0 }, enemy: { amount: 0, nonce: 0 } }, // §23: last HP damage/heal event
     };
     game.battle = battle;
     game.mode = 'battle';
@@ -640,6 +661,17 @@ window.RatLand = RatLand;
     if (intentHintEl) intentHintEl.textContent = '';
     var rulesOverlay = document.getElementById('battle-rules-overlay');
     if (rulesOverlay) rulesOverlay.classList.remove('visible');
+    // renderHpFlash retriggers off a data-nonce attribute left on these
+    // spans (see its comment) -- clear it here, or the first damage/heal
+    // of the *next* battle could land on the same small nonce (1, 2, ...)
+    // the previous battle ended on and get silently skipped as "unchanged".
+    ['battle-hp-flash-player', 'battle-hp-flash-enemy'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = '';
+      delete el.dataset.nonce;
+      el.classList.remove('flash-anim', 'hp-flash-heal', 'hp-flash-damage');
+    });
   };
 
   // --- UI rendering: Pokémon-style top (opponent) / bottom (player) panels,
@@ -718,6 +750,23 @@ window.RatLand = RatLand;
     }
   }
 
+  // HP damage/heal flash (§23): unlike renderRegenFlash above, retriggers
+  // off a nonce (stored on the element itself via a data attribute)
+  // rather than "did the text change" -- see recordHpFlash's comment for
+  // why a text comparison isn't enough here. flash.nonce === 0 means no
+  // damage/heal has happened yet this battle, so there's nothing to show.
+  function renderHpFlash(elId, flash) {
+    var el = document.getElementById(elId);
+    if (!el || !flash.nonce) return;
+    var nonceStr = String(flash.nonce);
+    if (el.dataset.nonce === nonceStr) return;
+    el.dataset.nonce = nonceStr;
+    el.textContent = flash.amount > 0 ? '+' + flash.amount : String(flash.amount);
+    el.classList.remove('flash-anim', 'hp-flash-heal', 'hp-flash-damage');
+    void el.offsetWidth;
+    el.classList.add('flash-anim', flash.amount > 0 ? 'hp-flash-heal' : 'hp-flash-damage');
+  }
+
   function renderStatusIcons(containerEl, icons) {
     if (!containerEl) return;
     containerEl.innerHTML = '';
@@ -753,6 +802,10 @@ window.RatLand = RatLand;
     );
     renderRegenFlash('battle-effort-flash-player', battle.regenFlash ? battle.regenFlash.player : 0);
     renderRegenFlash('battle-effort-flash-enemy', battle.regenFlash ? battle.regenFlash.enemy : 0);
+    if (battle.hpFlash) {
+      renderHpFlash('battle-hp-flash-player', battle.hpFlash.player);
+      renderHpFlash('battle-hp-flash-enemy', battle.hpFlash.enemy);
+    }
 
     var intentHintEl = document.getElementById('battle-intent-hint');
     if (intentHintEl) intentHintEl.textContent = battle.intentHint || '';

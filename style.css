@@ -552,6 +552,36 @@ html, body {
   100% { opacity: 0; transform: translateY(-6px); }
 }
 
+/* HP damage/heal flash (§23): same fixed-span/JS-toggled-class structure
+   as the Effort regen flash above, but on a much shorter ~0.5s timer (a
+   hit landing reads faster than a turn's regen tick) and colored by
+   direction -- red for damage, green for healing -- rather than always
+   the "gained a resource" green. Applies to both combatants' HP bars.
+   Purely additive: doesn't touch sprite-hurt's own brightness pulse
+   (js/combat.js's ENEMY_TURN_GAP_MS already keeps the two from
+   overlapping in time, same as it does for sprite-hurt vs sprite-attack). */
+.hp-flash {
+  flex: none;
+  width: 26px;
+  font-size: 12px;
+  font-weight: bold;
+  opacity: 0;
+}
+
+.hp-flash.hp-flash-damage { color: #ff6b6b; }
+.hp-flash.hp-flash-heal { color: #8ad9a8; }
+
+.hp-flash.flash-anim {
+  animation: hp-flash-pop 0.5s ease forwards;
+}
+
+@keyframes hp-flash-pop {
+  0% { opacity: 0; transform: translateY(2px); }
+  20% { opacity: 1; transform: translateY(-1px); }
+  65% { opacity: 1; transform: translateY(-3px); }
+  100% { opacity: 0; transform: translateY(-7px); }
+}
+
 .status-icons {
   display: flex;
   flex-wrap: wrap;

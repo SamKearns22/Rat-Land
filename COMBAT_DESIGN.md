@@ -923,3 +923,53 @@ current one.
 Full existing regression suite (Walk Away, Talk, Fight-after-Talk,
 no-retreat, loss, win, dialogue soft-lock, sprite animation, mobile
 layout, label overlaps) re-run and passing after all seven changes.
+
+## 23. HP Damage/Heal Flash
+
+A transient "-3"/"+2" pops up next to either combatant's HP bar,
+mirroring the Effort regen flash's structure (§22) — additive only;
+the R/C-at-cap wobble/flash and sprite-hurt's brightness pulse are
+untouched. Red for damage, green for healing, ~0.5s (faster than the
+Effort flash's 1.4s, since a hit landing reads faster than a turn's
+regen tick). Applied symmetrically: player damage/heal and Fen
+damage/heal both flash their own HP bar.
+
+One deliberate structural difference from the Effort flash: instead of
+restarting the animation when the *displayed text changes*
+(`renderRegenFlash`'s approach), the HP flash restarts off a nonce
+incremented on every real damage/heal event, stored on the element via
+a `data-nonce` attribute. Damage amounts repeat constantly in practice
+(Rhetoric always deals the same 2 damage), and a text-comparison
+retrigger would silently skip re-showing the flash whenever the same
+amount landed twice in a row — confirmed this empirically before
+settling on the nonce approach. `renderRegenFlash` itself is left as-is
+(this section doesn't touch it), even though it likely has the same
+latent gap for repeated identical regen amounts — worth a look if it's
+ever reported as an issue, but out of scope for an additive change.
+
+Verified:
+- Damage and heal each correctly flash the correct side, correct sign,
+  correct color, checked immediately after each move resolves (not
+  after waiting through the whole round, which can let the enemy's own
+  following move overwrite what's being inspected — a real trap this
+  testing ran into and had to correct for).
+- Two identical-magnitude hits in a row (Rhetoric always dealing the
+  same damage) each get their own flash — nonce advances both times.
+- Healing at full HP correctly shows nothing (actual delta is 0,
+  clamped by maxHp) rather than a misleading "+2" for a heal that did
+  nothing; healing from a real deficit correctly shows the true
+  positive delta.
+- Timing alongside sprite-hurt: both trigger from the same `applyDamage`
+  call when Fen takes damage, confirmed via computed styles they run
+  independent animations (`hp-flash-pop` 0.5s vs `battle-sprite-hurt`
+  0.3s) on separate elements — no shared property or class name to
+  fight over, so no visual clash between them.
+- Exiting a battle clears the flash spans' text and `data-nonce`
+  attribute, so the first damage/heal of the *next* battle can't land
+  on a nonce the previous battle already displayed and get silently
+  treated as "unchanged."
+
+Full existing regression suite re-run and passing; the exhaustive
+win-path search still finds the fastest win at 10 rounds (unchanged,
+since this section adds tracking only — no damage/cost/Defence numbers
+were touched).
