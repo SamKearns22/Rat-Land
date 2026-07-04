@@ -63,6 +63,14 @@ window.RatLand = RatLand;
     c.hp = Math.min(c.maxHp, c.hp + amount);
   }
 
+  // R and C build-up meters are capped at 10, same as Effort — previously
+  // uncapped, which let them climb without bound over a long fight.
+  var METER_CAP = 10;
+  function gainMeter(battle, side, meter, amount) {
+    var c = battle[side];
+    c[meter] = Math.min(METER_CAP, c[meter] + amount);
+  }
+
   var PLAYER_MOVES = [
     {
       id: 'rhetoric', label: 'Rhetoric', type: 'basic', cost: null,
@@ -70,7 +78,7 @@ window.RatLand = RatLand;
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 2, this);
         applyDamage(battle, atk, def, dmg);
-        battle[atk].r += 1;
+        gainMeter(battle, atk, 'r', 1);
       },
     },
     {
@@ -78,7 +86,7 @@ window.RatLand = RatLand;
       dialogue: 'Okay. Let me think about that.',
       effect: function (battle, atk, def) {
         heal(battle, atk, 2);
-        battle[atk].c += 1;
+        gainMeter(battle, atk, 'c', 1);
       },
     },
     {
@@ -108,7 +116,7 @@ window.RatLand = RatLand;
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 2, this);
         applyDamage(battle, atk, def, dmg);
-        battle[atk].r += 1;
+        gainMeter(battle, atk, 'r', 1);
       },
     },
     {
@@ -116,7 +124,7 @@ window.RatLand = RatLand;
       dialogue: '…alright, fair point.',
       effect: function (battle, atk, def) {
         heal(battle, atk, 2);
-        battle[atk].c += 1;
+        gainMeter(battle, atk, 'c', 1);
       },
     },
     {
@@ -151,7 +159,14 @@ window.RatLand = RatLand;
         // doc calls out: raising his own Defence generally, but leaving
         // himself open to a well-aimed Fact specifically.
         battle[def].effort = Math.max(0, battle[def].effort - 4);
-        battle[atk].defence += 1;
+        // This Defence gain is temporary — tied to Confident's 1-turn
+        // window, not permanent. If it's somehow already active (re-cast),
+        // undo the previous grant first so it can never stack; it always
+        // represents "currently active," never an accumulating total.
+        battle[atk].defence -= battle[atk].persecutionDefenceBonus;
+        battle[atk].persecutionDefenceBonus = 1;
+        battle[atk].defence += battle[atk].persecutionDefenceBonus;
+        battle[atk].confidentTurns = 1;
         battle[atk].vulnerableNextFact = true;
       },
     },
@@ -236,7 +251,17 @@ window.RatLand = RatLand;
   function upkeep(battle) {
     battle.player.effort = Math.min(battle.player.maxEffort, battle.player.effort + 2);
     battle.enemy.effort = Math.min(battle.enemy.maxEffort, battle.enemy.effort + 2);
-    if (battle.enemy.confidentTurns > 0) battle.enemy.confidentTurns -= 1;
+    if (battle.enemy.confidentTurns > 0) {
+      battle.enemy.confidentTurns -= 1;
+      // Confident just expired -- fully revert Persecution Complex's
+      // temporary Defence grant (and only that amount; any Defence Fen
+      // earned separately, e.g. from "Someone's Going to Drown", is
+      // untouched) rather than let it persist for the rest of the battle.
+      if (battle.enemy.confidentTurns === 0 && battle.enemy.persecutionDefenceBonus > 0) {
+        battle.enemy.defence -= battle.enemy.persecutionDefenceBonus;
+        battle.enemy.persecutionDefenceBonus = 0;
+      }
+    }
     battle.turn += 1;
   }
 
@@ -245,6 +270,7 @@ window.RatLand = RatLand;
       hp: stats.hp, maxHp: stats.maxHp, effort: stats.effort, maxEffort: stats.maxEffort,
       r: 0, c: 0, defence: 0, usedFact: false, usedFeeling: false,
       confidentTurns: 0, vulnerableNextFact: false, usedOnce: {},
+      persecutionDefenceBonus: 0,
     };
   }
 

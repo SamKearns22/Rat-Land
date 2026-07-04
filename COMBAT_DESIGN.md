@@ -31,7 +31,9 @@ Three pools, tracked per combatant:
    depends on it being capped somewhere; flagged in §12.
 3. **R/C Meter** — two independent counters, **R** (Rhetoric
    build-up) and **C** (Consideration build-up), each incremented by
-   1 whenever the matching basic move is used.
+   1 whenever the matching basic move is used. **Capped at 10**, same
+   as Effort — previously uncapped, which let a meter climb without
+   bound over a long fight (found during extended playtesting; fixed).
 
 ## 3. Turn Order
 
@@ -80,15 +82,28 @@ Defence itself is a battle-only modifier, not one of the three
 resource pools in §2 — several Facts/Feelings raise or lower it
 (e.g. "-1 enemy Defence," "+1 Fen Defence"). Whether a given
 Defence change persists for the rest of the battle or decays after
-some number of turns isn't specified — flagged in §12.
+some number of turns isn't specified in general — flagged in §12 —
+**except for "Persecution Complex" specifically**, which was found
+during extended playtesting to leave its +1 Defence in place
+permanently instead of tying it to the 1-turn Confident window it's
+meant to share (§4b). Fixed: that specific +1 is now tracked
+separately and fully reverts to baseline the moment Confident expires,
+regardless of how many times the grant has (re-)happened. "Someone's
+Going to Drown"'s own +1 Fen Defence per cast is untouched by this fix
+and still persists for the rest of the battle — see the note in §16.
 
 ### 4b. Confident (status effect)
 
-**Whenever Fen uses a Fact, he gains Confident for 1 turn.** While
-Confident, the player's Fact "Actually…" deals reduced damage against
-him (§14) — this is currently the *only* defined interaction for
-Confident. The exact size of that reduction isn't specified (flat
-amount? percentage? full negation?) — flagged in §12.
+**Whenever Fen uses a Fact, he gains Confident for 1 turn.** As of the
+Defence fix above, casting **"Persecution Complex" also grants
+Confident for 1 turn directly** (previously it didn't — only Facts
+triggered it), so its temporary Defence bonus has a Confident window
+of its own to expire alongside, rather than needing to borrow one from
+whatever Fact happens to follow it. While Confident, the player's Fact
+"Actually…" deals reduced damage against him (§14) — this is currently
+the *only* defined interaction for Confident. The exact size of that
+reduction isn't specified (flat amount? percentage? full negation?) —
+flagged in §12.
 
 Confident is documented here as Fen-specific for now, matching how
 he's the only fightable NPC — the same "don't hardcode this as
@@ -249,9 +264,17 @@ in §12.
    both test combatants; not stated explicitly. §15's playtest
    analysis holds either way, but the cap should be confirmed.
 2. **Defence's floor and persistence** (§4a) — assumed damage can't
-   go negative from over-Defence, and left open whether a Defence
-   change persists for the rest of the battle or decays after some
-   number of turns.
+   go negative from over-Defence. "Persecution Complex"'s +1 Defence
+   is now resolved (ties to Confident, §4a/§4b). **Still open:**
+   "Someone's Going to Drown" grants Fen +1 Defence *every* time it's
+   cast, with nothing capping or reverting it — confirmed via
+   playtesting that over a long fight this climbs indefinitely (e.g.
+   defence 9 by turn 58 in one passive-play test), same failure mode
+   the Persecution fix just addressed. Needs a decision: cap it,
+   make it temporary like Persecution's, or leave it as an
+   intentional permanent-stacking mechanic (flagged, not decided,
+   since it wasn't named in the bug report that prompted this round
+   of fixes).
 3. **Exact size of the Confident damage reduction** (§4b) — "Actually…"
    deals reduced damage against a Confident Fen, but not by how much.
 4. **HP-floor handling for the win condition** (§5) — recommended the
@@ -311,7 +334,7 @@ R amount **+ 3 Effort**; Feelings cost their C amount **+ 4 Effort**
 | Consideration | 0 | "…alright, fair point." | Heals 2 (self), +1 C |
 | Fact — "Council Tax Correction" | 2 R + 3 Effort | "The Church gets more funding than my street does, and everyone knows it." | 3 dmg; −1 enemy Defence |
 | Fact — "Someone's Going to Drown" | 2 R + 3 Effort | "If a mouse drowns crossing that river, that's on whoever let them try." | 3 dmg; +1 Fen Defence |
-| Feeling — "Persecution Complex" (turn 3–4 only) | 3 C + 4 Effort | "Everyone's against blokes like me these days." | Lowers enemy Effort significantly; +1 Fen Defence; the next enemy Fact used against Fen deals bonus damage; **Fen gains Confident for 1 turn** (§4b — note this actually happens on *any* Fen Fact, not just this move) |
+| Feeling — "Persecution Complex" (turn 3–4 only) | 3 C + 4 Effort | "Everyone's against blokes like me these days." | Lowers enemy Effort significantly; **+1 Fen Defence for as long as Confident lasts (reverts fully once it expires — not permanent)**; the next enemy Fact used against Fen deals bonus damage; **grants Fen Confident for 1 turn directly** (in addition to the generic any-Fact trigger, §4b) |
 
 Note on "Persecution Complex": the "next enemy Fact deals bonus
 damage" clause is a real vulnerability, not a typo — Fen's
@@ -437,3 +460,58 @@ margin rather than barely scraping under it.
 **Adopted: Fen HP 14** (§13). Fastest possible win is now 10 rounds,
 confirmed against the live battle code, not just this search's model
 of it.
+
+## 17. Bugfixes From Extended Playtesting (R/C Cap, Persecution Defence)
+
+Two bugs surfaced during longer playtest sessions, fixed here:
+
+1. **R/C meters were uncapped.** A passive-play test pushed the
+   player's C meter to 57 before the fight ended — no bound at all.
+   Fixed: both meters now cap at 10, same as Effort (§2).
+2. **"Persecution Complex"'s +1 Defence never reverted.** It's meant
+   to be a temporary buff tied to Fen's 1-turn Confident window
+   (§4a/§4b), but the code just added it permanently. Fixed: the
+   bonus is now tracked separately from Fen's overall Defence and
+   fully subtracted back out the moment Confident expires, regardless
+   of how many times the grant happens (moot today, since Persecution
+   Complex is once-per-battle, but the fix doesn't depend on that).
+
+**Investigation note:** the bug report described this as Defence
+"stacking indefinitely across multiple uses," but Persecution Complex
+can only ever be cast once per battle (§14), so its own contribution
+was never literally capable of stacking — confirmed by tracing a full
+passive-play fight turn-by-turn before writing the fix: Persecution's
++1 landed exactly once, at turn 4, and never moved again all fight.
+The indefinite stacking that's actually reproducible comes from
+**"Someone's Going to Drown"**, which grants Fen +1 Defence *every*
+time it's cast (unlimited reuse, no cap, no reversion) — in that same
+traced fight, Defence climbed to 9 by turn 58 purely from repeated
+Drown casts. This is very likely what was actually observed. The fix
+above only touches Persecution Complex, per what was explicitly asked
+— Drown's permanent stacking is unresolved and now tracked as an open
+question (§12.2) rather than fixed unilaterally, since it wasn't the
+move named in the report and the same treatment might not be the
+right call for it (e.g. permanent stacking on a *reusable* move could
+be an intentional escalating-threat mechanic rather than a bug).
+
+**Re-ran the exhaustive win-path search (§16) after both fixes.**
+Fastest possible win is now **9 rounds** (down from 10) — capping R/C
+and closing off Persecution's permanent Defence both remove player-side
+drag, so if anything the fight got slightly faster, not slower.
+Confirmed against the live battle code: the 9-round sequence
+`consideration ×3, understand, rhetoric ×3, actually, rhetoric` wins
+with the player finishing at 13/20 HP. Loss, no-retreat, and Talk/Fight
+independence were all re-verified afterward and are unaffected.
+
+**Also noted, not fixed (lower priority per the request):** battle
+dialogue lines repeat every time a given move is used, because each
+move currently has exactly one line of dialogue defined (§14) — there
+is nothing to cycle through. This isn't a bug in the cycling logic
+itself; overworld NPC dialogue already has a working cycle-through-
+lines mechanism (`RatLand.getNpcLine`, `js/npc.js`) that battle moves
+could reuse the same way (an array of lines per move + a lineIndex),
+but that requires additional alternate lines to be written for at
+least the moves used most often (Rhetoric/Consideration/basics on both
+sides) — none exist yet beyond the single confirmed line per move from
+§14. Quick fix once those lines are provided; no code changes made
+here since there's nothing yet to cycle through.
