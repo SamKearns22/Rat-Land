@@ -300,6 +300,18 @@ window.RatLand = RatLand;
     return d.pool[Math.floor(Math.random() * d.pool.length)];
   }
 
+  // Which SFX category a move belongs to, for RatLand.playSfx (js/audio.js):
+  // Facts/Feelings map directly off their type; Rhetoric/Consideration are
+  // both type 'basic' so they're told apart by id (works for both the
+  // player's and Fen's versions of each, e.g. 'rhetoric'/'fen-rhetoric').
+  function sfxKeyForMove(move) {
+    if (move.type === 'fact') return 'fact';
+    if (move.type === 'feeling') return 'feeling';
+    if (move.id.indexOf('rhetoric') !== -1) return 'rhetoric';
+    if (move.id.indexOf('consideration') !== -1) return 'consideration';
+    return null;
+  }
+
   // Resolves one move: pays its cost, logs its dialogue, runs its numeric
   // effect, then applies the generic post-move bookkeeping every move of
   // that type carries — usedFact/usedFeeling (§5's win-condition tracker)
@@ -315,6 +327,7 @@ window.RatLand = RatLand;
     var speaker = atkSide === 'player' ? 'You' : battle.npcName;
     var line = pickMoveDialogue(battle, atkSide, move);
     battle.log.push(speaker + ': "' + line + '"');
+    if (RatLand.playSfx) RatLand.playSfx(sfxKeyForMove(move));
     move.effect(battle, atkSide, defSide);
     if (move.type === 'fact') {
       battle[atkSide].usedFact = true;

@@ -609,3 +609,33 @@ Confirmed against the live battle code, not just by reading the code:
 
 No regressions: re-ran the existing loss, no-retreat, and Talk/Fight-
 independence checks afterward — all still pass.
+
+## 19. Battle Sound Effects
+
+Four short SFX, one per move category, triggered every time either
+combatant uses a move of that category:
+
+| Category | File | Triggers on |
+|---|---|---|
+| Rhetoric ("hurt") | `assets/sfx/rhetoric.wav` | Rhetoric (either side) |
+| Consideration ("book"/page-flip) | `assets/sfx/consideration.wav` | Consideration (either side) |
+| Facts ("spell") | `assets/sfx/fact.wav` | Any Fact (either side) |
+| Feelings ("spell — fire") | `assets/sfx/feeling.wav` | Any Feeling (either side) |
+
+**These four files are locally-synthesized placeholders, not the real
+CC0 pack.** The request was to source them from the free "80 CC0 RPG
+SFX" pack (opengameart.org/content/80-cc0-rpg-sfx), but this
+environment's network policy blocks that host (and general web
+hosts generally — only a small allowlist like npm/PyPI/GitHub is
+reachable), confirmed via both a direct request and the WebFetch tool
+returning a policy-level 403. Per the user's own choice among the
+options offered, `js/audio.js`'s four `.wav` files were generated
+locally instead (pure-stdlib Python DSP — short noise/tone synthesis,
+no external assets), clearly labeled as stand-ins in that file's
+header comment, to be swapped for the real pack's "hurt" / "book" /
+"spell" / "spell (fire)" files whenever they're available — the
+filenames and trigger wiring don't need to change when that happens.
+
+A mute toggle (🔊/🔇, top-right HUD, next to Reset Save) was added
+since none existed; it's a global on/off, persisted to localStorage,
+not scoped to just battle.

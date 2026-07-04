@@ -68,6 +68,7 @@ window.RatLand = RatLand;
   RatLand.initKeyboard();
   RatLand.initTouchControls();
   RatLand.initBattleUI();
+  RatLand.initAudioToggle();
 
   var lastTime = null;
 
