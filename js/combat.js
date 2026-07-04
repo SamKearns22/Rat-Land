@@ -325,6 +325,12 @@ window.RatLand = RatLand;
     if (resultEl) resultEl.textContent = '';
     var continueBtn = document.getElementById('battle-continue');
     if (continueBtn) continueBtn.style.display = 'none';
+    var iconExplainEl = document.getElementById('battle-icon-explain');
+    if (iconExplainEl) iconExplainEl.textContent = '';
+    var playerIcons = document.getElementById('battle-icons-player');
+    if (playerIcons) playerIcons.innerHTML = '';
+    var enemyIcons = document.getElementById('battle-icons-enemy');
+    if (enemyIcons) enemyIcons.innerHTML = '';
   };
 
   // --- UI rendering (text-only, per this task's scope) ---------------------
@@ -335,6 +341,61 @@ window.RatLand = RatLand;
       '  R:' + c.r + ' C:' + c.c + '  Defence ' + c.defence + tags;
   }
 
+  // Status icons (§9): text/symbol only, no illustrated art. One icon per
+  // active resource/status on a combatant, each carrying its own
+  // tap-to-reveal explanation (mobile has no hover state). An icon only
+  // shows up while its condition is actually true, so e.g. Defence
+  // disappears again once it's back to 0.
+  function buildStatusIcons(name, c) {
+    var isPlayer = name === 'You';
+    var possessive = isPlayer ? 'Your' : name + '’s';
+    var subjectIs = isPlayer ? 'You are' : name + ' is';
+    var icons = [];
+    if (c.r > 0) {
+      icons.push({
+        symbol: '👄', badge: c.r, // mouth — Rhetoric build-up
+        explain: possessive + ' R (Rhetoric build-up): ' + c.r + '. Builds by 1 each time ' +
+          'Rhetoric is used; a Fact spends some of it to cast.',
+      });
+    }
+    if (c.c > 0) {
+      icons.push({
+        symbol: '🧠', badge: c.c, // brain — Consideration build-up
+        explain: possessive + ' C (Consideration build-up): ' + c.c + '. Builds by 1 each time ' +
+          'Consideration is used; a Feeling spends some of it to cast.',
+      });
+    }
+    if (c.defence !== 0) {
+      icons.push({
+        symbol: '🛡️', badge: (c.defence > 0 ? '+' : '') + c.defence, // shield + signed number
+        explain: possessive + ' Defence: ' + c.defence + '. A flat reduction applied to ' +
+          'incoming damage before any other modifier.',
+      });
+    }
+    if (c.confidentTurns > 0) {
+      icons.push({
+        symbol: '😤', badge: null, // distinct icon for Confident
+        explain: subjectIs + ' Confident (' + c.confidentTurns + ' turn' +
+          (c.confidentTurns === 1 ? '' : 's') + ' left): the player’s Fact "Actually…" ' +
+          'deals half damage against a Confident target.',
+      });
+    }
+    return icons;
+  }
+
+  function renderStatusIcons(containerEl, icons) {
+    if (!containerEl) return;
+    containerEl.innerHTML = '';
+    icons.forEach(function (icon) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'status-icon';
+      btn.textContent = icon.symbol + (icon.badge !== null && icon.badge !== undefined ? ' ' + icon.badge : '');
+      btn.setAttribute('data-explain', icon.explain);
+      containerEl.appendChild(btn);
+    });
+  }
+
   RatLand.renderBattleUI = function (game) {
     var battle = game.battle;
     if (!battle) return;
@@ -343,6 +404,14 @@ window.RatLand = RatLand;
     var enemyStatsEl = document.getElementById('battle-stats-enemy');
     if (playerStatsEl) playerStatsEl.textContent = formatCombatant('You', battle.player);
     if (enemyStatsEl) enemyStatsEl.textContent = formatCombatant(battle.npcName, battle.enemy);
+
+    renderStatusIcons(document.getElementById('battle-icons-player'), buildStatusIcons('You', battle.player));
+    renderStatusIcons(document.getElementById('battle-icons-enemy'), buildStatusIcons(battle.npcName, battle.enemy));
+    // Cleared on every re-render (i.e. every move) rather than left to go
+    // stale — the state it described may no longer hold once the turn
+    // has moved on, so a fresh tap is needed to see this turn's text.
+    var iconExplainEl = document.getElementById('battle-icon-explain');
+    if (iconExplainEl) iconExplainEl.textContent = '';
 
     var logEl = document.getElementById('battle-log');
     if (logEl) {
@@ -440,6 +509,21 @@ window.RatLand = RatLand;
         RatLand.exitBattle(RatLand.game);
       });
     }
+
+    // Status icons are recreated on every render (renderStatusIcons), so
+    // their tap handling is delegated from the fixed container elements
+    // rather than bound per-icon.
+    ['battle-icons-player', 'battle-icons-enemy'].forEach(function (containerId) {
+      var container = document.getElementById(containerId);
+      if (!container) return;
+      container.addEventListener('pointerdown', function (e) {
+        var target = e.target.closest ? e.target.closest('.status-icon') : null;
+        if (!target) return;
+        e.preventDefault();
+        var explainEl = document.getElementById('battle-icon-explain');
+        if (explainEl) explainEl.textContent = target.getAttribute('data-explain');
+      });
+    });
   };
 
 })();
