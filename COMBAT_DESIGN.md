@@ -654,3 +654,36 @@ filenames and trigger wiring don't need to change when that happens.
 A mute toggle (🔊/🔇, top-right HUD, next to Reset Save) was added
 since none existed; it's a global on/off, persisted to localStorage,
 not scoped to just battle.
+
+## 20. Fen's Battle Sprite & Move Animations
+
+Fen's existing overworld sprite (`assets/fenwicket-sprite.png`, no new
+art) is now displayed in the opponent panel, scaled up (58px wide,
+`image-rendering: pixelated` to stay crisp) and laid out beside his
+name/HP/EF bars and status icons via a flex row. The player's side
+stays text/stat-only, as no player sprite exists yet.
+
+Two short CSS keyframe animations stand in for real attack/hit art:
+
+| Trigger | Class | Effect | Duration |
+|---|---|---|---|
+| Fen uses any move | `sprite-attack` | shifts down/forward then back | 0.28s |
+| Fen takes damage (dmg > 0) | `sprite-hurt` | shifts up/back + brightness flash | 0.3s |
+
+Both are re-triggered by removing the class, forcing a reflow, then
+re-adding it, so back-to-back triggers of the same animation restart
+cleanly instead of no-op'ing.
+
+**Turn-order timing change.** Since turn order is enemy-first (§3),
+Fen's next move previously ran in the same synchronous tick as the
+player's move resolving — so a damaging hit's `sprite-hurt` trigger and
+Fen's immediately-following `sprite-attack` trigger would stomp each
+other before either was ever painted, silently swallowing the hurt
+flash on every non-fatal hit. Fixed by deferring Fen's turn behind a
+320ms gap (`ENEMY_TURN_GAP_MS`) after the player's move resolves and
+renders: the player sees their own hit (and Fen's hurt-flash, if it
+landed) immediately, then Fen's turn — and his attack-bounce — plays
+after the gap. Move buttons are disabled for the duration
+(`battle.turnGapPending`) so the player can't queue a second move
+mid-gap. Total added latency per round is 320ms, well under the "keep
+turns snappy" bar the wipe transition (§10) was held to.

@@ -248,6 +248,46 @@ html, body {
 .combatant-enemy {
   border-left: 3px solid #d98a8a;
   margin-right: 15%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.combatant-info {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Fen's existing overworld sprite (assets/fenwicket-sprite.png, 29x24),
+   scaled up and kept crisp -- no new art, same asset used on the map. */
+.battle-sprite {
+  flex: none;
+  width: 58px;
+  height: auto;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Cheap stand-ins for attack/hit animation (§10), both well under 0.5s. */
+@keyframes battle-sprite-attack {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(10px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes battle-sprite-hurt {
+  0% { transform: translateY(0); filter: brightness(1); }
+  30% { transform: translateY(-8px); filter: brightness(2.2); }
+  100% { transform: translateY(0); filter: brightness(1); }
+}
+
+.battle-sprite.sprite-attack {
+  animation: battle-sprite-attack 0.28s ease;
+}
+
+.battle-sprite.sprite-hurt {
+  animation: battle-sprite-hurt 0.3s ease;
 }
 
 .combatant-player {

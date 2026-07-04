@@ -31,20 +31,24 @@
 <div id="battle-screen" class="overlay-menu battle-screen">
   <div id="battle-title" class="overlay-title"></div>
 
-  <!-- Opponent panel: top, per classic Pokémon-style layout. -->
+  <!-- Opponent panel: top, per classic Pokémon-style layout. Player side
+       stays text/stat-only for now -- no player sprite exists yet. -->
   <div class="combatant-panel combatant-enemy" id="battle-panel-enemy">
-    <div class="combatant-name" id="battle-name-enemy"></div>
-    <div class="bar-row">
-      <span class="bar-label">HP</span>
-      <div class="bar-track"><div class="bar-fill bar-fill-hp" id="battle-hp-fill-enemy"></div></div>
-      <span class="bar-value" id="battle-hp-text-enemy"></span>
+    <div class="combatant-info">
+      <div class="combatant-name" id="battle-name-enemy"></div>
+      <div class="bar-row">
+        <span class="bar-label">HP</span>
+        <div class="bar-track"><div class="bar-fill bar-fill-hp" id="battle-hp-fill-enemy"></div></div>
+        <span class="bar-value" id="battle-hp-text-enemy"></span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">EF</span>
+        <div class="bar-track"><div class="bar-fill bar-fill-effort" id="battle-effort-fill-enemy"></div></div>
+        <span class="bar-value" id="battle-effort-text-enemy"></span>
+      </div>
+      <div id="battle-icons-enemy" class="status-icons"></div>
     </div>
-    <div class="bar-row">
-      <span class="bar-label">EF</span>
-      <div class="bar-track"><div class="bar-fill bar-fill-effort" id="battle-effort-fill-enemy"></div></div>
-      <span class="bar-value" id="battle-effort-text-enemy"></span>
-    </div>
-    <div id="battle-icons-enemy" class="status-icons"></div>
+    <img id="battle-sprite-enemy" class="battle-sprite" src="assets/fenwicket-sprite.png" alt="Fen Wicket">
   </div>
 
   <!-- Player panel: bottom-opposite corner from the opponent. -->

@@ -49,6 +49,20 @@ window.RatLand = RatLand;
     return Math.max(0, dmg);
   }
 
+  // Fen's sprite (the only combatant sprite that exists -- player stays
+  // text/stat-only until a player sprite exists) bounces forward on his own
+  // move and flashes/shifts back when he takes damage. Both animations are
+  // plain CSS (style.css), well under 0.5s; removing then re-adding the
+  // class (with a forced reflow) lets a fast-repeating trigger restart
+  // cleanly instead of no-op'ing because the class was already present.
+  function triggerFenSpriteAnim(kind) {
+    var el = document.getElementById('battle-sprite-enemy');
+    if (!el) return;
+    el.classList.remove('sprite-attack', 'sprite-hurt');
+    void el.offsetWidth;
+    el.classList.add(kind === 'attack' ? 'sprite-attack' : 'sprite-hurt');
+  }
+
   // The win-condition soft floor (§5): a hit that would reduce a combatant
   // to 0 HP only actually ends the battle if the attacker has already used
   // at least one Fact AND one Feeling. Otherwise it clamps at 1 HP and the
@@ -56,6 +70,7 @@ window.RatLand = RatLand;
   // the rule in terms of "the winning side" generally, not just the player.
   function applyDamage(battle, atkSide, defSide, dmg) {
     if (dmg <= 0) return 0;
+    if (defSide === 'enemy') triggerFenSpriteAnim('hurt');
     var attacker = battle[atkSide];
     var defender = battle[defSide];
     var newHp = defender.hp - dmg;
@@ -328,6 +343,7 @@ window.RatLand = RatLand;
     var line = pickMoveDialogue(battle, atkSide, move);
     battle.log.push(speaker + ': "' + line + '"');
     if (RatLand.playSfx) RatLand.playSfx(sfxKeyForMove(move));
+    if (atkSide === 'enemy') triggerFenSpriteAnim('attack');
     move.effect(battle, atkSide, defSide);
     if (move.type === 'fact') {
       battle[atkSide].usedFact = true;
@@ -425,6 +441,7 @@ window.RatLand = RatLand;
       player: freshCombatant(PLAYER_START),
       enemy: freshCombatant(FEN_START),
       selectedMoveId: null, // UI-only: highlighted move awaiting confirmation
+      turnGapPending: false, // UI-only: see ENEMY_TURN_GAP_MS below
     };
     game.battle = battle;
     game.mode = 'battle';
@@ -453,7 +470,7 @@ window.RatLand = RatLand;
   // tapping the same already-selected move again) actually executes it.
   RatLand.selectMove = function (game, moveId) {
     var battle = game.battle;
-    if (!battle || battle.outcome) return;
+    if (!battle || battle.outcome || battle.turnGapPending) return;
     var move = PLAYER_MOVES_BY_ID[moveId];
     if (!move || !canAfford(battle, 'player', move)) return;
     if (battle.selectedMoveId === moveId) {
@@ -466,26 +483,47 @@ window.RatLand = RatLand;
 
   RatLand.confirmSelectedMove = function (game) {
     var battle = game.battle;
-    if (!battle || battle.outcome || !battle.selectedMoveId) return;
+    if (!battle || battle.outcome || battle.turnGapPending || !battle.selectedMoveId) return;
     var moveId = battle.selectedMoveId;
     battle.selectedMoveId = null;
     RatLand.playerUseMove(game, moveId);
   };
 
+  // Fen's hurt-flash (triggered by the player's move, if it lands) and his
+  // own attack-bounce (triggered by his next move) would otherwise both
+  // fire in the same synchronous tick -- since turn order is enemy-first
+  // (§3), Fen's *next* round starts immediately after the player's move
+  // resolves, and the second class swap stomps the first before either
+  // ever gets painted. ENEMY_TURN_GAP_MS defers Fen's turn just long
+  // enough for the player's move (and any hurt-flash it caused) to
+  // actually render first, so both animations are visible in sequence --
+  // the same beat classic turn-based battle screens use, and still brief.
+  var ENEMY_TURN_GAP_MS = 320;
+
   RatLand.playerUseMove = function (game, moveId) {
     var battle = game.battle;
-    if (!battle || battle.outcome) return;
+    if (!battle || battle.outcome || battle.turnGapPending) return;
     var move = PLAYER_MOVES_BY_ID[moveId];
     if (!move || !canAfford(battle, 'player', move)) return;
 
     battle.selectedMoveId = null;
     useMove(battle, 'player', 'enemy', move);
-    if (!battle.outcome) {
+
+    if (battle.outcome) {
+      RatLand.renderBattleUI(game);
+      endBattle(game);
+      return;
+    }
+
+    battle.turnGapPending = true;
+    RatLand.renderBattleUI(game);
+    window.setTimeout(function () {
+      battle.turnGapPending = false;
       upkeep(battle);
       runEnemyTurn(battle);
-    }
-    RatLand.renderBattleUI(game);
-    if (battle.outcome) endBattle(game);
+      RatLand.renderBattleUI(game);
+      if (battle.outcome) endBattle(game);
+    }, ENEMY_TURN_GAP_MS);
   };
 
   function endBattle(game) {
@@ -633,7 +671,7 @@ window.RatLand = RatLand;
         : ' (free)';
       btn.textContent = move.label + costStr;
       btn.setAttribute('data-move-id', move.id);
-      btn.disabled = !!battle.outcome || !canAfford(battle, 'player', move);
+      btn.disabled = !!battle.outcome || battle.turnGapPending || !canAfford(battle, 'player', move);
       btn.classList.toggle('move-selected', battle.selectedMoveId === move.id);
     }
 
