@@ -70,6 +70,10 @@ window.RatLand = RatLand;
   // R and C build-up meters are capped at 10, same as Effort — previously
   // uncapped, which let them climb without bound over a long fight.
   var METER_CAP = 10;
+  // Every visible mention of the R/C meters uses these icons instead of
+  // the bare letters — mouth for R (Rhetoric build-up), brain for C
+  // (Consideration build-up).
+  var METER_SYMBOL = { r: '👄', c: '🧠' };
   // "Someone's Going to Drown"'s Defence contribution caps at +3 total
   // regardless of how many times it's cast (§12) — previously unlimited.
   var DROWN_DEFENCE_CAP = 3;
@@ -87,7 +91,7 @@ window.RatLand = RatLand;
     {
       id: 'rhetoric', label: 'Rhetoric', type: 'basic', cost: null,
       dialogue: 'I just think… we should hear them out?',
-      description: 'Deals small damage and gives you 1 R.',
+      description: 'Deals small damage and gives you 1 👄.',
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 2, this);
         applyDamage(battle, atk, def, dmg);
@@ -98,7 +102,7 @@ window.RatLand = RatLand;
       id: 'actually', label: 'Fact: "Actually…"', type: 'fact',
       cost: { meter: 'r', amount: 2, effort: 3 },
       dialogue: 'Actually…',
-      description: 'Bigger damage. Costs R + Effort. Deals half damage against a Confident opponent.',
+      description: 'Bigger damage. Costs 👄 + Effort. Deals half damage against a Confident opponent.',
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 3, this);
         applyDamage(battle, atk, def, dmg);
@@ -107,7 +111,7 @@ window.RatLand = RatLand;
     {
       id: 'consideration', label: 'Consideration', type: 'basic', cost: null,
       dialogue: 'Okay. Let me think about that.',
-      description: 'Heals yourself a little and gives you 1 C.',
+      description: 'Heals yourself a little and gives you 1 🧠.',
       effect: function (battle, atk, def) {
         heal(battle, atk, 2);
         gainMeter(battle, atk, 'c', 1);
@@ -117,7 +121,7 @@ window.RatLand = RatLand;
       id: 'understand', label: 'Feeling: "I just want to understand"', type: 'feeling',
       cost: { meter: 'c', amount: 3, effort: 4 },
       dialogue: 'I just want to understand',
-      description: 'Heals yourself a little and lowers the opponent’s Defence by 1. Costs C + Effort.',
+      description: 'Heals yourself a little and lowers the opponent’s Defence by 1. Costs 🧠 + Effort.',
       effect: function (battle, atk, def) {
         battle[def].defence = Math.max(0, battle[def].defence - 1);
         heal(battle, atk, 2);
@@ -441,12 +445,12 @@ window.RatLand = RatLand;
     return [
       {
         symbol: '👄', badge: c.r, active: c.r > 0, // mouth — Rhetoric build-up
-        explain: possessive + ' R (Rhetoric build-up): ' + c.r + '/10. Builds by 1 each time ' +
+        explain: possessive + ' 👄 (Rhetoric build-up): ' + c.r + '/10. Builds by 1 each time ' +
           'Rhetoric is used (capped at 10); a Fact spends some of it to cast.',
       },
       {
         symbol: '🧠', badge: c.c, active: c.c > 0, // brain — Consideration build-up
-        explain: possessive + ' C (Consideration build-up): ' + c.c + '/10. Builds by 1 each time ' +
+        explain: possessive + ' 🧠 (Consideration build-up): ' + c.c + '/10. Builds by 1 each time ' +
           'Consideration is used (capped at 10); a Feeling spends some of it to cast.',
       },
       {
@@ -524,7 +528,7 @@ window.RatLand = RatLand;
       var btn = document.getElementById('battle-move-' + i);
       if (!btn) continue;
       var costStr = move.cost
-        ? ' (' + move.cost.amount + move.cost.meter.toUpperCase() + ' + ' + move.cost.effort + ' Effort)'
+        ? ' (' + move.cost.amount + METER_SYMBOL[move.cost.meter] + ' + ' + move.cost.effort + ' Effort)'
         : ' (free)';
       btn.textContent = move.label + costStr;
       btn.setAttribute('data-move-id', move.id);
