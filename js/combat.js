@@ -66,6 +66,9 @@ window.RatLand = RatLand;
   // R and C build-up meters are capped at 10, same as Effort — previously
   // uncapped, which let them climb without bound over a long fight.
   var METER_CAP = 10;
+  // "Someone's Going to Drown"'s Defence contribution caps at +3 total
+  // regardless of how many times it's cast (§12) — previously unlimited.
+  var DROWN_DEFENCE_CAP = 3;
   function gainMeter(battle, side, meter, amount) {
     var c = battle[side];
     c[meter] = Math.min(METER_CAP, c[meter] + amount);
@@ -144,7 +147,13 @@ window.RatLand = RatLand;
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 3, this);
         applyDamage(battle, atk, def, dmg);
-        battle[atk].defence += 1;
+        // Defence contribution from repeated casts caps at +3 total
+        // (§12) -- further casts still deal damage but stop adding
+        // Defence once that total is reached.
+        if (battle[atk].drownDefenceBonus < DROWN_DEFENCE_CAP) {
+          battle[atk].defence += 1;
+          battle[atk].drownDefenceBonus += 1;
+        }
       },
     },
     {
@@ -270,7 +279,7 @@ window.RatLand = RatLand;
       hp: stats.hp, maxHp: stats.maxHp, effort: stats.effort, maxEffort: stats.maxEffort,
       r: 0, c: 0, defence: 0, usedFact: false, usedFeeling: false,
       confidentTurns: 0, vulnerableNextFact: false, usedOnce: {},
-      persecutionDefenceBonus: 0,
+      persecutionDefenceBonus: 0, drownDefenceBonus: 0,
     };
   }
 

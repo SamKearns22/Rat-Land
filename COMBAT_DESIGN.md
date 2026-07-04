@@ -265,14 +265,11 @@ in §12.
    analysis holds either way, but the cap should be confirmed.
 2. **Defence's floor and persistence** (§4a) — assumed damage can't
    go negative from over-Defence. "Persecution Complex"'s +1 Defence
-   is now resolved (ties to Confident, §4a/§4b). **"Someone's Going to
-   Drown"'s +1 Fen Defence per cast is left as permanent, unlimited
-   stacking, by explicit decision** — confirmed via playtesting that
-   this climbs indefinitely over a long fight (e.g. defence 9 by turn
-   58 in one passive-play test), the same failure mode the Persecution
-   fix addressed, but deliberately not touched here: this test kit is
-   throwaway (§14), and this specific number is left as-is to be
-   revisited during real character design rather than patched now.
+   is resolved (ties to Confident, §4a/§4b). **"Someone's Going to
+   Drown"'s Defence gain is resolved: capped at +3 total, regardless
+   of how many times it's cast** (§14/§17) — further casts past that
+   point still deal damage but stop adding Defence, matching the
+   capped, non-stacking pattern used elsewhere in the kit (R/C, §2).
 3. **Exact size of the Confident damage reduction** (§4b) — "Actually…"
    deals reduced damage against a Confident Fen, but not by how much.
 4. **HP-floor handling for the win condition** (§5) — recommended the
@@ -331,7 +328,7 @@ R amount **+ 3 Effort**; Feelings cost their C amount **+ 4 Effort**
 | Rhetoric | 0 | "You're not even listening to me!" | 2 dmg, +1 R |
 | Consideration | 0 | "…alright, fair point." | Heals 2 (self), +1 C |
 | Fact — "Council Tax Correction" | 2 R + 3 Effort | "The Church gets more funding than my street does, and everyone knows it." | 3 dmg; −1 enemy Defence |
-| Fact — "Someone's Going to Drown" | 2 R + 3 Effort | "If a mouse drowns crossing that river, that's on whoever let them try." | 3 dmg; +1 Fen Defence |
+| Fact — "Someone's Going to Drown" | 2 R + 3 Effort | "If a mouse drowns crossing that river, that's on whoever let them try." | 3 dmg; +1 Fen Defence (caps at +3 total across all casts, §17) |
 | Feeling — "Persecution Complex" (turn 3–4 only) | 3 C + 4 Effort | "Everyone's against blokes like me these days." | Lowers enemy Effort significantly; **+1 Fen Defence for as long as Confident lasts (reverts fully once it expires — not permanent)**; the next enemy Fact used against Fen deals bonus damage; **grants Fen Confident for 1 turn directly** (in addition to the generic any-Fact trigger, §4b) |
 
 Note on "Persecution Complex": the "next enemy Fact deals bonus
@@ -485,16 +482,24 @@ The indefinite stacking that's actually reproducible comes from
 time it's cast (unlimited reuse, no cap, no reversion) — in that same
 traced fight, Defence climbed to 9 by turn 58 purely from repeated
 Drown casts. This is very likely what was actually observed. The fix
-above only touches Persecution Complex, per what was explicitly asked
-— **decision: Drown's permanent stacking is left as-is** (§12.2), to
-be revisited during real character design rather than patched into
-this throwaway test kit now.
+above only touched Persecution Complex at the time, per what was
+explicitly asked; Drown's stacking was initially left as a recorded
+decision to revisit later (§12.2).
 
-**Re-ran the exhaustive win-path search (§16) after both fixes.**
-Fastest possible win is now **9 rounds** (down from 10) — capping R/C
-and closing off Persecution's permanent Defence both remove player-side
-drag, so if anything the fight got slightly faster, not slower.
-Confirmed against the live battle code: the 9-round sequence
+**Follow-up: Drown's Defence gain is now also capped, at +3 total.**
+Regardless of how many times "Someone's Going to Drown" is cast, once
+Fen's Drown-sourced Defence reaches +3 further casts still deal damage
+but stop adding Defence — the same capped, non-stacking pattern now
+used for R/C (§2) and Persecution Complex (§4a/§4b). Re-traced the
+same long passive-play fight: Defence climbs 1/1/1 on the first three
+casts then plateaus at 3 for the rest of the fight (through turn 58),
+instead of climbing to 9.
+
+**Re-ran the exhaustive win-path search (§16) after the R/C cap and
+both Defence fixes.** Fastest possible win is still **9 rounds** —
+capping Drown's Defence gain doesn't change it, since the fastest win
+doesn't involve Fen casting Drown enough times to hit the new +3 cap
+anyway. Confirmed against the live battle code: the 9-round sequence
 `consideration ×3, understand, rhetoric ×3, actually, rhetoric` wins
 with the player finishing at 13/20 HP. Loss, no-retreat, and Talk/Fight
 independence were all re-verified afterward and are unaffected.
