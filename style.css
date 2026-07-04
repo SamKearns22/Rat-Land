@@ -98,6 +98,18 @@ html, body {
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
+/* On-screen D-pad/Talk button only render below the 900px breakpoint
+   (see #controls below) and reach up to 204px from the viewport bottom
+   (#btn-up). Raise the dialogue box clear of all of them there so it
+   never sits on top of the controls (previously it did, at every
+   overworld NPC, not just one). Desktop has no on-screen controls to
+   clear, so its lower default position is unaffected. */
+@media (max-width: 899px) {
+  #dialogue-box {
+    bottom: 228px;
+  }
+}
+
 #dialogue-box.visible {
   opacity: 1;
   transform: translate(-50%, 0);
