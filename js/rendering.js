@@ -637,10 +637,41 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   RatLand.drawRat(ctx, crierX, crierY, ts, crier.color, 'down', talkTarget === crier);
   RatLand.drawLabel(ctx, crier.name, crierX + ts / 2, crierY - 4);
 
+  // Linked pairs (e.g. Nora & Barry) stand one tile apart, so their own
+  // name labels would otherwise sit close enough to touch/overlap. Since
+  // they're always talked to and highlighted as a single unit anyway, they
+  // share one combined label (drawn once, centered between them) instead
+  // of two separate labels crowding each other.
+  var labeledPairs = {};
+
   RatLand.NPC_ROSTER.forEach(function (spec) {
     var nx = spec.col * ts, ny = spec.row * ts;
-    RatLand.drawNpcRat(ctx, nx, ny, ts, spec, 'down', talkTarget === spec);
+    var highlight = talkTarget === spec ||
+      (!!spec.pairId && !!talkTarget && talkTarget.pairId === spec.pairId);
+    RatLand.drawNpcRat(ctx, nx, ny, ts, spec, 'down', highlight);
     var dist = Math.max(Math.abs(spec.col - playerCol), Math.abs(spec.row - playerRow));
+
+    if (spec.pairId) {
+      if (labeledPairs[spec.pairId]) return; // already drawn by the partner
+      var partner = RatLand.NPC_ROSTER.filter(function (o) {
+        return o !== spec && o.pairId === spec.pairId;
+      })[0];
+      var partnerDist = partner
+        ? Math.max(Math.abs(partner.col - playerCol), Math.abs(partner.row - playerRow))
+        : Infinity;
+      if (Math.min(dist, partnerDist) <= NPC_LABEL_RADIUS) {
+        labeledPairs[spec.pairId] = true;
+        if (partner) {
+          var midX = (nx + partner.col * ts) / 2 + ts / 2;
+          var topY = Math.min(ny, partner.row * ts) - 4;
+          RatLand.drawLabel(ctx, spec.name + ' & ' + partner.name, midX, topY);
+        } else {
+          RatLand.drawLabel(ctx, spec.name, nx + ts / 2, ny - 4);
+        }
+      }
+      return;
+    }
+
     if (dist <= NPC_LABEL_RADIUS) {
       RatLand.drawLabel(ctx, spec.name, nx + ts / 2, ny - 4);
     }

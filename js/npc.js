@@ -26,6 +26,34 @@ RatLand.getNpcLine = function (npc) {
   return line;
 };
 
+// Linked conversational pairs: two NPCs who share a single back-and-forth
+// dialogue instead of each cycling their own independent lines. Talking to
+// either member of the pair advances the *shared* lineIndex and alternates
+// speaker, so pressing Talk repeatedly plays out a real conversation
+// instead of two people talking past each other. See `pairId` on the
+// relevant RatLand.NPC_ROSTER entries.
+RatLand.NPC_PAIRS = {
+  weatherpair: {
+    speakerNames: { nora: 'Nora Sopwell', barry: 'Barry Trench' },
+    lines: [
+      { speaker: 'nora', text: 'Damp again.' },
+      { speaker: 'barry', text: 'Extra damp, actually. I checked the drip gauge this morning.' },
+      { speaker: 'nora', text: 'You have a drip gauge?' },
+      { speaker: 'barry', text: 'Everyone should have a drip gauge.' },
+    ],
+    lineIndex: 0,
+  },
+};
+
+// Advances a shared pair conversation by one line, wrapping around, and
+// returns the display name of whoever's speaking plus their text.
+RatLand.getPairLine = function (pairId) {
+  var pair = RatLand.NPC_PAIRS[pairId];
+  var entry = pair.lines[pair.lineIndex];
+  pair.lineIndex = (pair.lineIndex + 1) % pair.lines.length;
+  return { speakerName: pair.speakerNames[entry.speaker], text: entry.text };
+};
+
 // Finds the closest talkable NPC (Town Crier or roster) within one tile
 // (Chebyshev distance) of the player's tile, or null if nobody's close
 // enough. Same adjacency rule the Crier always used.
@@ -447,27 +475,22 @@ RatLand.NPC_ROSTER = [
     note: 'A single leaf sprig tucked behind the ear — the closest he gets to the surface most days.',
   },
   {
-    id: 'weatherA', name: 'Rat A (weather)', group: 'ordinary',
-    col: 7, row: 12,
-    lines: [
-      "Damp again.",
-      "You have a drip gauge?",
-    ],
-    lineIndex: 0,
+    // Placeholder names for the full character redesign — was "Rat A
+    // (weather)". Linked to Barry via `pairId`: a single Talk interaction
+    // targets both together and cycles the shared exchange in
+    // RatLand.NPC_PAIRS.weatherpair rather than her own independent lines.
+    id: 'nora', name: 'Nora Sopwell', group: 'ordinary', pairId: 'weatherpair',
+    col: 7, row: 17,
     color: '#8a8a82',
     accessories: [
       { type: 'neck', style: 'scarf', color: '#6a6a5c' },
     ],
-    note: 'Plain damp-weather scarf, nothing more — the straight man in the exchange.',
+    note: 'Plain damp-weather scarf, nothing more — the straight man in the exchange. Placed directly beside Barry Trench so they read as a conversational pair, not two separate rats.',
   },
   {
-    id: 'weatherB', name: 'Rat B (weather)', group: 'ordinary',
-    col: 10, row: 11,
-    lines: [
-      "Extra damp, actually. I checked the drip gauge this morning.",
-      "Everyone should have a drip gauge.",
-    ],
-    lineIndex: 0,
+    // Placeholder name — was "Rat B (weather)". See Nora's note on pairId.
+    id: 'barry', name: 'Barry Trench', group: 'ordinary', pairId: 'weatherpair',
+    col: 8, row: 17,
     color: '#8a7c6a',
     accessories: [
       { type: 'prop', style: 'dripgauge', color: '#5a5a52' },

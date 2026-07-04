@@ -75,7 +75,13 @@ RatLand.onInteractPressed = function () {
 
   var target = RatLand.findTalkTarget(col, row);
   if (target) {
-    if (target.fightable) {
+    if (target.pairId) {
+      // Linked conversational pair (e.g. Nora & Barry): one shared
+      // exchange, advanced and alternated regardless of which of the two
+      // NPCs the player is actually standing next to.
+      var line = RatLand.getPairLine(target.pairId);
+      RatLand.showDialogue(line.speakerName, line.text);
+    } else if (target.fightable) {
       RatLand.openPreBattleMenu(game, target);
     } else {
       RatLand.showDialogue(target.name, RatLand.getNpcLine(target));

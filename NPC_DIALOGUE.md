@@ -198,14 +198,19 @@ surface.
 - "Sometimes I dream about grass. Actual grass. Not the mossy sort — the proper green kind, up top."
 - "They say there's a garden two streets over with real soil. I'm saving my scraps for the trip."
 
-### Two Rats on the Weather
-**Stance:** Unnamed pair. The most British possible exchange.
+### Nora Sopwell and Barry Trench
+**Stance:** Linked conversational pair — placeholder names, to be replaced
+during full character redesign. The most British possible exchange.
+Stand directly adjacent to each other in-game; a single Talk interaction
+targets both together and steps through this exchange one line at a
+time, alternating speaker, rather than either of them running their own
+independent lines.
 
 **Exchange:**
-> **Rat A:** "Damp again."
-> **Rat B:** "Extra damp, actually. I checked the drip gauge this morning."
-> **Rat A:** "You have a drip gauge?"
-> **Rat B:** "Everyone should have a drip gauge."
+> **Nora:** "Damp again."
+> **Barry:** "Extra damp, actually. I checked the drip gauge this morning."
+> **Nora:** "You have a drip gauge?"
+> **Barry:** "Everyone should have a drip gauge."
 
 ### The Queue Complainer
 **Stance:** Unnamed. Perpetually behind someone slow at Rat Café.
