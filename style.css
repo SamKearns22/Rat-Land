@@ -2,7 +2,16 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
+  /* `height: 100%` resolves against the same "largest possible viewport"
+     Safari has historically used for 100vh -- it doesn't shrink when
+     Safari's own address-bar/tab-bar toolbar is showing, which is a
+     separate thing from a device's safe-area inset (that's the
+     home-indicator gesture area on notched phones, not browser chrome).
+     100dvh is the dynamic-viewport-height unit designed specifically to
+     track whatever's actually visible right now, toolbar included; 100vh
+     stays as the fallback for browsers that don't support dvh yet. */
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: #111;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -122,13 +131,15 @@ html, body {
 
 /* On-screen D-pad/Talk button only render below the 900px breakpoint
    (see #controls below) and reach up to 204px from the viewport bottom
-   (#btn-up). Raise the dialogue box clear of all of them there so it
-   never sits on top of the controls (previously it did, at every
-   overworld NPC, not just one). Desktop has no on-screen controls to
-   clear, so its lower default position is unaffected. */
+   (#btn-up), plus --safari-toolbar-clearance now that the D-pad/Talk
+   button are pushed up to clear Safari's toolbar too. Raise the dialogue
+   box clear of all of them there so it never sits on top of the controls
+   (previously it did, at every overworld NPC, not just one). Desktop has
+   no on-screen controls to clear, so its lower default position is
+   unaffected. */
 @media (max-width: 899px) {
   #dialogue-box {
-    bottom: calc(228px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(228px + env(safe-area-inset-bottom, 0px) + var(--safari-toolbar-clearance));
   }
 }
 
@@ -163,11 +174,28 @@ html, body {
    four separate offset calculations is four separate chances to get the
    edge math wrong). The classic plus/cross D-pad shape falls out of grid
    placement alone; --pad-size is the one number that controls it. */
+/* Extra bottom clearance for the D-pad/Talk button specifically, on top
+   of (not instead of) env(safe-area-inset-bottom). Safari's own address-
+   bar/tab-bar toolbar is browser chrome, not a device safe area, so it
+   has no env() variable of its own -- there's no way to read its exact
+   height from CSS. This is a deliberately generous empirical margin
+   sized for the toolbar's default (showing) state, since this game's
+   `overflow: hidden` on html/body means the player can never actually
+   perform the scroll gesture that would let Safari auto-collapse it.
+   Measured directly off a real-device screenshot (iPhone, 390x844pt):
+   the translucent toolbar pill row spans roughly the bottom 60pt above
+   the solid ~34pt home-indicator strip that env(safe-area-inset-bottom)
+   already covers separately -- 70px here clears the measured band with
+   a small margin for cross-device/iOS-version variance. */
+:root {
+  --safari-toolbar-clearance: 70px;
+}
+
 #dpad {
   --pad-size: 48px;
   position: fixed;
   left: calc(8px + env(safe-area-inset-left, 0px));
-  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px) + var(--safari-toolbar-clearance));
   display: grid;
   grid-template-columns: repeat(3, var(--pad-size));
   grid-template-rows: repeat(3, var(--pad-size));
@@ -203,7 +231,7 @@ html, body {
 #btn-interact {
   position: fixed;
   right: calc(20px + env(safe-area-inset-right, 0px));
-  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px) + var(--safari-toolbar-clearance));
   width: 58px;
   height: 58px;
   line-height: 56px;
