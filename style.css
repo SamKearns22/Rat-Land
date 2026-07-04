@@ -339,6 +339,74 @@ html, body {
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* "?" button opening the full-screen Rules reference (§22) -- always
+   visible/tappable during battle, positioned in the corner of the battle
+   screen itself so it isn't affected by the D-pad/Talk hide-during-battle
+   rule (it's part of #battle-screen, not #controls). */
+.battle-rules-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(201, 162, 39, 0.2);
+  border: 1px solid rgba(201, 162, 39, 0.7);
+  color: #f4e4a8;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 24px;
+  text-align: center;
+  padding: 0;
+  font-family: inherit;
+}
+
+.battle-rules-btn:active {
+  background: rgba(201, 162, 39, 0.4);
+}
+
+/* Genuinely full-screen (not the centered/partial-width treatment
+   .overlay-menu uses for the pre-battle menu and battle screen) so it
+   both covers the whole viewport and blocks interaction with anything
+   behind it while open -- a centered modal here would leave gaps where a
+   move button underneath could still be tapped by accident while reading. */
+.fullscreen-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: rgba(8, 8, 8, 0.97);
+  color: #f4f4f4;
+  padding: 16px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.fullscreen-overlay.visible {
+  display: block;
+}
+
+.fullscreen-overlay-inner {
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+#battle-rules-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #e8e4d8;
+}
+
+#battle-rules-text p {
+  margin: 0 0 12px;
+}
+
+#battle-rules-text strong {
+  color: #f4e4a8;
+}
+
 /* Combatant panels: opponent on top, player on the bottom-opposite corner,
    the same top/bottom split classic Pokémon battle screens use. */
 .combatant-panel {
@@ -455,6 +523,34 @@ html, body {
 .combatant-player .bar-value { text-align: left; }
 .combatant-enemy .bar-value { text-align: right; }
 
+/* Effort regen flash (§22): "+2"/"+1"/nothing next to Effort, reflecting
+   the actual regen just applied (js/combat.js keeps this dynamic rather
+   than a hardcoded "+2" so a future move that changes the regen rate
+   still shows the right number). Pops up, holds briefly, fades -- a new
+   DOM node isn't created per render (the span is fixed in index.html),
+   so combat.js restarts the animation itself (remove+reflow+add) only
+   when the flash text actually changes, matching the pattern used for
+   Fen's sprite animations. */
+.regen-flash {
+  flex: none;
+  width: 22px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #8ad9a8;
+  opacity: 0;
+}
+
+.regen-flash.flash-anim {
+  animation: regen-flash-pop 1.4s ease forwards;
+}
+
+@keyframes regen-flash-pop {
+  0% { opacity: 0; transform: translateY(2px); }
+  15% { opacity: 1; transform: translateY(-1px); }
+  70% { opacity: 1; transform: translateY(-1px); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
 .status-icons {
   display: flex;
   flex-wrap: wrap;
@@ -490,6 +586,41 @@ html, body {
    than appearing/disappearing, so the tap targets never move around. */
 .status-icon.icon-inactive {
   opacity: 0.4;
+}
+
+/* R/C at the 10 cap (§22): red + a subtle wobble/flash instead of ever
+   visually exceeding 10 (the underlying value is already clamped at 10 in
+   js/combat.js -- this is purely the "you're capped, spending some would
+   help" visual cue). Loops for as long as the icon stays at cap; a fresh
+   DOM node is created per render (renderStatusIcons rebuilds the icon row
+   each time), so the animation restarts each render, which is fine at the
+   once-per-move render cadence this UI actually has. */
+.status-icon.icon-capped {
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.7);
+  animation: meter-cap-wobble 1.6s ease-in-out infinite;
+}
+
+@keyframes meter-cap-wobble {
+  0%, 100% { transform: rotate(0deg); filter: brightness(1); }
+  15% { transform: rotate(-4deg); filter: brightness(1.5); }
+  30% { transform: rotate(3deg); filter: brightness(1); }
+  45% { transform: rotate(-2deg); filter: brightness(1.5); }
+  60% { transform: rotate(0deg); filter: brightness(1); }
+}
+
+/* Vague enemy-intent hint (§22): category-level only, never the exact
+   move name -- see buildEnemyIntentHint in js/combat.js. */
+#battle-intent-hint {
+  font-size: 12px;
+  font-style: italic;
+  color: #b8b0a0;
+  margin-bottom: 6px;
+}
+
+#battle-intent-hint:empty {
+  display: none;
+  margin: 0;
 }
 
 #battle-icon-explain {

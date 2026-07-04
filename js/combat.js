@@ -288,8 +288,6 @@ window.RatLand = RatLand;
 
   var PLAYER_MOVES_BY_ID = {};
   PLAYER_MOVES.forEach(function (m) { PLAYER_MOVES_BY_ID[m.id] = m; });
-  var FEN_MOVES_BY_ID = {};
-  FEN_MOVES.forEach(function (m) { FEN_MOVES_BY_ID[m.id] = m; });
 
   function canAfford(battle, side, move) {
     var c = battle[side];
@@ -353,10 +351,13 @@ window.RatLand = RatLand;
     if (RatLand.playSfx) RatLand.playSfx(sfxKeyForMove(move));
     if (atkSide === 'enemy') {
       triggerFenSpriteAnim('attack');
-      // Tracked so the enemy status-icon row can show a tap-to-reveal
-      // explanation of what Fen's move just did, the same way the player
-      // already sees their own move's description before confirming it.
-      battle.enemy.lastMoveId = move.id;
+      // Auto-reveal (§22): what Fen's move just did is logged automatically,
+      // no tap required -- previously this only showed via a tap-to-reveal
+      // status icon, which is removed now that this is unmissable in the
+      // log. move.description is written from the player's perspective
+      // already (e.g. "gives Fen 1 👄"), so it reads fine as a plain
+      // follow-up line under his dialogue.
+      battle.log.push('(' + move.label + ' — ' + move.description + ')');
     }
     move.effect(battle, atkSide, defSide);
     if (move.type === 'fact' && atkSide === 'enemy') {
@@ -369,6 +370,17 @@ window.RatLand = RatLand;
   // turn-3/4 window, fire it the moment it's affordable, otherwise use a
   // Fact when he can afford one (alternating for variety), heal if he's
   // under 40% HP, otherwise fall back to Rhetoric to build up R.
+  //
+  // Enemy affordability rule (§22): no enemy may plan or execute a move it
+  // can't currently pay for. This function only ever returns a move
+  // canAfford() (above) approves -- the turnWindow check on Persecution
+  // Complex is an *additional* restriction on top of the normal resource/
+  // effort cost, checked together in the same canAfford call, never a way
+  // to bypass it. Concretely: the persecution branch below only fires once
+  // canAfford confirms turn 3-4 window AND c>=3 AND effort>=4 all hold at
+  // once, so the scripted turn-3/4 timing can never fire "on credit" --
+  // if Fen hasn't actually banked enough C by then, canAfford stays false
+  // and the second branch (bank more C) keeps running instead.
   function chooseFenMove(battle) {
     var persecution = FEN_MOVES[4];
     var usedPersecution = battle.enemy.usedOnce && battle.enemy.usedOnce[persecution.id];
@@ -391,12 +403,65 @@ window.RatLand = RatLand;
   function runEnemyTurn(battle) {
     if (battle.outcome) return;
     var move = chooseFenMove(battle);
+    // Defensive backstop for the enemy affordability rule (§22): even
+    // though chooseFenMove above is verified to only ever pick a move it
+    // can currently pay for, this guards against a future enemy's AI
+    // having a bug in its own equivalent function, rather than trusting
+    // every future chooseXMove implementation to get it right. Fen's own
+    // fallback (fen-rhetoric) has no cost, so it's always affordable.
+    if (!canAfford(battle, 'enemy', move)) {
+      move = FEN_MOVES[0];
+    }
     useMove(battle, 'enemy', 'player', move);
   }
 
+  // --- Vague enemy-intent hint (§22) ---------------------------------------
+  // Shown at the start of each player turn: a category-level hint of the
+  // enemy's likely next move (Fact/Feeling/basic), never the exact move
+  // name, and never a hint at what to actually DO about it -- winning
+  // strategy stays for the player to discover. Reusable for any future
+  // enemy: pass its own display name and move-choosing function (already
+  // required for its turn logic) and, optionally, its own hint-phrase
+  // pools; defaults to a generic basic/fact/feeling phrasing otherwise.
+  // Calling chooseMoveFn here is a pure preview (it doesn't mutate battle
+  // state) of the *exact same* function that will actually pick the move
+  // on the enemy's next turn, so the hint's category is always accurate
+  // and -- critically -- always about a move that enemy can currently
+  // afford, since chooseFenMove (and runEnemyTurn's backstop) never
+  // returns anything else.
+  var DEFAULT_INTENT_HINT_POOLS = {
+    basic: ['seems to be just deflecting.', 'looks like he’s stalling for time.'],
+    fact: ['looks like he’s gathering a comeback.', 'seems to be marshalling an argument.'],
+    feeling: ['seems to be getting worked up.', 'looks like his feelings are rising.'],
+  };
+
+  function buildEnemyIntentHint(battle, npcName, chooseMoveFn, hintPools) {
+    var pools = hintPools || DEFAULT_INTENT_HINT_POOLS;
+    var nextMove = chooseMoveFn(battle);
+    if (!nextMove) return '';
+    var pool = pools[nextMove.type] || pools.basic;
+    return npcName + ' ' + pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function updateIntentHint(battle) {
+    battle.intentHint = battle.outcome ? '' : buildEnemyIntentHint(battle, battle.npcName, chooseFenMove);
+  }
+
+  // Regen flash (§22): recorded here (not hardcoded "+2" in the UI) so a
+  // future move that changes a combatant's regen rate still shows the
+  // right number -- reads effortRegenRate off each combatant rather than
+  // a single global constant. battle.regenFlash holds the *actual* amount
+  // each side's Effort just grew by (0 if already at max), which
+  // renderBattleUI displays as a transient "+N" next to each Effort bar.
   function upkeep(battle) {
-    battle.player.effort = Math.min(battle.player.maxEffort, battle.player.effort + 2);
-    battle.enemy.effort = Math.min(battle.enemy.maxEffort, battle.enemy.effort + 2);
+    var playerBefore = battle.player.effort;
+    battle.player.effort = Math.min(battle.player.maxEffort, battle.player.effort + battle.player.effortRegenRate);
+    var enemyBefore = battle.enemy.effort;
+    battle.enemy.effort = Math.min(battle.enemy.maxEffort, battle.enemy.effort + battle.enemy.effortRegenRate);
+    battle.regenFlash = {
+      player: battle.player.effort - playerBefore,
+      enemy: battle.enemy.effort - enemyBefore,
+    };
     if (battle.enemy.confidentTurns > 0) {
       battle.enemy.confidentTurns -= 1;
       // Confident just expired -- fully revert Persecution Complex's
@@ -414,11 +479,12 @@ window.RatLand = RatLand;
   function freshCombatant(stats) {
     return {
       hp: stats.hp, maxHp: stats.maxHp, effort: stats.effort, maxEffort: stats.maxEffort,
+      effortRegenRate: 2, // standard regen/turn (§22) -- read here, not hardcoded, so a
+                          // future move that alters it is reflected automatically
       r: 0, c: 0, defence: stats.defence || 0,
       confidentTurns: 0, vulnerableNextFact: false, usedOnce: {},
       persecutionDefenceBonus: 0, drownDefenceBonus: 0,
       dialogueUsed: {}, // tracks which moves' firstUse line has already fired
-      lastMoveId: null, // enemy only: last move used, for the tap-to-reveal icon
     };
   }
 
@@ -453,6 +519,8 @@ window.RatLand = RatLand;
       enemy: freshCombatant(FEN_START),
       selectedMoveId: null, // UI-only: highlighted move awaiting confirmation
       turnGapPending: false, // UI-only: see ENEMY_TURN_GAP_MS below
+      regenFlash: { player: 0, enemy: 0 }, // §22: actual regen applied last upkeep
+      intentHint: '', // §22: vague category-level hint of the enemy's next move
     };
     game.battle = battle;
     game.mode = 'battle';
@@ -471,6 +539,7 @@ window.RatLand = RatLand;
     battle.log.push('You: "' + PLAYER_OPENING + '"');
 
     runEnemyTurn(battle);
+    updateIntentHint(battle);
     RatLand.renderBattleUI(game);
     if (battle.outcome) endBattle(game);
   };
@@ -532,6 +601,7 @@ window.RatLand = RatLand;
       battle.turnGapPending = false;
       upkeep(battle);
       runEnemyTurn(battle);
+      updateIntentHint(battle);
       RatLand.renderBattleUI(game);
       if (battle.outcome) endBattle(game);
     }, ENEMY_TURN_GAP_MS);
@@ -566,6 +636,10 @@ window.RatLand = RatLand;
     if (playerIcons) playerIcons.innerHTML = '';
     var enemyIcons = document.getElementById('battle-icons-enemy');
     if (enemyIcons) enemyIcons.innerHTML = '';
+    var intentHintEl = document.getElementById('battle-intent-hint');
+    if (intentHintEl) intentHintEl.textContent = '';
+    var rulesOverlay = document.getElementById('battle-rules-overlay');
+    if (rulesOverlay) rulesOverlay.classList.remove('visible');
   };
 
   // --- UI rendering: Pokémon-style top (opponent) / bottom (player) panels,
@@ -594,12 +668,12 @@ window.RatLand = RatLand;
 
     var icons = [
       {
-        symbol: '👄', badge: c.r, active: c.r > 0, // mouth — Rhetoric build-up
+        symbol: '👄', badge: c.r, active: c.r > 0, capped: c.r >= METER_CAP, // mouth — Rhetoric build-up
         explain: possessive + ' 👄 (Rhetoric build-up): ' + c.r + '/10. Builds by 1 each time ' +
           'Rhetoric is used (capped at 10); a Fact spends some of it to cast.',
       },
       {
-        symbol: '🧠', badge: c.c, active: c.c > 0, // brain — Consideration build-up
+        symbol: '🧠', badge: c.c, active: c.c > 0, capped: c.c >= METER_CAP, // brain — Consideration build-up
         explain: possessive + ' 🧠 (Consideration build-up): ' + c.c + '/10. Builds by 1 each time ' +
           'Consideration is used (capped at 10); a Feeling spends some of it to cast.',
       },
@@ -619,21 +693,29 @@ window.RatLand = RatLand;
       },
     ];
 
-    // Fen doesn't go through the player's select-then-confirm flow, so
-    // there's nowhere else he'd get a plain-text explanation of what his
-    // own move just did to the player. Surface it as one more tappable
-    // icon in his row, same tap-to-reveal pattern as R/C/Defence/Confident.
-    if (!isPlayer) {
-      var lastMove = c.lastMoveId ? FEN_MOVES_BY_ID[c.lastMoveId] : null;
-      icons.push({
-        symbol: '💬', badge: null, active: !!lastMove,
-        explain: lastMove
-          ? name + '’s last move — ' + lastMove.label + ': ' + lastMove.description
-          : name + ' hasn’t used a move yet this battle.',
-      });
-    }
-
     return icons;
+  }
+
+  // Regen flash (§22): pops up "+N" next to an Effort bar reflecting the
+  // actual amount just regenerated (0 => nothing shown, matching "if
+  // full"). The span is a fixed element (not rebuilt per render like the
+  // status icons), so restarting the animation needs the same
+  // remove-class/reflow/add-class trick used for Fen's sprite animations
+  // -- otherwise re-setting the same "+2" text on the next upkeep
+  // wouldn't restart the fade. Only restarts when the text actually
+  // changes, so re-renders that don't follow an upkeep (e.g. just
+  // highlighting a move) don't repeatedly retrigger it.
+  function renderRegenFlash(elId, amount) {
+    var el = document.getElementById(elId);
+    if (!el) return;
+    var text = amount > 0 ? '+' + amount : '';
+    if (el.textContent === text) return;
+    el.textContent = text;
+    if (text) {
+      el.classList.remove('flash-anim');
+      void el.offsetWidth;
+      el.classList.add('flash-anim');
+    }
   }
 
   function renderStatusIcons(containerEl, icons) {
@@ -642,7 +724,7 @@ window.RatLand = RatLand;
     icons.forEach(function (icon) {
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'status-icon' + (icon.active ? '' : ' icon-inactive');
+      btn.className = 'status-icon' + (icon.active ? '' : ' icon-inactive') + (icon.capped ? ' icon-capped' : '');
       btn.textContent = icon.symbol + (icon.badge !== null && icon.badge !== undefined ? ' ' + icon.badge : '');
       btn.setAttribute('data-explain', icon.explain);
       containerEl.appendChild(btn);
@@ -669,6 +751,11 @@ window.RatLand = RatLand;
       document.getElementById('battle-effort-fill-enemy'), document.getElementById('battle-effort-text-enemy'),
       battle.enemy.effort, battle.enemy.maxEffort, false
     );
+    renderRegenFlash('battle-effort-flash-player', battle.regenFlash ? battle.regenFlash.player : 0);
+    renderRegenFlash('battle-effort-flash-enemy', battle.regenFlash ? battle.regenFlash.enemy : 0);
+
+    var intentHintEl = document.getElementById('battle-intent-hint');
+    if (intentHintEl) intentHintEl.textContent = battle.intentHint || '';
 
     renderStatusIcons(document.getElementById('battle-icons-player'), buildStatusIcons('You', battle.player));
     renderStatusIcons(document.getElementById('battle-icons-enemy'), buildStatusIcons(battle.npcName, battle.enemy));
@@ -837,6 +924,25 @@ window.RatLand = RatLand;
         RatLand.playBattleWipe(function () {
           RatLand.exitBattle(RatLand.game);
         });
+      });
+    }
+
+    // Rules overlay (§22): a pure informational layer on top of the battle
+    // screen -- opening/closing it never touches battle state, so it can
+    // be opened any time, including mid-turn-gap, with no side effects.
+    var rulesOpenBtn = document.getElementById('battle-rules-open');
+    var rulesOverlay = document.getElementById('battle-rules-overlay');
+    var rulesBackBtn = document.getElementById('battle-rules-back');
+    if (rulesOpenBtn && rulesOverlay) {
+      rulesOpenBtn.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        rulesOverlay.classList.add('visible');
+      });
+    }
+    if (rulesBackBtn && rulesOverlay) {
+      rulesBackBtn.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        rulesOverlay.classList.remove('visible');
       });
     }
 

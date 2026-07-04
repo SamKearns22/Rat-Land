@@ -35,6 +35,7 @@
 </div>
 
 <div id="battle-screen" class="overlay-menu battle-screen">
+  <button id="battle-rules-open" class="battle-rules-btn" type="button" aria-label="Rules">?</button>
   <div id="battle-title" class="overlay-title"></div>
 
   <!-- Opponent panel: top, per classic Pokémon-style layout. Player side
@@ -51,6 +52,7 @@
         <span class="bar-label">EF</span>
         <div class="bar-track"><div class="bar-fill bar-fill-effort" id="battle-effort-fill-enemy"></div></div>
         <span class="bar-value" id="battle-effort-text-enemy"></span>
+        <span class="regen-flash" id="battle-effort-flash-enemy"></span>
       </div>
       <div id="battle-icons-enemy" class="status-icons"></div>
     </div>
@@ -69,10 +71,12 @@
       <span class="bar-label">EF</span>
       <div class="bar-track"><div class="bar-fill bar-fill-effort" id="battle-effort-fill-player"></div></div>
       <span class="bar-value" id="battle-effort-text-player"></span>
+      <span class="regen-flash" id="battle-effort-flash-player"></span>
     </div>
     <div id="battle-icons-player" class="status-icons"></div>
   </div>
 
+  <div id="battle-intent-hint"></div>
   <div id="battle-icon-explain"></div>
   <div id="battle-log"></div>
   <div id="battle-result"></div>
@@ -86,6 +90,41 @@
   </div>
   <button id="battle-confirm-move" class="overlay-btn" type="button">Use Move</button>
   <button id="battle-continue" class="overlay-btn" type="button">Continue</button>
+</div>
+
+<!-- Full-screen battle rules reference (§22): plain-text how-turns-work
+     and what-each-resource-does explainer, accessible any time during
+     battle. Deliberately does not mention the Fact+Feeling win
+     requirement or any other winning strategy -- that stays for the
+     player to discover through play. -->
+<div id="battle-rules-overlay" class="fullscreen-overlay">
+  <div class="fullscreen-overlay-inner">
+    <div class="overlay-title">Rules</div>
+    <div id="battle-rules-text">
+      <p><strong>How turns work</strong><br>
+      Fen acts first each round, then you choose a move. After your move,
+      Effort regenerates, R/C build-up may adjust, and timed effects (like
+      Confident) count down before Fen's next turn.</p>
+      <p><strong>Resources</strong><br>
+      <strong>HP</strong> — your health and Fen's. The battle ends the
+      instant either side's HP reaches 0.<br>
+      <strong>Effort</strong> — spent on Facts and Feelings. Regenerates
+      +2 per round under standard conditions, capped at your max.<br>
+      <strong>👄 (Rhetoric build-up)</strong> — builds +1 each time
+      Rhetoric is used under standard conditions, capped at 10. Facts
+      spend some of it to cast.<br>
+      <strong>🧠 (Consideration build-up)</strong> — builds +1 each time
+      Consideration is used under standard conditions, capped at 10.
+      Feelings spend some of it to cast.<br>
+      <strong>🛡️ Defence</strong> — a flat reduction applied to incoming
+      damage before any other modifier.<br>
+      <strong>😤 Confident</strong> — a temporary status that changes how
+      certain moves land.</p>
+      <p><strong>Goal</strong><br>
+      Reduce your opponent's HP to 0.</p>
+    </div>
+    <button id="battle-rules-back" class="overlay-btn" type="button">Back</button>
+  </div>
 </div>
 
 <!-- Pokémon-style wipe transition: covers the screen entering/exiting the
