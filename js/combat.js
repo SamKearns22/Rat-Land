@@ -8,12 +8,12 @@
 // corner, HP/Effort bars, always-visible R/C/Defence/Confident status
 // icons (text/symbol only, tap for a plain-text explanation), and a 2x2
 // move grid with a select-then-confirm flow that previews a move's
-// plain-text description before it's used, and contextual/randomized
-// battle dialogue (§11): a one-shot opening/finishing line per combatant,
-// a unique first-use line for each Fact/Feeling, and a random 3-4 line
-// pool for every repeat use (including all Rhetoric/Consideration uses).
-// Still no battle-transition animation (§10) and no illustrated sprite
-// art — DOM panels only.
+// plain-text description before it's used, contextual/randomized battle
+// dialogue (§11): a one-shot opening/finishing line per combatant, a
+// unique first-use line for each Fact/Feeling, and a random 3-4 line pool
+// for every repeat use (including all Rhetoric/Consideration uses), and a
+// brief Pokémon-style wipe transition (§10) entering/exiting battle. Still
+// no illustrated sprite art — DOM panels only.
 var RatLand = window.RatLand || {};
 window.RatLand = RatLand;
 
@@ -665,6 +665,35 @@ window.RatLand = RatLand;
     }
   };
 
+  // --- Battle wipe transition (§10) ----------------------------------------
+  // A brief "Venetian blinds" wipe: covers the screen, runs `onCovered` at
+  // the moment it's fully covered (swap overworld <-> battle screen here),
+  // then uncovers. ~0.22s per phase (plus a small stagger), so well under
+  // 1s round trip -- deliberately quick so it doesn't slow down testing.
+  var WIPE_PHASE_MS = 300; // >= the CSS animation + stagger duration
+
+  RatLand.playBattleWipe = function (onCovered) {
+    var overlay = document.getElementById('battle-wipe');
+    if (!overlay) {
+      if (onCovered) onCovered();
+      return;
+    }
+    overlay.classList.remove('wipe-out');
+    // Force a reflow so re-adding 'wipe-in' restarts the animation even if
+    // a previous wipe used the same class very recently.
+    void overlay.offsetWidth;
+    overlay.classList.add('visible', 'wipe-in');
+    setTimeout(function () {
+      if (onCovered) onCovered();
+      overlay.classList.remove('wipe-in');
+      void overlay.offsetWidth;
+      overlay.classList.add('wipe-out');
+      setTimeout(function () {
+        overlay.classList.remove('visible', 'wipe-out');
+      }, WIPE_PHASE_MS);
+    }, WIPE_PHASE_MS);
+  };
+
   // --- Wiring (buttons for the pre-battle menu and battle moves) -----------
 
   RatLand.initBattleUI = function () {
@@ -690,7 +719,10 @@ window.RatLand = RatLand;
         var menu = document.getElementById('prebattle-menu');
         if (menu) menu.classList.remove('visible');
         game.preBattleNpc = null;
-        if (npc) RatLand.startBattle(game, npc);
+        if (!npc) return;
+        RatLand.playBattleWipe(function () {
+          RatLand.startBattle(game, npc);
+        });
       });
     }
 
@@ -725,7 +757,9 @@ window.RatLand = RatLand;
     if (continueBtn) {
       continueBtn.addEventListener('pointerdown', function (e) {
         e.preventDefault();
-        RatLand.exitBattle(RatLand.game);
+        RatLand.playBattleWipe(function () {
+          RatLand.exitBattle(RatLand.game);
+        });
       });
     }
 

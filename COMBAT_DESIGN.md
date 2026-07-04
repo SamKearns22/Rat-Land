@@ -224,25 +224,40 @@ this doc is pre-implementation):
 
 ## 10. Battle Transition Sequence (Pokémon-style)
 
-Battle is a new top-level game mode alongside the existing
-`'overworld'` / `'interior'` (see `main.js`), e.g. `'battle-transition'`
-→ `'battle'` → back to `'overworld'`.
+**Implemented.** No separate `'battle-transition'` game mode was
+needed — `main.js`'s frame loop already freezes player movement for
+any mode that isn't `'overworld'`/`'interior'`, and the pre-battle
+menu (`'battle-menu'`) already qualifies, so the wipe just plays while
+the mode is still `'battle-menu'`/`'battle'` as normal.
 
-Sequence beats:
+`RatLand.playBattleWipe(onCovered)` (`js/combat.js`) drives a plain
+CSS "Venetian blinds" wipe (`#battle-wipe`, `style.css`) — 8 vertical
+bars, alternating top/bottom `transform-origin`, staggered
+`animation-delay` — with no canvas or sprite art involved:
+
 1. **Trigger.** Player selects **Fight** from the pre-battle menu
    (§8) for a fightable NPC — for this test design, Fen Wicket.
-2. **Wipe in.** Screen transitions (diagonal wipe or iris — exact
-   style left as a rendering detail), overworld freezes underneath.
-3. **Battle screen.** Dedicated view: player sprite and opponent
-   sprite facing off, HP/Effort/R/C readouts for both, plus status
-   icons per §9. Reuses the existing code-drawn sprite renderers
-   (`drawNpcRat` / the `spriteAsset` image path for Fen specifically)
-   rather than new art.
-4. **Opening line.** Enemy's turn-1 dialogue plays before their first
-   move resolves (§11).
+2. **Wipe in.** The bars close over ~0.27s (animation + stagger),
+   covering the frozen overworld underneath.
+3. **Content swap**, at the moment of full cover: `RatLand.startBattle`
+   runs (builds the fresh battle state, shows the battle screen,
+   plays the opening lines per §11, resolves Fen's first move).
+4. **Wipe out.** The bars open over ~0.27s, revealing the battle
+   screen. Total round trip ≈0.6s, confirmed by direct timing —
+   comfortably under the 1s ceiling so repeated testing isn't slowed
+   down.
 5. **Battle loop** runs per §3 until win/loss.
-6. **Wipe out.** Reverse transition back to the overworld, player
-   restored to their pre-battle tile and facing.
+6. **Exit wipe.** Tapping **Continue** after a win or loss plays the
+   same wipe in reverse: covers the (still-visible) result screen,
+   swaps to `RatLand.exitBattle` (back to `'overworld'`) at full
+   cover, then uncovers onto the overworld. Also ≈0.6s round trip.
+   **Walk Away** (§8) does *not* trigger the wipe — no battle ever
+   started, so there's nothing to transition into.
+
+Still no player/opponent sprite art in the battle screen itself (§9's
+"no illustrated art" decision) — the wipe is the only animation;
+everything else in the battle screen is the existing static DOM
+layout.
 
 ## 11. Contextual & Randomized Battle Dialogue
 

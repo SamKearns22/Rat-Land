@@ -421,3 +421,55 @@ html, body {
 #battle-continue {
   display: none;
 }
+
+/* --- Battle wipe transition (§10): a brief "Venetian blinds" wipe that
+   covers the screen, swaps what's underneath (overworld <-> battle
+   screen), then uncovers again. Pure CSS animation, no canvas. --- */
+
+#battle-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: none;
+  pointer-events: none;
+}
+
+#battle-wipe.visible {
+  display: flex;
+}
+
+.wipe-bar {
+  flex: 1;
+  background: #0a0a0a;
+  transform: scaleY(0);
+}
+
+.wipe-bar:nth-child(odd) { transform-origin: top; }
+.wipe-bar:nth-child(even) { transform-origin: bottom; }
+
+#battle-wipe.wipe-in .wipe-bar {
+  animation: battle-wipe-in 0.22s ease forwards;
+}
+
+#battle-wipe.wipe-out .wipe-bar {
+  animation: battle-wipe-out 0.22s ease forwards;
+}
+
+.wipe-bar:nth-child(1) { animation-delay: 0s; }
+.wipe-bar:nth-child(2) { animation-delay: 0.018s; }
+.wipe-bar:nth-child(3) { animation-delay: 0.036s; }
+.wipe-bar:nth-child(4) { animation-delay: 0.054s; }
+.wipe-bar:nth-child(5) { animation-delay: 0.054s; }
+.wipe-bar:nth-child(6) { animation-delay: 0.036s; }
+.wipe-bar:nth-child(7) { animation-delay: 0.018s; }
+.wipe-bar:nth-child(8) { animation-delay: 0s; }
+
+@keyframes battle-wipe-in {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes battle-wipe-out {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(0); }
+}
