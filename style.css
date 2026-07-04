@@ -176,6 +176,21 @@ html, body {
   #controls { display: none; }
 }
 
+/* Hide the on-screen D-pad/Talk button any time an overlay that sits on
+   top of it is showing -- overworld dialogue, the pre-battle Talk/Fight/
+   Walk Away menu, or the battle screen itself. All three of these
+   elements are earlier siblings of #controls in the DOM (index.html), so
+   a general sibling selector catches every case from one place instead
+   of relying on each overlay's own JS to remember to toggle controls too.
+   Previously only the dialogue box was raised clear of the controls;
+   the controls could still show through/around the pre-battle menu and
+   battle screen, which sit lower and don't reach the full screen edges. */
+#dialogue-box.visible ~ #controls,
+#prebattle-menu.visible ~ #controls,
+#battle-screen.visible ~ #controls {
+  display: none;
+}
+
 /* --- Battle system: pre-battle menu + battle screen, both plain text/DOM
    overlays (no canvas animation yet, per COMBAT_DESIGN.md). --- */
 
