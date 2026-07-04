@@ -2,7 +2,7 @@
 
 Reference doc for future sessions: dialogue and personality notes for
 Rat Land's NPCs, written for the 20th anniversary setting described in
-`WORLD.md`. Twenty-eight rats plus one mouse. Each entry includes a
+`WORLD.md`. Twenty-nine rats plus one mouse. Each entry includes a
 short **Stance** line (personality, class, tone) meant to guide later
 work — sprite design, placement, whatever needs to match "who this
 character actually is" rather than a generic category.
@@ -161,6 +161,16 @@ surface.
 > **The Drain-Watcher:** "The roach business. Right. Is that near here?"
 > **Corporal Nettle:** "Nowhere near here. That's rather my point."
 > **The Drain-Watcher:** "Then I've got a solution for you: don't think about it. Works for me."
+
+### Barry Gutt
+**Stance:** Ratxit and anti-mouse populism, loud-and-proud angle. No hedging, no self-doubt, no gossip-y remove like Wetherby or Mrs. Pemberton-Vole — he says it straight, right where a new arrival can't miss him.
+
+- "Yeah, I voted Ratxit. What's it to you?"
+- "Mayor made a mess of it, of course. Time to get Terry in. He'll sort it out."
+- "Rat Land should be for the rats. Don't like it, scurry back to where you came from."
+- "Rat Land. It's in the name, see? It's not hard."
+
+**Notes:** Dialogue-only for now — planned to become fightable once combat content is scaled beyond the Fen Wicket test case (see COMBAT_DESIGN.md). "Terry" is a name reference to a future mayoral candidate character, not yet implemented — nothing more than the name exists yet.
 
 ---
 

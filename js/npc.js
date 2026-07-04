@@ -387,6 +387,24 @@ RatLand.NPC_ROSTER = [
     ],
     note: 'Plain green webbing strap (active low-rank, not Nutkin\'s braided officer sash) and a mild, weary tension from the tithes he resents.',
   },
+  {
+    id: 'barrygutt', name: 'Barry Gutt', group: 'political',
+    // Positioned one tile from the player's spawn (createPlayer(5, 6) in
+    // save.js) so he's one of the very first rats a new player meets.
+    col: 6, row: 6,
+    lines: [
+      "Yeah, I voted Ratxit. What's it to you?",
+      "Mayor made a mess of it, of course. Time to get Terry in. He'll sort it out.",
+      "Rat Land should be for the rats. Don't like it, scurry back to where you came from.",
+      "Rat Land. It's in the name, see? It's not hard.",
+    ],
+    lineIndex: 0,
+    color: '#c8342a',
+    accessories: [
+      { type: 'prop', style: 'newspaper', color: '#e0d8b8' },
+    ],
+    note: 'A bold, saturated red found nowhere else in the (deliberately muted) rat palette — he\'s meant to stand out, not blend in with the crowd near spawn. Carries a rolled newspaper like Wetherby\'s, but louder — his own paper, not the clerk\'s quiet minutes. Dialogue-only for now (see NPC_DIALOGUE.md): planned to become fightable once combat content is scaled beyond the Fen Wicket test case.',
+  },
 
   // --- Group 2: ordinary rats ---
   {
