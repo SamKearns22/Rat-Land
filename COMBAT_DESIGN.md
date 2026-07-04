@@ -265,16 +265,14 @@ in §12.
    analysis holds either way, but the cap should be confirmed.
 2. **Defence's floor and persistence** (§4a) — assumed damage can't
    go negative from over-Defence. "Persecution Complex"'s +1 Defence
-   is now resolved (ties to Confident, §4a/§4b). **Still open:**
-   "Someone's Going to Drown" grants Fen +1 Defence *every* time it's
-   cast, with nothing capping or reverting it — confirmed via
-   playtesting that over a long fight this climbs indefinitely (e.g.
-   defence 9 by turn 58 in one passive-play test), same failure mode
-   the Persecution fix just addressed. Needs a decision: cap it,
-   make it temporary like Persecution's, or leave it as an
-   intentional permanent-stacking mechanic (flagged, not decided,
-   since it wasn't named in the bug report that prompted this round
-   of fixes).
+   is now resolved (ties to Confident, §4a/§4b). **"Someone's Going to
+   Drown"'s +1 Fen Defence per cast is left as permanent, unlimited
+   stacking, by explicit decision** — confirmed via playtesting that
+   this climbs indefinitely over a long fight (e.g. defence 9 by turn
+   58 in one passive-play test), the same failure mode the Persecution
+   fix addressed, but deliberately not touched here: this test kit is
+   throwaway (§14), and this specific number is left as-is to be
+   revisited during real character design rather than patched now.
 3. **Exact size of the Confident damage reduction** (§4b) — "Actually…"
    deals reduced damage against a Confident Fen, but not by how much.
 4. **HP-floor handling for the win condition** (§5) — recommended the
@@ -488,11 +486,9 @@ time it's cast (unlimited reuse, no cap, no reversion) — in that same
 traced fight, Defence climbed to 9 by turn 58 purely from repeated
 Drown casts. This is very likely what was actually observed. The fix
 above only touches Persecution Complex, per what was explicitly asked
-— Drown's permanent stacking is unresolved and now tracked as an open
-question (§12.2) rather than fixed unilaterally, since it wasn't the
-move named in the report and the same treatment might not be the
-right call for it (e.g. permanent stacking on a *reusable* move could
-be an intentional escalating-threat mechanic rather than a bug).
+— **decision: Drown's permanent stacking is left as-is** (§12.2), to
+be revisited during real character design rather than patched into
+this throwaway test kit now.
 
 **Re-ran the exhaustive win-path search (§16) after both fixes.**
 Fastest possible win is now **9 rounds** (down from 10) — capping R/C
