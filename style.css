@@ -178,16 +178,29 @@ html, body {
 
 /* Hide the on-screen D-pad/Talk button any time an overlay that sits on
    top of it is showing -- overworld dialogue, the pre-battle Talk/Fight/
-   Walk Away menu, or the battle screen itself. All three of these
-   elements are earlier siblings of #controls in the DOM (index.html), so
-   a general sibling selector catches every case from one place instead
-   of relying on each overlay's own JS to remember to toggle controls too.
-   Previously only the dialogue box was raised clear of the controls;
-   the controls could still show through/around the pre-battle menu and
-   battle screen, which sit lower and don't reach the full screen edges. */
+   Walk Away menu, the battle screen itself, or the battle-wipe transition.
+   All four elements are earlier siblings of #controls in the DOM
+   (index.html), so a general sibling selector catches every case from one
+   place instead of relying on each overlay's own JS to remember to toggle
+   controls too. Previously only the dialogue box was raised clear of the
+   controls; the controls could still show through/around the pre-battle
+   menu and battle screen, which sit lower and don't reach the full screen
+   edges.
+   #battle-wipe specifically matters because closing the pre-battle menu
+   on Fight happens synchronously (js/combat.js), before the wipe even
+   starts, while battle-screen doesn't get `visible` until the wipe's
+   onCovered fires ~300ms later -- for that whole window neither
+   #prebattle-menu nor #battle-screen has `visible`, so without this rule
+   the D-pad reappears and is only ever partly hidden by the wipe's
+   staggered "Venetian blinds" bars scaling in, which have real gaps
+   between them while still animating. A fixed-viewport Playwright check
+   that waits for the whole transition to settle before sampling would
+   never see this transient window, but it's plainly visible frame-by-frame
+   (and on any device with real animation jank). */
 #dialogue-box.visible ~ #controls,
 #prebattle-menu.visible ~ #controls,
-#battle-screen.visible ~ #controls {
+#battle-screen.visible ~ #controls,
+#battle-wipe.visible ~ #controls {
   display: none;
 }
 

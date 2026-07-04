@@ -115,25 +115,21 @@ fixed here.
 
 ## 5. Win Condition
 
-Standard win trigger: reduce the opponent's HP to 0.
+**HP hitting 0 always ends the battle immediately as a win for
+whoever landed the hit — no exceptions, no soft floor.** (Revised in
+§21; the original design used a hard Fact+Feeling gate with a 1-HP
+clamp on any would-be KO that didn't satisfy it — removed entirely,
+including its "nearly went down" log line.)
 
-**Modifier:** HP hitting 0 only counts as an actual win if the
-winning side has used **at least one Fact and at least one Feeling**
-at some point earlier in the battle. Pure Rhetoric-spam (or Rhetoric
-+ Consideration stalling) cannot win on its own, no matter how much
-damage it does.
-
-**Recommended handling (flag for confirmation, see §12):** a soft
-floor. If a hit would take the opponent to ≤0 HP but the attacker
-hasn't used both a Fact and a Feeling yet, clamp their HP at 1
-instead of ending the battle, and play a line acknowledging the
-near-miss. Once both move types have landed, the next KO-would-be hit
-resolves as a real win.
-
-Both confirmed test kits (§14) have exactly one Fact and one Feeling
-each, so this condition is satisfiable by design — the player (and
-Fen) must each use their one Fact and one Feeling at least once
-during the test fight for a win to actually register.
+Fact+Feeling is no longer a *rule* the engine enforces — it's the
+*practically necessary* strategy given Fen's numbers. Fen carries a
+flat +1 baseline Defence that never wears off on its own; only the
+player's Feeling ("I just want to understand") strips it. Without
+that, Rhetoric/Consideration-only play (and even Facts-without-a-
+Feeling play) runs into a permanent stand-off once Fen drops low
+enough to trigger his heal-below-40%-HP behavior, because his heal
+can't be reliably outpaced while that point of Defence is still
+soaking every hit. See §21 for the exhaustive-search confirmation.
 
 ## 6. Loss State
 
@@ -687,3 +683,97 @@ after the gap. Move buttons are disabled for the duration
 (`battle.turnGapPending`) so the player can't queue a second move
 mid-gap. Total added latency per round is 320ms, well under the "keep
 turns snappy" bar the wipe transition (§10) was held to.
+
+## 21. Win-Condition Rebalance, Controls-Overlap Follow-Up, Fen Move Explanations, Scrollable Log
+
+Four fixes, verified independently.
+
+**1. Win condition: instant KO, no soft floor (§5 rewritten).** The
+Fact+Feeling gate — clamp any would-be KO at 1 HP unless the attacker
+had already used both a Fact and a Feeling — is deleted entirely,
+including the "nearly went down" log line and the `usedFact`/
+`usedFeeling` tracking that only existed to serve that gate. HP
+hitting 0 now always ends the battle immediately, symmetrically for
+both sides.
+
+Removing the gate outright would have let pure Rhetoric spam win in 7
+rounds (faster than any Fact+Feeling path), so Fen's numbers were
+rebalanced to make Fact+Feeling the *practically* fastest strategy
+instead of a hard requirement: **Fen now has a flat +1 baseline
+Defence that never wears off on its own** — only the player's Feeling
+("I just want to understand," which lowers a target's Defence by 1)
+can strip it. Everything else (Rhetoric 2 dmg, Actually 3 dmg, Fen's
+14 HP) is unchanged.
+
+Re-ran the exhaustive iterative-deepening win-path search (offline
+mirror of the real engine, replayed against the browser to confirm no
+drift) under three player-moveset restrictions:
+
+| Player restricted to | Result |
+|---|---|
+| Rhetoric + Consideration only (no Facts, no Feelings) | **No win found within 60 moves** (52,975+ states explored) — Fen's heal (+2 whenever he drops ≤40% HP) can't be reliably outpaced through 1 net point of Defence, so the fight settles into a permanent stand-off rather than a loss or a stall the player could push through by grinding longer. |
+| Facts allowed, Feelings excluded | **No win found within 60 moves** either (23,121 states) — Actually's extra damage isn't enough on its own to break past the same Defence-soaked heal-loop. |
+| Full moveset | **Win in 10 rounds**: `consideration ×3, understand, rhetoric ×4, actually, rhetoric` — banks Consideration→Feeling meter, strips Fen's Defence with the Feeling once, then finishes with Rhetoric/Actually at full (un-reduced) damage. |
+
+So under the new numbers, a Fact+Feeling strategy isn't just faster —
+it's the *only* strategy that terminates in a search up to 60 player
+moves; basics-only and facts-only both provably stall forever against
+Fen's current AI. The full-moveset fastest win (10 rounds) is
+confirmed against the live browser engine: `enemyHp: 0`, `+1
+Reputation`, persists after reload. (Previously 9 rounds under the
+old gate — the one extra round is the cost of the required Consideration
+→Understand setup.)
+
+**2. Controls-overlap follow-up: the battle-wipe transition itself
+was still leaking the D-pad (§10, §20 follow-up).** The earlier fix
+(hide `#controls` via `#dialogue-box.visible ~`, `#prebattle-menu.visible ~`,
+`#battle-screen.visible ~`) missed a real transitional window: pressing
+Fight closes `#prebattle-menu` synchronously, but `#battle-screen`
+doesn't get `.visible` until the wipe's `onCovered` callback fires
+~300ms later. For that whole window neither overlay's CSS rule
+applies, so the D-pad reappeared underneath the wipe — and since the
+wipe is a staggered "Venetian blinds" scale-in (bars growing from 0 to
+full height over 0.22s with up to 0.054s of stagger between them),
+there are real gaps between bars while they're still animating, which
+is when the D-pad showed through. Confirmed by sampling
+`getComputedStyle(#controls).display` every 25ms through the whole
+transition: 11 of 27 samples (t=6ms–282ms) showed `block` before the
+fix, 0 of 27 after. A fixed-viewport Playwright check that waits for
+the transition to finish before sampling (as the original verification
+did) would never observe this — it only shows up sampling mid-animation,
+which is exactly what a real device does by just being on-screen the
+whole time. Fixed by adding `#battle-wipe.visible ~ #controls` to the
+same hiding rule, so controls stay hidden for the wipe's full covered
+window regardless of which specific overlay's class state lags behind.
+The exit-transition direction was already correct (samples confirmed
+0 leaks before and after).
+
+**3. Tap-to-reveal explanations extended to Fen's moves.** Previously
+only the player's own moves got a plain-text description (via the
+select-then-confirm flow, §9). Fen's moves now carry the same kind of
+`description` string, and his status-icon row (§9) gets one more
+always-present, tappable icon — 💬 — showing "Fen's last move — <label>:
+<description>" in the same shared explanation area the R/C/Defence/
+Confident icons use. No new UI surface or event wiring: it reuses the
+existing delegated tap handler. Verified across a full fight that the
+text updates correctly turn to turn (Consideration → Persecution
+Complex → Rhetoric → Council Tax Correction, matching Fen's actual AI
+choices) rather than getting stuck on his first move.
+
+**4. Battle log made genuinely scrollable.** The log already had
+`overflow-y: auto` in CSS, but `renderBattleUI` was force-scrolling it
+to the bottom on *every* render — including ones that don't even add a
+line, like just highlighting a move — which fought any manual scroll-up
+before the player could read it. Fixed with a "sticky bottom" pattern:
+the log only auto-scrolls to the newest line when (a) new lines
+actually arrived and (b) the player was already reading near the
+bottom; if they'd scrolled up to review earlier lines, a new line no
+longer yanks them back down. Verified: scrolling to the top and then
+triggering a no-op render (move highlight) leaves `scrollTop` at 0;
+executing an actual move while scrolled up also leaves it at 0 instead
+of snapping to the bottom; scrolling back to the bottom and executing
+another move re-engages the auto-follow.
+
+Full existing regression suite (Walk Away, Talk, Fight-after-Talk,
+no-retreat, loss, win, sprite/animation, mobile layout) re-run and
+passing after all four fixes.

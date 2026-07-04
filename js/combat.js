@@ -1,19 +1,23 @@
 // combat.js — turn-based "debate combat" against fightable NPCs.
 // Implements COMBAT_DESIGN.md: pre-battle Talk/Fight/Walk Away menu (§8),
 // enemy-first turn order (§3), Rhetoric/Consideration/Facts/Feelings (§4),
-// Defence (§4a), Confident (§4b), the Fact+Feeling win condition with a
-// soft HP floor (§5), the no-penalty loss state (§6), Reputation-on-win via
-// the existing save system (§7), and a Pokémon-style battle screen layout
-// (§9/§10): opponent panel on top, player panel on the bottom-opposite
-// corner, HP/Effort bars, always-visible R/C/Defence/Confident status
-// icons (text/symbol only, tap for a plain-text explanation), and a 2x2
-// move grid with a select-then-confirm flow that previews a move's
-// plain-text description before it's used, contextual/randomized battle
-// dialogue (§11): a one-shot opening/finishing line per combatant, a
-// unique first-use line for each Fact/Feeling, and a random 3-4 line pool
-// for every repeat use (including all Rhetoric/Consideration uses), and a
-// brief Pokémon-style wipe transition (§10) entering/exiting battle. Still
-// no illustrated sprite art — DOM panels only.
+// Defence (§4a), Confident (§4b), an instant-KO win condition (§5) — HP
+// hitting 0 always ends the fight immediately, no soft floor — with Fen's
+// flat baseline Defence making a Fact+Feeling strategy practically
+// necessary to break through rather than hard-gated (§21), the
+// no-penalty loss state (§6), Reputation-on-win via the existing save
+// system (§7), and a Pokémon-style battle screen layout (§9/§10):
+// opponent panel on top (with Fen's overworld sprite, §20), player panel
+// on the bottom-opposite corner, HP/Effort bars, always-visible
+// R/C/Defence/Confident status icons plus a tap-to-reveal "Fen's last
+// move" icon (§21) (text/symbol only, tap for a plain-text explanation),
+// a scrollable battle log (§21), and a 2x2 move grid with a
+// select-then-confirm flow that previews a move's plain-text description
+// before it's used, contextual/randomized battle dialogue (§11): a
+// one-shot opening/finishing line per combatant, a unique first-use line
+// for each Fact/Feeling, and a random 3-4 line pool for every repeat use
+// (including all Rhetoric/Consideration uses), and a brief Pokémon-style
+// wipe transition (§10) entering/exiting battle.
 var RatLand = window.RatLand || {};
 window.RatLand = RatLand;
 
@@ -22,7 +26,15 @@ window.RatLand = RatLand;
   // --- Test moveset (§13/§14 — explicitly TEST/THROWAWAY per the design doc) ---
 
   var PLAYER_START = { hp: 20, maxHp: 20, effort: 10, maxEffort: 10 };
-  var FEN_START = { hp: 14, maxHp: 14, effort: 10, maxEffort: 10 };
+  // Fen carries a flat +1 baseline Defence ("stubbornness") that never wears
+  // off on its own — only the player's Feeling "I just want to understand"
+  // strips it. This is what makes a Fact+Feeling strategy the practically
+  // optimal way to win (§5/§15): basics-only or facts-without-a-feeling play
+  // both stall out in a permanent stand-off once Fen drops low enough to
+  // start healing, since his heal (+2) can't be reliably out-paced by
+  // Rhetoric/Actually while that baseline Defence is still soaking a point
+  // of damage off every hit.
+  var FEN_START = { hp: 14, maxHp: 14, effort: 10, maxEffort: 10, defence: 1 };
 
   // Opening/finishing lines: one-shot flavor tied to battle start and to a
   // combatant's HP actually hitting 0 (not the soft-floor near-miss) --
@@ -63,28 +75,19 @@ window.RatLand = RatLand;
     el.classList.add(kind === 'attack' ? 'sprite-attack' : 'sprite-hurt');
   }
 
-  // The win-condition soft floor (§5): a hit that would reduce a combatant
-  // to 0 HP only actually ends the battle if the attacker has already used
-  // at least one Fact AND one Feeling. Otherwise it clamps at 1 HP and the
-  // fight continues. Applied symmetrically to both sides, since §5 states
-  // the rule in terms of "the winning side" generally, not just the player.
+  // The win condition (§5): a hit that reduces a combatant to 0 HP ends the
+  // battle immediately, always — no soft floor, no Fact+Feeling requirement.
+  // Applied symmetrically to both sides.
   function applyDamage(battle, atkSide, defSide, dmg) {
     if (dmg <= 0) return 0;
     if (defSide === 'enemy') triggerFenSpriteAnim('hurt');
-    var attacker = battle[atkSide];
     var defender = battle[defSide];
     var newHp = defender.hp - dmg;
     if (newHp <= 0) {
-      if (attacker.usedFact && attacker.usedFeeling) {
-        defender.hp = 0;
-        battle.outcome = atkSide;
-        var finishLine = defSide === 'player' ? PLAYER_FINISHING : FEN_FINISHING;
-        battle.log.push((defSide === 'player' ? 'You' : battle.npcName) + ': "' + finishLine + '"');
-      } else {
-        defender.hp = 1;
-        battle.log.push('(' + (defSide === 'player' ? 'You' : battle.npcName) +
-          ' nearly went down, but the argument isn\'t over yet.)');
-      }
+      defender.hp = 0;
+      battle.outcome = atkSide;
+      var finishLine = defSide === 'player' ? PLAYER_FINISHING : FEN_FINISHING;
+      battle.log.push((defSide === 'player' ? 'You' : battle.npcName) + ': "' + finishLine + '"');
     } else {
       defender.hp = newHp;
     }
@@ -189,6 +192,7 @@ window.RatLand = RatLand;
         'Here we go again.',
         'You always do this.',
       ] },
+      description: 'Deals small damage to you and gives Fen 1 👄.',
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 2, this);
         applyDamage(battle, atk, def, dmg);
@@ -203,6 +207,7 @@ window.RatLand = RatLand;
         'Hm. Didn’t think of it that way.',
         '…fine. Whatever.',
       ] },
+      description: 'Heals Fen a little and gives him 1 🧠.',
       effect: function (battle, atk, def) {
         heal(battle, atk, 2);
         gainMeter(battle, atk, 'c', 1);
@@ -219,6 +224,7 @@ window.RatLand = RatLand;
           'Where’s my anniversary money gone, eh?',
         ],
       },
+      description: 'Bigger damage than Rhetoric. Costs 👄 + Effort. Also lowers your Defence by 1.',
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 3, this);
         applyDamage(battle, atk, def, dmg);
@@ -235,6 +241,7 @@ window.RatLand = RatLand;
           'I’m not being funny, someone’s gonna die out there.',
         ],
       },
+      description: 'Bigger damage than Rhetoric. Costs 👄 + Effort. Also raises Fen’s own Defence by 1 (caps at +3 total from repeated casts).',
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 3, this);
         applyDamage(battle, atk, def, dmg);
@@ -257,6 +264,7 @@ window.RatLand = RatLand;
           'No one’s on my side anymore.',
         ],
       },
+      description: 'Drains 4 of your Effort. Makes Fen Confident for 1 turn (temporary Defence boost) — but leaves him vulnerable to extra damage from your next Fact.',
       effect: function (battle, atk, def) {
         // "The next enemy Fact used against Fen deals bonus damage" (§14) —
         // "enemy" here means Fen's opponent (the player), so it's Fen (atk)
@@ -280,6 +288,8 @@ window.RatLand = RatLand;
 
   var PLAYER_MOVES_BY_ID = {};
   PLAYER_MOVES.forEach(function (m) { PLAYER_MOVES_BY_ID[m.id] = m; });
+  var FEN_MOVES_BY_ID = {};
+  FEN_MOVES.forEach(function (m) { FEN_MOVES_BY_ID[m.id] = m; });
 
   function canAfford(battle, side, move) {
     var c = battle[side];
@@ -328,10 +338,8 @@ window.RatLand = RatLand;
   }
 
   // Resolves one move: pays its cost, logs its dialogue, runs its numeric
-  // effect, then applies the generic post-move bookkeeping every move of
-  // that type carries — usedFact/usedFeeling (§5's win-condition tracker)
-  // and Confident (§4b: Fen gains it for 1 turn whenever *any* Fen Fact is
-  // used, not just Persecution Complex specifically).
+  // effect, then applies Confident (§4b: Fen gains it for 1 turn whenever
+  // *any* Fen Fact is used, not just Persecution Complex specifically).
   function useMove(battle, atkSide, defSide, move) {
     payCost(battle, atkSide, move);
     if (move.oncePerBattle) {
@@ -343,14 +351,16 @@ window.RatLand = RatLand;
     var line = pickMoveDialogue(battle, atkSide, move);
     battle.log.push(speaker + ': "' + line + '"');
     if (RatLand.playSfx) RatLand.playSfx(sfxKeyForMove(move));
-    if (atkSide === 'enemy') triggerFenSpriteAnim('attack');
-    move.effect(battle, atkSide, defSide);
-    if (move.type === 'fact') {
-      battle[atkSide].usedFact = true;
-      if (atkSide === 'enemy') battle.enemy.confidentTurns = 1;
+    if (atkSide === 'enemy') {
+      triggerFenSpriteAnim('attack');
+      // Tracked so the enemy status-icon row can show a tap-to-reveal
+      // explanation of what Fen's move just did, the same way the player
+      // already sees their own move's description before confirming it.
+      battle.enemy.lastMoveId = move.id;
     }
-    if (move.type === 'feeling') {
-      battle[atkSide].usedFeeling = true;
+    move.effect(battle, atkSide, defSide);
+    if (move.type === 'fact' && atkSide === 'enemy') {
+      battle.enemy.confidentTurns = 1;
     }
   }
 
@@ -404,10 +414,11 @@ window.RatLand = RatLand;
   function freshCombatant(stats) {
     return {
       hp: stats.hp, maxHp: stats.maxHp, effort: stats.effort, maxEffort: stats.maxEffort,
-      r: 0, c: 0, defence: 0, usedFact: false, usedFeeling: false,
+      r: 0, c: 0, defence: stats.defence || 0,
       confidentTurns: 0, vulnerableNextFact: false, usedOnce: {},
       persecutionDefenceBonus: 0, drownDefenceBonus: 0,
       dialogueUsed: {}, // tracks which moves' firstUse line has already fired
+      lastMoveId: null, // enemy only: last move used, for the tap-to-reveal icon
     };
   }
 
@@ -581,7 +592,7 @@ window.RatLand = RatLand;
     var confidentActive = c.confidentTurns > 0;
     var defenceActive = c.defence !== 0;
 
-    return [
+    var icons = [
       {
         symbol: '👄', badge: c.r, active: c.r > 0, // mouth — Rhetoric build-up
         explain: possessive + ' 👄 (Rhetoric build-up): ' + c.r + '/10. Builds by 1 each time ' +
@@ -607,6 +618,22 @@ window.RatLand = RatLand;
             '"Actually…" deals half damage against him.',
       },
     ];
+
+    // Fen doesn't go through the player's select-then-confirm flow, so
+    // there's nowhere else he'd get a plain-text explanation of what his
+    // own move just did to the player. Surface it as one more tappable
+    // icon in his row, same tap-to-reveal pattern as R/C/Defence/Confident.
+    if (!isPlayer) {
+      var lastMove = c.lastMoveId ? FEN_MOVES_BY_ID[c.lastMoveId] : null;
+      icons.push({
+        symbol: '💬', badge: null, active: !!lastMove,
+        explain: lastMove
+          ? name + '’s last move — ' + lastMove.label + ': ' + lastMove.description
+          : name + ' hasn’t used a move yet this battle.',
+      });
+    }
+
+    return icons;
   }
 
   function renderStatusIcons(containerEl, icons) {
@@ -651,10 +678,22 @@ window.RatLand = RatLand;
     var iconExplainEl = document.getElementById('battle-icon-explain');
     if (iconExplainEl) iconExplainEl.textContent = '';
 
+    // The log is scrollable (`overflow-y: auto` in style.css) so players
+    // can review earlier lines, not just the latest ones. Auto-scrolling
+    // to the bottom on every single render (including ones that don't
+    // even add a line, like just highlighting a move) used to fight any
+    // manual scroll-up immediately -- now it only re-pins to the bottom
+    // when new lines actually arrived AND the player was already reading
+    // near the bottom; if they'd scrolled up to review, a new line
+    // doesn't yank them back down.
     var logEl = document.getElementById('battle-log');
     if (logEl) {
-      logEl.textContent = battle.log.join('\n');
-      logEl.scrollTop = logEl.scrollHeight;
+      var nextLogText = battle.log.join('\n');
+      if (logEl.textContent !== nextLogText) {
+        var wasNearBottom = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 20;
+        logEl.textContent = nextLogText;
+        if (wasNearBottom) logEl.scrollTop = logEl.scrollHeight;
+      }
     }
 
     var resultEl = document.getElementById('battle-result');
