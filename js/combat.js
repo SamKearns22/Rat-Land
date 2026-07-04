@@ -8,8 +8,12 @@
 // corner, HP/Effort bars, always-visible R/C/Defence/Confident status
 // icons (text/symbol only, tap for a plain-text explanation), and a 2x2
 // move grid with a select-then-confirm flow that previews a move's
-// plain-text description before it's used. Still no battle-transition
-// animation (§10) and no illustrated sprite art — DOM panels only.
+// plain-text description before it's used, and contextual/randomized
+// battle dialogue (§11): a one-shot opening/finishing line per combatant,
+// a unique first-use line for each Fact/Feeling, and a random 3-4 line
+// pool for every repeat use (including all Rhetoric/Consideration uses).
+// Still no battle-transition animation (§10) and no illustrated sprite
+// art — DOM panels only.
 var RatLand = window.RatLand || {};
 window.RatLand = RatLand;
 
@@ -19,6 +23,14 @@ window.RatLand = RatLand;
 
   var PLAYER_START = { hp: 20, maxHp: 20, effort: 10, maxEffort: 10 };
   var FEN_START = { hp: 14, maxHp: 14, effort: 10, maxEffort: 10 };
+
+  // Opening/finishing lines: one-shot flavor tied to battle start and to a
+  // combatant's HP actually hitting 0 (not the soft-floor near-miss) --
+  // independent of the per-move dialogue system below.
+  var FEN_OPENING = 'Oh, here we go. Another one come to tell me how to think.';
+  var FEN_FINISHING = '…fine. Fine! Maybe I’ve not thought it all the way through.';
+  var PLAYER_OPENING = 'Right. Okay. I can do this.';
+  var PLAYER_FINISHING = '…maybe he’s got a point, actually.';
 
   // Damage/heal math shared by every move. `computeDamage` applies Defence
   // first (flat, pre-modifier — §4a), then the Confident reduction for
@@ -51,6 +63,8 @@ window.RatLand = RatLand;
       if (attacker.usedFact && attacker.usedFeeling) {
         defender.hp = 0;
         battle.outcome = atkSide;
+        var finishLine = defSide === 'player' ? PLAYER_FINISHING : FEN_FINISHING;
+        battle.log.push((defSide === 'player' ? 'You' : battle.npcName) + ': "' + finishLine + '"');
       } else {
         defender.hp = 1;
         battle.log.push('(' + (defSide === 'player' ? 'You' : battle.npcName) +
@@ -90,7 +104,12 @@ window.RatLand = RatLand;
   var PLAYER_MOVES = [
     {
       id: 'rhetoric', label: 'Rhetoric', type: 'basic', cost: null,
-      dialogue: 'I just think… we should hear them out?',
+      dialogue: { pool: [
+        'I just think… we should hear them out?',
+        'That’s not — that’s not quite fair, is it?',
+        'Um. I disagree, actually.',
+        'I don’t think that’s right.',
+      ] },
       description: 'Deals small damage and gives you 1 👄.',
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 2, this);
@@ -101,7 +120,13 @@ window.RatLand = RatLand;
     {
       id: 'actually', label: 'Fact: "Actually…"', type: 'fact',
       cost: { meter: 'r', amount: 2, effort: 3 },
-      dialogue: 'Actually…',
+      dialogue: {
+        firstUse: 'Actually — sorry, I looked this up — that’s not quite true.',
+        pool: [
+          'Actually, I think the numbers say otherwise.',
+          'I checked, and, um, that’s not right.',
+        ],
+      },
       description: 'Bigger damage. Costs 👄 + Effort. Deals half damage against a Confident opponent.',
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 3, this);
@@ -110,7 +135,12 @@ window.RatLand = RatLand;
     },
     {
       id: 'consideration', label: 'Consideration', type: 'basic', cost: null,
-      dialogue: 'Okay. Let me think about that.',
+      dialogue: { pool: [
+        'Okay. Let me think about that.',
+        '…huh. Fair enough.',
+        'You might be right.',
+        'I hadn’t thought of it like that.',
+      ] },
       description: 'Heals yourself a little and gives you 1 🧠.',
       effect: function (battle, atk, def) {
         heal(battle, atk, 2);
@@ -120,7 +150,13 @@ window.RatLand = RatLand;
     {
       id: 'understand', label: 'Feeling: "I just want to understand"', type: 'feeling',
       cost: { meter: 'c', amount: 3, effort: 4 },
-      dialogue: 'I just want to understand',
+      dialogue: {
+        firstUse: 'I’m not trying to attack you. I just — I want to understand.',
+        pool: [
+          'I just want to get where you’re coming from.',
+          'Can you help me see it your way?',
+        ],
+      },
       description: 'Heals yourself a little and lowers the opponent’s Defence by 1. Costs 🧠 + Effort.',
       effect: function (battle, atk, def) {
         battle[def].defence = Math.max(0, battle[def].defence - 1);
@@ -132,7 +168,12 @@ window.RatLand = RatLand;
   var FEN_MOVES = [
     {
       id: 'fen-rhetoric', label: 'Rhetoric', type: 'basic', cost: null,
-      dialogue: "You're not even listening to me!",
+      dialogue: { pool: [
+        'You’re not even listening to me!',
+        'Typical.',
+        'Here we go again.',
+        'You always do this.',
+      ] },
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 2, this);
         applyDamage(battle, atk, def, dmg);
@@ -141,7 +182,12 @@ window.RatLand = RatLand;
     },
     {
       id: 'fen-consideration', label: 'Consideration', type: 'basic', cost: null,
-      dialogue: '…alright, fair point.',
+      dialogue: { pool: [
+        '…alright, fair point.',
+        '…s’pose that’s true.',
+        'Hm. Didn’t think of it that way.',
+        '…fine. Whatever.',
+      ] },
       effect: function (battle, atk, def) {
         heal(battle, atk, 2);
         gainMeter(battle, atk, 'c', 1);
@@ -150,7 +196,14 @@ window.RatLand = RatLand;
     {
       id: 'council-tax', label: 'Fact: "Council Tax Correction"', type: 'fact',
       cost: { meter: 'r', amount: 2, effort: 3 },
-      dialogue: 'The Church gets more funding than my street does, and everyone knows it.',
+      dialogue: {
+        firstUse: 'You lot always say that, and nothing ever changes, does it?',
+        pool: [
+          'The Church gets more funding than my street does.',
+          'Nobody’s fixed my drain in three years.',
+          'Where’s my anniversary money gone, eh?',
+        ],
+      },
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 3, this);
         applyDamage(battle, atk, def, dmg);
@@ -160,7 +213,13 @@ window.RatLand = RatLand;
     {
       id: 'drown', label: 'Fact: "Someone\'s Going to Drown"', type: 'fact',
       cost: { meter: 'r', amount: 2, effort: 3 },
-      dialogue: "If a mouse drowns crossing that river, that's on whoever let them try.",
+      dialogue: {
+        firstUse: 'You can call it heartless if you like. I call it common sense.',
+        pool: [
+          'It’s not safe. Never has been.',
+          'I’m not being funny, someone’s gonna die out there.',
+        ],
+      },
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 3, this);
         applyDamage(battle, atk, def, dmg);
@@ -176,7 +235,13 @@ window.RatLand = RatLand;
     {
       id: 'persecution', label: 'Feeling: "Persecution Complex"', type: 'feeling',
       cost: { meter: 'c', amount: 3, effort: 4 }, turnWindow: [3, 4], oncePerBattle: true,
-      dialogue: "Everyone's against blokes like me these days.",
+      dialogue: {
+        firstUse: 'Don’t you dare tell me how I’m allowed to feel about this.',
+        pool: [
+          'Everyone’s against blokes like me these days.',
+          'No one’s on my side anymore.',
+        ],
+      },
       effect: function (battle, atk, def) {
         // "The next enemy Fact used against Fen deals bonus damage" (§14) —
         // "enemy" here means Fen's opponent (the player), so it's Fen (atk)
@@ -220,6 +285,21 @@ window.RatLand = RatLand;
     if (move.cost.effort) c.effort = Math.max(0, c.effort - move.cost.effort);
   }
 
+  // Picks which line a move says this time (§11 dialogue structure): the
+  // unique `firstUse` line the first time *this specific combatant* casts
+  // *this specific move*, falling back to a random pick from `pool` every
+  // time after (including always, for moves with no firstUse -- Rhetoric
+  // and Consideration only ever have a pool, no distinguished first line).
+  function pickMoveDialogue(battle, atkSide, move) {
+    var combatant = battle[atkSide];
+    var d = move.dialogue;
+    if (d.firstUse && !combatant.dialogueUsed[move.id]) {
+      combatant.dialogueUsed[move.id] = true;
+      return d.firstUse;
+    }
+    return d.pool[Math.floor(Math.random() * d.pool.length)];
+  }
+
   // Resolves one move: pays its cost, logs its dialogue, runs its numeric
   // effect, then applies the generic post-move bookkeeping every move of
   // that type carries — usedFact/usedFeeling (§5's win-condition tracker)
@@ -233,7 +313,8 @@ window.RatLand = RatLand;
       c.usedOnce[move.id] = true;
     }
     var speaker = atkSide === 'player' ? 'You' : battle.npcName;
-    battle.log.push(speaker + ': "' + move.dialogue + '"');
+    var line = pickMoveDialogue(battle, atkSide, move);
+    battle.log.push(speaker + ': "' + line + '"');
     move.effect(battle, atkSide, defSide);
     if (move.type === 'fact') {
       battle[atkSide].usedFact = true;
@@ -297,6 +378,7 @@ window.RatLand = RatLand;
       r: 0, c: 0, defence: 0, usedFact: false, usedFeeling: false,
       confidentTurns: 0, vulnerableNextFact: false, usedOnce: {},
       persecutionDefenceBonus: 0, drownDefenceBonus: 0,
+      dialogueUsed: {}, // tracks which moves' firstUse line has already fired
     };
   }
 
@@ -340,6 +422,12 @@ window.RatLand = RatLand;
     if (titleEl) titleEl.textContent = 'Debate: You vs. ' + npc.name;
     var enemyNameEl = document.getElementById('battle-name-enemy');
     if (enemyNameEl) enemyNameEl.textContent = npc.name;
+
+    // Opening lines (§11): a one-shot pre-battle beat, independent of the
+    // move-selection system -- both combatants get a line in before the
+    // turn loop (enemy-first per §3) actually starts.
+    battle.log.push(npc.name + ': "' + FEN_OPENING + '"');
+    battle.log.push('You: "' + PLAYER_OPENING + '"');
 
     runEnemyTurn(battle);
     RatLand.renderBattleUI(game);

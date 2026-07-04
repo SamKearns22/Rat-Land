@@ -244,19 +244,44 @@ Sequence beats:
 6. **Wipe out.** Reverse transition back to the overworld, player
    restored to their pre-battle tile and facing.
 
-## 11. Per-Move Dialogue Triggers
+## 11. Contextual & Randomized Battle Dialogue
 
-Every move is tied to a specific line, delivered in the same dialogue
-box already used for NPC conversations (`RatLand.showDialogue`),
-fired the moment that move is used — so combat stays in-voice with
-each character's `NPC_DIALOGUE.md` personality instead of feeling
-like a bolted-on separate system.
+Dialogue is delivered in the battle log (not the overworld dialogue
+box — battle needs a scrolling history, not a single line), one line
+per move as it resolves, so combat stays in-voice with each
+character's `NPC_DIALOGUE.md` personality instead of feeling like a
+bolted-on separate system. As of this update, each combatant's
+dialogue has four parts instead of one static line per move:
 
-**Fen Wicket's "Persecution Complex"** is gated by turn number rather
-than resources — intended to trigger **around turn 3–4** rather than
-being available from turn 1. The precise gating rule (exactly turn 3?
-turn 4? first-available-in-that-window?) isn't pinned down — flagged
-in §12.
+1. **Opening line** — fires once, at battle start, before the turn
+   loop's first move resolves. Both combatants get one, back to back
+   (enemy's, then the player's), as a pre-fight beat independent of
+   move selection.
+2. **Finishing line** — fires once, for whichever combatant's HP
+   actually hits 0 (the real KO per §5's win-condition gate — the
+   soft-floor near-miss line is unrelated and unchanged). It's that
+   combatant's own line, not the winner's.
+3. **First-use line** — each Fact or Feeling has one unique line that
+   plays the first time *that specific combatant* casts *that
+   specific move*. Rhetoric and Consideration don't have one — every
+   use of a basic move goes straight to its pool (below).
+4. **Random pool** — 3-4 lines per move (2-4 for the ones actually
+   written so far — see §14), randomly selected on every use of
+   Rhetoric or Consideration, and on every use of a Fact/Feeling
+   *after* its first-use line has already played once for that
+   combatant.
+
+Tracking is per-combatant, not global — the player and Fen each have
+their own "has this move's first-use line played yet" state, so e.g.
+Fen's first "Council Tax Correction" still shows his first-use line
+even after the player has already used "Actually" several times.
+
+**Fen Wicket's "Persecution Complex"** is also gated by turn number —
+intended to trigger **around turn 3–4** rather than being available
+from turn 1 (implemented: usable turns 3-4, once per battle, per
+§14). Because it's once-per-battle, its random pool is defined for
+completeness but never actually gets exercised in the current test
+kit — only relevant if that constraint is ever lifted.
 
 ## 12. Open Questions / Assumptions Needing Confirmation
 
@@ -323,13 +348,37 @@ R amount **+ 3 Effort**; Feelings cost their C amount **+ 4 Effort**
 
 ### Fen Wicket (test dummy) — 5 moves
 
-| Move | Cost | Dialogue | Effect |
-|---|---|---|---|
-| Rhetoric | 0 | "You're not even listening to me!" | 2 dmg, +1 R |
-| Consideration | 0 | "…alright, fair point." | Heals 2 (self), +1 C |
-| Fact — "Council Tax Correction" | 2 R + 3 Effort | "The Church gets more funding than my street does, and everyone knows it." | 3 dmg; −1 enemy Defence |
-| Fact — "Someone's Going to Drown" | 2 R + 3 Effort | "If a mouse drowns crossing that river, that's on whoever let them try." | 3 dmg; +1 Fen Defence (caps at +3 total across all casts, §17) |
-| Feeling — "Persecution Complex" (turn 3–4 only) | 3 C + 4 Effort | "Everyone's against blokes like me these days." | Lowers enemy Effort significantly; **+1 Fen Defence for as long as Confident lasts (reverts fully once it expires — not permanent)**; the next enemy Fact used against Fen deals bonus damage; **grants Fen Confident for 1 turn directly** (in addition to the generic any-Fact trigger, §4b) |
+**Opening:** "Oh, here we go. Another one come to tell me how to
+think." **Finishing** (only said if his own HP hits 0): "…fine.
+Fine! Maybe I've not thought it all the way through."
+
+| Move | Cost | Effect |
+|---|---|---|
+| Rhetoric | 0 | 2 dmg, +1 R |
+| Consideration | 0 | Heals 2 (self), +1 C |
+| Fact — "Council Tax Correction" | 2 R + 3 Effort | 3 dmg; −1 enemy Defence |
+| Fact — "Someone's Going to Drown" | 2 R + 3 Effort | 3 dmg; +1 Fen Defence (caps at +3 total across all casts, §17) |
+| Feeling — "Persecution Complex" (turn 3–4 only) | 3 C + 4 Effort | Lowers enemy Effort significantly; **+1 Fen Defence for as long as Confident lasts (reverts fully once it expires — not permanent)**; the next enemy Fact used against Fen deals bonus damage; **grants Fen Confident for 1 turn directly** (in addition to the generic any-Fact trigger, §4b) |
+
+**Dialogue** (§11 — random pool used every time for Rhetoric/
+Consideration; first-use line once, then random pool, for the rest):
+
+- Rhetoric pool: "You're not even listening to me!" / "Typical." /
+  "Here we go again." / "You always do this."
+- Consideration pool: "…alright, fair point." / "…s'pose that's
+  true." / "Hm. Didn't think of it that way." / "…fine. Whatever."
+- Council Tax Correction first use: "You lot always say that, and
+  nothing ever changes, does it?" — pool after: "The Church gets
+  more funding than my street does." / "Nobody's fixed my drain in
+  three years." / "Where's my anniversary money gone, eh?"
+- Someone's Going to Drown first use: "You can call it heartless if
+  you like. I call it common sense." — pool after: "It's not safe.
+  Never has been." / "I'm not being funny, someone's gonna die out
+  there."
+- Persecution Complex first use: "Don't you dare tell me how I'm
+  allowed to feel about this." — pool after (never actually reached
+  while it's once-per-battle, see §11): "Everyone's against blokes
+  like me these days." / "No one's on my side anymore."
 
 Note on "Persecution Complex": the "next enemy Fact deals bonus
 damage" clause is a real vulnerability, not a typo — Fen's
@@ -340,12 +389,31 @@ saying it").
 
 ### Player starter — 4 moves
 
-| Move | Cost | Dialogue | Effect |
-|---|---|---|---|
-| Rhetoric | 0 | "I just think… we should hear them out?" | 2 dmg, +1 R |
-| Consideration | 0 | "Okay. Let me think about that." | Heals 2 (self), +1 C |
-| Fact — "Actually…" | 2 R + 3 Effort | "Actually…" | 3 dmg; reduced effect vs. a Confident opponent (§4b, §12.3) |
-| Feeling — "I just want to understand" | 3 C + 4 Effort | "I just want to understand" | −1 enemy Defence; small self-heal (2) |
+**Opening:** "Right. Okay. I can do this." **Finishing** (only said
+if the player's own HP hits 0): "…maybe he's got a point, actually."
+
+| Move | Cost | Effect |
+|---|---|---|
+| Rhetoric | 0 | 2 dmg, +1 R |
+| Consideration | 0 | Heals 2 (self), +1 C |
+| Fact — "Actually…" | 2 R + 3 Effort | 3 dmg; reduced effect vs. a Confident opponent (§4b, §12.3) |
+| Feeling — "I just want to understand" | 3 C + 4 Effort | −1 enemy Defence; small self-heal (2) |
+
+**Dialogue** (§11):
+
+- Rhetoric pool: "I just think… we should hear them out?" / "That's
+  not — that's not quite fair, is it?" / "Um. I disagree, actually."
+  / "I don't think that's right."
+- Consideration pool: "Okay. Let me think about that." / "…huh. Fair
+  enough." / "You might be right." / "I hadn't thought of it like
+  that."
+- Actually first use: "Actually — sorry, I looked this up — that's
+  not quite true." — pool after: "Actually, I think the numbers say
+  otherwise." / "I checked, and, um, that's not right."
+- I just want to understand first use: "I'm not trying to attack
+  you. I just — I want to understand." — pool after: "I just want to
+  get where you're coming from." / "Can you help me see it your
+  way?"
 
 ## 15. Internal Playtest: Does Stockpiling Break the Move-Mix Skill Test?
 
@@ -504,15 +572,40 @@ anyway. Confirmed against the live battle code: the 9-round sequence
 with the player finishing at 13/20 HP. Loss, no-retreat, and Talk/Fight
 independence were all re-verified afterward and are unaffected.
 
-**Also noted, not fixed (lower priority per the request):** battle
-dialogue lines repeat every time a given move is used, because each
-move currently has exactly one line of dialogue defined (§14) — there
-is nothing to cycle through. This isn't a bug in the cycling logic
-itself; overworld NPC dialogue already has a working cycle-through-
-lines mechanism (`RatLand.getNpcLine`, `js/npc.js`) that battle moves
-could reuse the same way (an array of lines per move + a lineIndex),
-but that requires additional alternate lines to be written for at
-least the moves used most often (Rhetoric/Consideration/basics on both
-sides) — none exist yet beyond the single confirmed line per move from
-§14. Quick fix once those lines are provided; no code changes made
-here since there's nothing yet to cycle through.
+**Noted here, resolved in §11/§18:** battle dialogue used to repeat
+every time a given move was used, since each move had exactly one
+line defined. Fixed by the contextual/randomized dialogue system
+added in §11 — opening/finishing lines, a first-use line per Fact/
+Feeling, and a random 3-4 line pool for every repeat use.
+
+## 18. Verification: Contextual & Randomized Dialogue (§11)
+
+Confirmed against the live battle code, not just by reading the code:
+
+- **Opening lines:** the first two log entries on battle start were
+  Fen's opening line, then the player's, in that order, before any
+  move resolves — matches every battle started during testing.
+- **Finishing lines:** a win test (the confirmed 9-round sequence
+  from §16) ended with Fen's finishing line as the last log entry
+  the instant his HP hit 0. A separate loss test (passive player,
+  always Consideration) ended with the player's finishing line as
+  the last entry the instant *their* HP hit 0. Both fire only on the
+  real KO — the unrelated soft-floor near-miss line (§5) is untouched.
+- **First-use lines:** driving the player's "Actually" twice in a row
+  (rebuilding R between casts) showed the unique first-use line on
+  the first cast and a *different* line (from the pool) on the
+  second — never the first-use line repeating. A separate run let
+  Fen's AI play out naturally (player passively using Consideration)
+  and confirmed all three of his Fact/Feeling first-use lines fired
+  exactly once each, followed by pool lines on any subsequent casts
+  of the same move (Council Tax Correction and Someone's Going to
+  Drown were each cast more than once in that run; Persecution
+  Complex only ever fires once regardless, per its own once-per-
+  battle limit).
+- **Random pool rotation:** casting the player's Rhetoric 25 times in
+  a row surfaced all 4 pool lines in non-sequential order, confirming
+  it's genuinely randomized rather than stuck on one line or cycling
+  in a fixed sequence.
+
+No regressions: re-ran the existing loss, no-retreat, and Talk/Fight-
+independence checks afterward — all still pass.
