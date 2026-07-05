@@ -295,6 +295,10 @@ RatLand.NPC_ROSTER = [
     // means his Talk and Fight options never affect each other — this is
     // his own per-NPC setting, not a hardcoded rule for every fightable NPC.
     fightable: true, talkFightMode: 'independent',
+    // Shown on the Debate confirmation screen (§8) before the battle
+    // actually starts -- his opening position, stated plainly, so the
+    // player knows what they're about to argue against.
+    battleOpinion: 'These boat crossings are never justified. The Mice are just putting all of us in danger!',
     col: 14, row: 11,
     lines: [
       "They come across on whatever floats. Bottle crates, half a shoe, once a rat came over on what I'm fairly sure was a biscuit tin lid.",

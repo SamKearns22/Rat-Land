@@ -59,14 +59,14 @@ RatLand.initTouchControls = function () {
 
 // Talk to whichever NPC (Town Crier or any of the 31 NPC_ROSTER
 // characters) is adjacent, otherwise close any open dialogue. Fightable
-// NPCs (see RatLand.NPC_ROSTER's `fightable` flag) open the Talk/Fight/
-// Walk Away menu instead of going straight to dialogue (COMBAT_DESIGN.md §8).
+// NPCs (see RatLand.NPC_ROSTER's `fightable` flag) open the Talk/Debate
+// menu instead of going straight to dialogue (COMBAT_DESIGN.md §8).
 RatLand.onInteractPressed = function () {
   var game = RatLand.game;
   if (!game) return;
   // Menu/battle selection is handled by their own dedicated buttons, not
-  // this Talk button, while either is open.
-  if (game.mode === 'battle-menu' || game.mode === 'battle') return;
+  // this Talk button, while any of them is open.
+  if (game.mode === 'battle-menu' || game.mode === 'battle-opinion' || game.mode === 'battle') return;
   if (game.mode !== 'overworld') return;
 
   var ts = RatLand.TILE_SIZE;

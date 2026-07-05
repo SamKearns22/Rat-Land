@@ -1065,3 +1065,51 @@ no new UI system, just the existing icon slot repurposed for the new
 status pair. The Rules overlay (§22.7) and the icon-inactive CSS
 comment (§9) were updated to match; no other UI/dialogue polish was
 done this round, per the request's explicit scope.
+
+## 25. Big Swing/Understand Dialogue, Status-Icon Explanations, Debate Confirmation Screen
+
+Two changes, the UI/dialogue polish explicitly deferred by §24.
+
+**1. Dialogue.** Big Swing (§24) and the player's Feeling now have real
+first-use/pool lines instead of the placeholders §24 flagged as
+throwaway. Big Swing's lines lean into Fen's actual grievance (boat
+crossings) rather than generic aggression, matching his established
+voice. The Exposed/Primed status icon's tap explanation (§4a, added
+mechanically but tersely in §24) was rewritten to match the R/C icons'
+style: it now always states what Exposed/Primed generically mean, not
+just the current on/off state, whether or not either is currently
+active.
+
+**2. Debate confirmation screen.** The top-level pre-battle menu is
+now **Talk / Debate** — "Fight" is renamed to "Debate," and the
+top-level **Walk Away** option is removed. Choosing Debate no longer
+starts the battle directly; it opens a new confirmation screen
+showing the NPC's opening opinion (a new `battleOpinion` field on the
+`NPC_ROSTER` entry — Fen's: "These boat crossings are never justified.
+The Mice are just putting all of us in danger!") with two options:
+**Debate** (commits — same battle-wipe-into-`startBattle` sequence the
+old top-level Fight used to trigger directly) and **Walk Away**
+(cancels, no penalty — functionally identical to the old top-level
+Walk Away, just relocated one screen deeper).
+
+`game.mode` gains a new value, `'battle-opinion'`, for the
+confirmation screen — freezes player movement automatically (`main.js`
+only special-cases `'overworld'`/`'interior'`, so any other mode value
+already freezes movement with no changes needed there) and was added
+to the D-pad-hiding CSS rule (§10's `#prebattle-menu.visible ~
+#controls` pattern) alongside the existing entries — the exact class
+of soft-lock bug §21 found and fixed for the battle-wipe transition,
+now pre-empted for this new overlay rather than found the same way
+later.
+
+Verified end-to-end in a real browser: top-level menu shows Talk/
+Debate only (no Fight/Walk Away elements at all); Debate opens the
+opinion screen with the correct name and opinion text, `game.mode` set
+to `'battle-opinion'`, D-pad hidden; Walk Away from the opinion screen
+returns to `'overworld'` with no battle started and the D-pad visible
+again; re-approaching Fen afterward shows a fresh Talk/Debate menu and
+Talk still shows his normal dialogue correctly — confirming the
+existing "Talk always available after Walk Away" behavior (tested
+under the old top-level Walk Away) still holds under the relocated
+one. A full Debate → Debate path was also driven through to confirm
+the battle actually starts.

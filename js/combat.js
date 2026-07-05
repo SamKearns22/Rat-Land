@@ -1,5 +1,7 @@
 // combat.js — turn-based "debate combat" against fightable NPCs.
-// Implements COMBAT_DESIGN.md: pre-battle Talk/Fight/Walk Away menu (§8),
+// Implements COMBAT_DESIGN.md: pre-battle Talk/Debate menu with a Debate
+// confirmation screen showing the NPC's opening opinion before the fight
+// actually starts (§8/§25),
 // enemy-first turn order (§3), Rhetoric/Consideration/Facts/Feelings (§4),
 // Exposed (§4a: Fen's Big Swing leaves him open to a doubled follow-up
 // hit for one attack), an instant-KO win condition (§5) — HP hitting 0
@@ -199,10 +201,11 @@ window.RatLand = RatLand;
       id: 'understand', label: 'Feeling: "I just want to understand"', type: 'feeling',
       cost: { meter: 'c', amount: 3, effort: 4 },
       dialogue: {
-        firstUse: 'I’m not trying to attack you. I just — I want to understand.',
+        firstUse: 'I’m not trying to score points. I just want to actually understand what you’re saying.',
         pool: [
-          'I just want to get where you’re coming from.',
-          'Can you help me see it your way?',
+          'Help me get why you see it that way.',
+          'I’m listening, genuinely.',
+          'Okay — walk me through it.',
         ],
       },
       description: 'Heals yourself and primes your next attack to deal +2 damage. Costs 🧠 + Effort.',
@@ -246,10 +249,12 @@ window.RatLand = RatLand;
     {
       id: 'big-swing', label: 'Big Swing', type: 'fact', cost: { effort: BIG_SWING_EFFORT_COST },
       dialogue: {
-        firstUse: 'Right, that’s it — you want a proper answer? Here.',
+        firstUse: 'You want to talk about danger? Half of Mouse Land’s out there right now, bobbing about on a Wotsit packet!',
         pool: [
-          'No, listen — actually listen —',
-          'You want to go on about it? Fine.',
+          'One went across on a flip-flop last week. A flip-flop!',
+          'They say it’s a human rights issue. I say it’s a buoyancy issue.',
+          'Nobody voted for the sewer to become a shipping lane.',
+          'If cheese wrappers can hold three mice and a dream, that’s not immigration policy, that’s a design flaw.',
         ],
       },
       description: 'Big damage. Costs Effort. Leaves Fen Exposed for 1 turn: your next attack against him deals double damage.',
@@ -436,6 +441,30 @@ window.RatLand = RatLand;
     game.preBattleNpc = null;
     var menu = document.getElementById('prebattle-menu');
     if (menu) menu.classList.remove('visible');
+  };
+
+  // Debate confirmation screen (§8): a second step between choosing
+  // "Debate" from the menu above and the battle actually starting --
+  // states the NPC's opening position, then offers Debate (commit) or
+  // Walk Away (cancel, no penalty, same as the old top-level Walk Away).
+  RatLand.openPreBattleOpinion = function (game, npc) {
+    game.mode = 'battle-opinion';
+    game.preBattleNpc = npc;
+    var menu = document.getElementById('prebattle-menu');
+    if (menu) menu.classList.remove('visible');
+    var nameEl = document.getElementById('prebattle-opinion-name');
+    if (nameEl) nameEl.textContent = npc.name;
+    var textEl = document.getElementById('prebattle-opinion-text');
+    if (textEl) textEl.textContent = npc.battleOpinion || '';
+    var overlay = document.getElementById('prebattle-opinion');
+    if (overlay) overlay.classList.add('visible');
+  };
+
+  RatLand.closePreBattleOpinion = function (game) {
+    game.mode = 'overworld';
+    game.preBattleNpc = null;
+    var overlay = document.getElementById('prebattle-opinion');
+    if (overlay) overlay.classList.remove('visible');
   };
 
   // --- Battle loop (§3, §5, §6) --------------------------------------------
@@ -626,10 +655,16 @@ window.RatLand = RatLand;
       {
         symbol: '💥', badge: null, active: exposedActive || primedActive, // Exposed (Big Swing) / Primed (Feeling)
         explain: exposedActive
-          ? subjectIs + ' Exposed: the next attack against ' + objectPronoun + ' deals double damage.'
+          ? possessive + ' Exposed status: granted for 1 turn by a big hit landing on ' + objectPronoun +
+            ', consumed by the next attack against ' + objectPronoun + '. Currently active — the next ' +
+            'attack against ' + objectPronoun + ' deals double damage.'
           : primedActive
-            ? subjectIs + ' primed: ' + possessivePronoun + ' next attack deals +' + c.nextAttackBonus + ' damage.'
-            : subjectIs + ' not currently Exposed or primed.',
+            ? possessive + ' Primed status: granted by a Feeling, consumed by ' + possessivePronoun +
+              ' own next attack. Currently active — ' + possessivePronoun + ' next attack deals +' +
+              c.nextAttackBonus + ' bonus damage.'
+            : possessive + ' Exposed/Primed status: Exposed doubles the next attack landed against ' +
+              objectPronoun + '; Primed adds a flat bonus to ' + possessivePronoun + ' own next attack. ' +
+              'Both are one-shot and currently inactive.',
       },
     ];
 
@@ -823,8 +858,9 @@ window.RatLand = RatLand;
 
   RatLand.initBattleUI = function () {
     var talkBtn = document.getElementById('prebattle-talk');
-    var fightBtn = document.getElementById('prebattle-fight');
-    var walkBtn = document.getElementById('prebattle-walk');
+    var debateBtn = document.getElementById('prebattle-debate');
+    var opinionDebateBtn = document.getElementById('prebattle-opinion-debate');
+    var opinionWalkBtn = document.getElementById('prebattle-opinion-walk');
 
     if (talkBtn) {
       talkBtn.addEventListener('pointerdown', function (e) {
@@ -836,13 +872,27 @@ window.RatLand = RatLand;
       });
     }
 
-    if (fightBtn) {
-      fightBtn.addEventListener('pointerdown', function (e) {
+    // Debate (top-level menu): no longer starts the battle directly --
+    // opens the opinion-confirmation screen instead (§8).
+    if (debateBtn) {
+      debateBtn.addEventListener('pointerdown', function (e) {
         e.preventDefault();
         var game = RatLand.game;
         var npc = game.preBattleNpc;
-        var menu = document.getElementById('prebattle-menu');
-        if (menu) menu.classList.remove('visible');
+        if (!npc) return;
+        RatLand.openPreBattleOpinion(game, npc);
+      });
+    }
+
+    // Debate (opinion-confirmation screen): this is the actual commit to
+    // battle -- what the old top-level Fight button used to do directly.
+    if (opinionDebateBtn) {
+      opinionDebateBtn.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        var game = RatLand.game;
+        var npc = game.preBattleNpc;
+        var overlay = document.getElementById('prebattle-opinion');
+        if (overlay) overlay.classList.remove('visible');
         game.preBattleNpc = null;
         if (!npc) return;
         RatLand.playBattleWipe(function () {
@@ -851,10 +901,10 @@ window.RatLand = RatLand;
       });
     }
 
-    if (walkBtn) {
-      walkBtn.addEventListener('pointerdown', function (e) {
+    if (opinionWalkBtn) {
+      opinionWalkBtn.addEventListener('pointerdown', function (e) {
         e.preventDefault();
-        RatLand.closePreBattleMenu(RatLand.game);
+        RatLand.closePreBattleOpinion(RatLand.game);
       });
     }
 

@@ -30,8 +30,19 @@
 <div id="prebattle-menu" class="overlay-menu">
   <div id="prebattle-name" class="overlay-title"></div>
   <button id="prebattle-talk" class="overlay-btn" type="button">Talk</button>
-  <button id="prebattle-fight" class="overlay-btn" type="button">Fight</button>
-  <button id="prebattle-walk" class="overlay-btn" type="button">Walk Away</button>
+  <button id="prebattle-debate" class="overlay-btn" type="button">Debate</button>
+</div>
+
+<!-- Debate confirmation screen (§8): shown after choosing Debate from the
+     menu above, before the battle actually starts -- states the NPC's
+     opening position plainly, then lets the player commit (Debate) or
+     back out with no penalty (Walk Away), same as the old top-level Walk
+     Away option. -->
+<div id="prebattle-opinion" class="overlay-menu">
+  <div id="prebattle-opinion-name" class="overlay-title"></div>
+  <div id="prebattle-opinion-text"></div>
+  <button id="prebattle-opinion-debate" class="overlay-btn" type="button">Debate</button>
+  <button id="prebattle-opinion-walk" class="overlay-btn" type="button">Walk Away</button>
 </div>
 
 <div id="battle-screen" class="overlay-menu battle-screen">

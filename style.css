@@ -276,6 +276,7 @@ html, body {
    never see this transient window, but it's plainly visible frame-by-frame
    (and on any device with real animation jank). */
 #prebattle-menu.visible ~ #controls,
+#prebattle-opinion.visible ~ #controls,
 #battle-screen.visible ~ #controls,
 #battle-wipe.visible ~ #controls {
   display: none;
@@ -313,6 +314,14 @@ html, body {
   letter-spacing: 0.04em;
   margin-bottom: 10px;
   text-align: center;
+}
+
+/* Debate confirmation screen's opinion line (§8) -- same sizing as
+   #dialogue-text, just scoped to this overlay instead of the dialogue box. */
+#prebattle-opinion-text {
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 12px;
 }
 
 .overlay-btn {
