@@ -14,10 +14,12 @@ RatLand.assets = {
   mossy: new Image(),
   brick: new Image(),
   fenwicket: new Image(),
+  player: new Image(),
 };
 RatLand.assets.mossy.src = 'assets/tile-mossy-damp.png';
 RatLand.assets.brick.src = 'assets/tile-cracked-brick.png';
 RatLand.assets.fenwicket.src = 'assets/fenwicket-sprite.png';
+RatLand.assets.player.src = 'assets/player-sprite.png';
 
 RatLand._mossyPattern = null;
 RatLand._brickPattern = null;
@@ -466,6 +468,23 @@ function drawImageSprite(ctx, x, y, size, img, highlight) {
   ctx.restore();
 }
 
+// Draws the player character: the uploaded 29x24 pixel-art sprite
+// (assets/player-sprite.png, background color-keyed to transparent),
+// drawn at native resolution centered on the player's tile, exactly the
+// treatment Fen's image sprite gets. Falls back to the original
+// procedural grey rat while the image is still loading (or if it ever
+// fails), same graceful-degradation pattern as the tile textures. The
+// sprite is static art, so `facing` only matters for the fallback --
+// same trade-off already accepted for Fen's sprite.
+RatLand.drawPlayer = function (ctx, x, y, size, facing) {
+  var img = RatLand.assets.player;
+  if (img && img.complete && img.naturalWidth) {
+    drawImageSprite(ctx, x, y, size, img, false);
+    return;
+  }
+  RatLand.drawRat(ctx, x, y, size, '#9a9a9a', facing);
+};
+
 // Draws one NPC from the roster: base rat (or mouse) body shared with the
 // player, a body-level treatment if any, then hat/eyewear/neckwear/prop/pin
 // accessories layered on top in a sensible order. `highlight` marks this
@@ -677,7 +696,7 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
     }
   });
 
-  RatLand.drawRat(ctx, game.player.x, game.player.y, game.player.size, '#9a9a9a', game.player.facing);
+  RatLand.drawPlayer(ctx, game.player.x, game.player.y, game.player.size, game.player.facing);
 
   ctx.restore();
 };
@@ -713,5 +732,5 @@ RatLand.renderInterior = function (ctx, game, viewW, viewH) {
   ctx.textAlign = 'center';
   ctx.fillText(interior.title, viewW / 2, Math.max(24, offsetY - 12));
 
-  RatLand.drawRat(ctx, offsetX + game.player.x, offsetY + game.player.y, game.player.size, '#9a9a9a', game.player.facing);
+  RatLand.drawPlayer(ctx, offsetX + game.player.x, offsetY + game.player.y, game.player.size, game.player.facing);
 };
