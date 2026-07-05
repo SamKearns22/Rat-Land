@@ -2,11 +2,13 @@
 // Implements COMBAT_DESIGN.md: pre-battle Talk/Debate menu with a Debate
 // confirmation screen showing the NPC's opening opinion before the fight
 // actually starts (§8/§25),
-// enemy-first turn order (§3), Rhetoric/Consideration/Facts/Feelings (§4),
+// player-first turn order (§3/§28 — the player always takes the first
+// move in every fight, permanently, for all future enemies too),
+// Rhetoric/Consideration/Facts/Feelings (§4),
 // Exposed (§4a/§27: Fen's Big Swing leaves him open to a doubled
 // follow-up Fact for one attack), an instant-KO win condition (§5) — HP hitting 0
 // always ends the fight immediately, no soft floor — with Fen's own
-// heal-below-30%-HP reactive AI making a Fact+Feeling strategy
+// heal-below-25%-HP reactive AI making a Fact+Feeling strategy
 // practically necessary to close the fight out in reasonable time rather
 // than hard-gated (§21/§24), the no-penalty loss state (§6),
 // Reputation-on-win via the existing save system (§7), and a
@@ -30,7 +32,13 @@ window.RatLand = RatLand;
   // --- Test moveset (§13/§14 — explicitly TEST/THROWAWAY per the design doc) ---
 
   var PLAYER_START = { hp: 20, maxHp: 20, effort: 10, maxEffort: 10 };
-  var FEN_START = { hp: 14, maxHp: 14, effort: 10, maxEffort: 10 };
+  // 17 HP after the §28 player-first rebalance: at 14, the free tempo the
+  // player gains from always moving first was enough for a basics-only
+  // Rhetoric grind to kill Fen outright; 15 sat right on that cliff, and
+  // 16-18 with the old numbers overshot into 25-round-plus heal-stall
+  // slogs. 17 + the other §28 adjustments lands the realistic fight at
+  // 13 rounds with the basics-only invariant intact.
+  var FEN_START = { hp: 17, maxHp: 17, effort: 10, maxEffort: 10 };
 
   // Opening/finishing lines: one-shot flavor tied to battle start and to a
   // combatant's HP actually hitting 0 (not the soft-floor near-miss) --
@@ -141,7 +149,12 @@ window.RatLand = RatLand;
   var BIG_SWING_EFFORT_COST = 9;
   var BIG_SWING_R_COST = 2;
   var EXPOSED_MULTIPLIER = 2;
-  var SNIPE_DAMAGE = 3;
+  // 2 after the §28 rebalance (was 3): Snipe is Fen's tail-of-fight chip
+  // move in practice, and at 3 it pinned an already-low player hard
+  // enough to stretch the endgame's heal-stall well past the round
+  // target. At 2 it still breaks up his Consideration stretches without
+  // deepening the pin.
+  var SNIPE_DAMAGE = 2;
   // Costed at 8, not the original 4, after balance verification (§27):
   // at 4, Snipe was so cheap that giving it the same below-threshold
   // exception as Big Swing (needed so Fen ever gets a chance to bank
@@ -154,10 +167,13 @@ window.RatLand = RatLand;
   // clear default while still breaking up long identical-Consideration
   // stretches with real variety.
   var SNIPE_EFFORT_COST = 8;
-  // Fen's reactive AI switches to pure self-heal once his own HP drops
-  // below this fraction of his max (§24) — mirrors the same threshold the
-  // human "heal when hurt" instinct naturally uses.
-  var FEN_HEAL_THRESHOLD = 0.30;
+  // Fen's reactive AI switches to heal-priority once his own HP drops
+  // below this fraction of his max (§24). 0.25 after the §28 rebalance
+  // (was 0.30): under player-first turn order, a 30% threshold kept Fen
+  // oscillating in a heal-lock band that dragged realistic fights to
+  // 25+ rounds; triggering desperation slightly later keeps him
+  // aggressive longer and lets the endgame actually resolve.
+  var FEN_HEAL_THRESHOLD = 0.25;
   function gainMeter(battle, side, meter, amount) {
     var c = battle[side];
     c[meter] = Math.min(METER_CAP, c[meter] + amount);
@@ -226,9 +242,19 @@ window.RatLand = RatLand;
         ],
       },
       description: 'Heals yourself and primes your next attack to deal +2 damage. Costs 🧠 + Effort.',
+      // Heals 4 after the §28 rebalance (was 3): in the endgame, the
+      // player's Consideration (+2) exactly cancels Fen's chip damage
+      // (2), so Understand is the only move that makes net HP progress
+      // while pinned low -- at +3 that net was +1 per cast and the
+      // low-HP stall dragged for ~8 rounds; +4 resolves it at pace.
+      // Deliberately buffed here rather than on Consideration: Understand
+      // isn't available to a basics-only player, so this knob can't feed
+      // the basics-only attrition exploit the way a Consideration buff
+      // would.
       effect: function (battle, atk, def) {
-        heal(battle, atk, 3);
+        heal(battle, atk, 4);
         battle[atk].nextAttackBonus = 2;
+        battle[atk].primedTtl = 2; // §28: usable on the next attack, expires after one following round
       },
     },
   ];
@@ -243,6 +269,7 @@ window.RatLand = RatLand;
         'You always do this.',
       ] },
       description: 'Deals small damage to you and gives Fen 1 👄.',
+      explanation: 'a quick jab to keep you on the back foot', // §28 log format
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, 2, false);
         applyDamage(battle, atk, def, dmg);
@@ -258,6 +285,7 @@ window.RatLand = RatLand;
         '…fine. Whatever.',
       ] },
       description: 'Heals Fen a little and gives him 1 🧠.',
+      explanation: 'takes a breath and regroups', // §28 log format
       effect: function (battle, atk, def) {
         heal(battle, atk, 2);
         gainMeter(battle, atk, 'c', 1);
@@ -275,7 +303,8 @@ window.RatLand = RatLand;
           'If cheese wrappers can hold three mice and a dream, that’s not immigration policy, that’s a design flaw.',
         ],
       },
-      description: 'Big damage. Costs 👄 + Effort. Leaves Fen Exposed for 1 turn: your next Fact against him deals double damage.',
+      description: 'Big damage. Costs 👄 + Effort. Leaves Fen Exposed: experiences double damage from Facts for 1 turn.',
+      explanation: 'throws his whole argument at you in one go', // §28 log format
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, BIG_SWING_DAMAGE, true);
         applyDamage(battle, atk, def, dmg);
@@ -289,6 +318,7 @@ window.RatLand = RatLand;
         // doubly open the way a swing from strength does.
         if (battle[atk].hp >= battle[atk].maxHp * FEN_HEAL_THRESHOLD) {
           battle[atk].exposed = true;
+          battle[atk].exposedTtl = 2; // §28: live through this round's upkeep + the one following round
         }
       },
     },
@@ -303,6 +333,7 @@ window.RatLand = RatLand;
         ],
       },
       description: 'Small hit. Costs Effort only, no meter.',
+      explanation: 'a pointed remark flicked out mid-argument', // §28 log format
       effect: function (battle, atk, def) {
         var dmg = computeDamage(battle, atk, def, SNIPE_DAMAGE, true);
         applyDamage(battle, atk, def, dmg);
@@ -357,25 +388,64 @@ window.RatLand = RatLand;
     return null;
   }
 
+  // Standardized enemy move log entry (§28): every enemy move logs as
+  // "[Name] used [Move]: [explanation]. [damage/effort/status dealt]."
+  // The dealt part is built from the actual before/after state diff of
+  // the move's effect (plus its declared cost), never from a canned
+  // string, so it always matches what really happened -- e.g. a
+  // below-threshold Big Swing that doesn't grant Exposed simply doesn't
+  // claim to.
+  function buildEnemyMoveReport(battle, atkSide, defSide, move, pre) {
+    var atk = battle[atkSide];
+    var def = battle[defSide];
+    var parts = [];
+    var dmg = pre.defHp - def.hp;
+    if (dmg > 0) parts.push('Dealt ' + dmg + ' damage');
+    var healed = atk.hp - pre.atkHp;
+    if (healed > 0) parts.push('Healed ' + healed + ' HP');
+    if (atk.r > pre.r) parts.push('Gained ' + (atk.r - pre.r) + ' ' + METER_SYMBOL.r);
+    if (atk.c > pre.c) parts.push('Gained ' + (atk.c - pre.c) + ' ' + METER_SYMBOL.c);
+    if (move.cost) {
+      var costBits = [];
+      if (move.cost.effort) costBits.push(move.cost.effort + ' Effort');
+      if (move.cost.meter) costBits.push(move.cost.amount + ' ' + METER_SYMBOL[move.cost.meter]);
+      if (costBits.length) parts.push('Spent ' + costBits.join(' and '));
+    }
+    if (!pre.exposed && atk.exposed) {
+      parts.push('Now Exposed: experiences double damage from Facts for 1 turn');
+    }
+    return battle.npcName + ' used ' + move.label + ': ' + move.explanation + '. ' +
+      parts.join('. ') + '.';
+  }
+
   // Resolves one move: pays its cost, logs its dialogue, then runs its
-  // numeric effect.
+  // numeric effect (and, for enemy moves, logs the §28 standardized
+  // report of what the move actually did).
   function useMove(battle, atkSide, defSide, move) {
     payCost(battle, atkSide, move);
     var speaker = atkSide === 'player' ? 'You' : battle.npcName;
     var line = pickMoveDialogue(battle, atkSide, move);
     battle.log.push(speaker + ': "' + line + '"');
     if (RatLand.playSfx) RatLand.playSfx(sfxKeyForMove(move));
-    if (atkSide === 'enemy') {
-      triggerFenSpriteAnim('attack');
-      // Auto-reveal (§22): what Fen's move just did is logged automatically,
-      // no tap required -- previously this only showed via a tap-to-reveal
-      // status icon, which is removed now that this is unmissable in the
-      // log. move.description is written from the player's perspective
-      // already (e.g. "gives Fen 1 👄"), so it reads fine as a plain
-      // follow-up line under his dialogue.
-      battle.log.push('(' + move.label + ' — ' + move.description + ')');
+    if (atkSide !== 'enemy') {
+      move.effect(battle, atkSide, defSide);
+      return;
     }
+    triggerFenSpriteAnim('attack');
+    var pre = {
+      defHp: battle[defSide].hp,
+      atkHp: battle[atkSide].hp,
+      r: battle[atkSide].r,
+      c: battle[atkSide].c,
+      exposed: battle[atkSide].exposed,
+    };
+    // The report needs post-effect numbers but must still read in causal
+    // order -- if this hit ends the fight, applyDamage pushes the
+    // finishing line during the effect, and the report belongs *before*
+    // that, not after it.
+    var insertAt = battle.log.length;
     move.effect(battle, atkSide, defSide);
+    battle.log.splice(insertAt, 0, buildEnemyMoveReport(battle, atkSide, defSide, move, pre));
   }
 
   // Fen's AI (§24/§26, replacing the old scripted turn-window pattern
@@ -437,8 +507,11 @@ window.RatLand = RatLand;
     useMove(battle, 'enemy', 'player', move);
   }
 
-  // --- Vague enemy-intent hint (§22) ---------------------------------------
-  // Shown at the start of each player turn: a category-level hint of the
+  // --- Vague enemy-intent hint (§22/§28) ------------------------------------
+  // Shown from the player's second turn onward -- under player-first turn
+  // order (§28) the enemy hasn't acted yet on turn 1, so there's no enemy
+  // action to hint at; the first hint is set right after the enemy's first
+  // response. A category-level hint of the
   // enemy's likely next move (Fact/Feeling/basic), never the exact move
   // name, and never a hint at what to actually DO about it -- winning
   // strategy stays for the player to discover. Reusable for any future
@@ -484,20 +557,34 @@ window.RatLand = RatLand;
       player: battle.player.effort - playerBefore,
       enemy: battle.enemy.effort - enemyBefore,
     };
-    // Exposed/Primed genuinely last "for 1 turn" (§26): each is granted on
-    // one side's move and is available through the other side's very next
-    // move, then expires here regardless of whether it was ever used --
-    // upkeep runs right after the player's move and before Fen's, so this
-    // is exactly one player-turn opportunity per grant. Without this, an
-    // unused window would persist indefinitely (until whenever an attack
-    // eventually lands), letting a patient player delay and stockpile
+    // Exposed/Primed genuinely last "for 1 turn" (§26/§28): under
+    // player-first turn order, upkeep runs at the END of a round (player
+    // move, then Fen's response, then this), so a blanket clear here
+    // would wipe an Exposed granted by Fen's move in this same round
+    // before the player's one-round window ever arrived. Each grant
+    // instead carries a 2-tick TTL: it survives the granting round's
+    // upkeep (2 -> 1), is live for exactly the one following round, and
+    // expires at that round's upkeep (1 -> 0) whether or not it was ever
+    // used. Without a hard expiry, an unused window would persist
+    // indefinitely, letting a patient player delay and stockpile
     // resources before cashing in an old exposure rather than actually
     // reacting to it -- confirmed exploitable by a basics-only search
-    // before this was added.
-    battle.player.exposed = false;
-    battle.enemy.exposed = false;
-    battle.player.nextAttackBonus = 0;
-    battle.enemy.nextAttackBonus = 0;
+    // before expiry was added.
+    ['player', 'enemy'].forEach(function (side) {
+      var c = battle[side];
+      if (c.exposed) {
+        c.exposedTtl -= 1;
+        if (c.exposedTtl <= 0) c.exposed = false;
+      } else {
+        c.exposedTtl = 0;
+      }
+      if (c.nextAttackBonus > 0) {
+        c.primedTtl -= 1;
+        if (c.primedTtl <= 0) c.nextAttackBonus = 0;
+      } else {
+        c.primedTtl = 0;
+      }
+    });
     battle.turn += 1;
   }
 
@@ -507,8 +594,10 @@ window.RatLand = RatLand;
       effortRegenRate: 2, // standard regen/turn (§22) -- read here, not hardcoded, so a
                           // future move that alters it is reflected automatically
       r: 0, c: 0,
-      exposed: false, // §24: granted by Big Swing, consumed by the next attack against this combatant
+      exposed: false, // §24/§27: granted by Big Swing, consumed by the next Fact against this combatant
+      exposedTtl: 0, // §28: rounds of upkeep this Exposed survives (granted at 2 = one following round)
       nextAttackBonus: 0, // §24: granted by the player's Feeling, consumed by this combatant's next attack
+      primedTtl: 0, // §28: same 1-following-round expiry as exposedTtl, for the Primed bonus
       dialogueUsed: {}, // tracks which moves' firstUse line has already fired
     };
   }
@@ -582,16 +671,18 @@ window.RatLand = RatLand;
     var enemyNameEl = document.getElementById('battle-name-enemy');
     if (enemyNameEl) enemyNameEl.textContent = npc.name;
 
-    // Opening lines (§11): a one-shot pre-battle beat, independent of the
-    // move-selection system -- both combatants get a line in before the
-    // turn loop (enemy-first per §3) actually starts.
+    // Opening lines (§11/§28): a one-shot pre-battle beat, independent of
+    // the move-selection system, trimmed to just this initial exchange --
+    // no further Fen dialogue until the player acts. The turn loop is
+    // player-first (§3/§28), so nothing else happens until the player
+    // picks their first move: the player reads as initiating the debate,
+    // and Fen's dialogue from here on develops in response. No intent
+    // hint yet either (§22/§28) -- there's no enemy action to hint at
+    // until Fen has actually responded once.
     battle.log.push(npc.name + ': "' + FEN_OPENING + '"');
     battle.log.push('You: "' + PLAYER_OPENING + '"');
 
-    runEnemyTurn(battle);
-    updateIntentHint(battle);
     RatLand.renderBattleUI(game);
-    if (battle.outcome) endBattle(game);
   };
 
   // Highlights a move without executing it, showing its plain-text
@@ -620,10 +711,10 @@ window.RatLand = RatLand;
   };
 
   // Fen's hurt-flash (triggered by the player's move, if it lands) and his
-  // own attack-bounce (triggered by his next move) would otherwise both
-  // fire in the same synchronous tick -- since turn order is enemy-first
-  // (§3), Fen's *next* round starts immediately after the player's move
-  // resolves, and the second class swap stomps the first before either
+  // own attack-bounce (triggered by his response) would otherwise both
+  // fire in the same synchronous tick -- turn order is player-first
+  // (§3/§28), so Fen's response resolves immediately after the player's
+  // move, and the second class swap stomps the first before either
   // ever gets painted. ENEMY_TURN_GAP_MS defers Fen's turn just long
   // enough for the player's move (and any hurt-flash it caused) to
   // actually render first, so both animations are visible in sequence --
@@ -649,9 +740,17 @@ window.RatLand = RatLand;
     RatLand.renderBattleUI(game);
     window.setTimeout(function () {
       battle.turnGapPending = false;
-      upkeep(battle);
+      // Player-first round structure (§3/§28): the player has already
+      // moved (above); Fen responds here, then the round closes out with
+      // upkeep (regen, status expiry, turn counter). The intent hint set
+      // after Fen's response previews his likely next-round move, which
+      // is why hints only exist from the player's second turn onward --
+      // at battle start Fen hasn't acted and has no "next move" to read.
       runEnemyTurn(battle);
-      updateIntentHint(battle);
+      if (!battle.outcome) {
+        upkeep(battle);
+        updateIntentHint(battle);
+      }
       RatLand.renderBattleUI(game);
       if (battle.outcome) endBattle(game);
     }, ENEMY_TURN_GAP_MS);
@@ -723,8 +822,6 @@ window.RatLand = RatLand;
   function buildStatusIcons(name, c) {
     var isPlayer = name === 'You';
     var possessive = isPlayer ? 'Your' : name + '’s';
-    var subjectIs = isPlayer ? 'You are' : name + ' is';
-    var objectPronoun = isPlayer ? 'you' : 'him';
     var possessivePronoun = isPlayer ? 'your' : 'his';
     var exposedActive = !!c.exposed;
     var primedActive = c.nextAttackBonus > 0;
@@ -743,16 +840,14 @@ window.RatLand = RatLand;
       {
         symbol: '💥', badge: null, active: exposedActive || primedActive, // Exposed (Big Swing) / Primed (Feeling)
         explain: exposedActive
-          ? possessive + ' Exposed status: granted for 1 turn by a big hit landing on ' + objectPronoun +
-            '. Currently active — the next Fact used against ' + objectPronoun + ' deals double damage; ' +
-            'any other move against ' + objectPronoun + ' just lets the window expire.'
+          ? possessive + ' Exposed status — active. Experiences double damage from Facts for 1 turn.'
           : primedActive
             ? possessive + ' Primed status: granted by a Feeling, consumed by ' + possessivePronoun +
               ' own next attack. Currently active — ' + possessivePronoun + ' next attack deals +' +
               c.nextAttackBonus + ' bonus damage.'
-            : possessive + ' Exposed/Primed status: Exposed doubles the next Fact landed against ' +
-              objectPronoun + ' specifically (any other move just lets it expire); Primed adds a flat ' +
-              'bonus to ' + possessivePronoun + ' own next attack. Both are one-shot and currently inactive.',
+            : possessive + ' Exposed/Primed status: Exposed — experiences double damage from Facts ' +
+              'for 1 turn; Primed — ' + possessivePronoun + ' own next attack deals bonus damage. ' +
+              'Both are one-shot and currently inactive.',
       },
     ];
 

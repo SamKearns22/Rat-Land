@@ -89,18 +89,26 @@ Three pools, tracked per combatant:
 
 ## 3. Turn Order
 
-**Enemy always acts first**, every round. No speed stat, no
-randomness in who goes first.
+**The player always takes the first move**, in every fight, against
+every enemy — permanently. This is a core rule for all future fights,
+not a per-enemy behavior (§28, replacing the original enemy-first
+pillar). No speed stat, no randomness in who goes first.
 
 Round loop:
-1. Enemy turn (move resolves, dialogue line fires).
-2. Player turn (move resolves, dialogue line fires).
+1. Player turn (move resolves, dialogue line fires).
+2. Enemy turn (move resolves, dialogue line fires, standardized §28
+   move report is logged).
 3. End-of-round upkeep: Effort regen (+2) for both sides, any status
-   effects (Confident, Defence changes — §4a/§4b) tick or expire.
+   effects (Exposed/Primed — §4a) tick or expire.
 4. Repeat until a win/loss condition is met.
 
-This keeps enemy dialogue reliably "opening" every round — e.g. Fen
-can always land a barbed remark before the player responds to it.
+This makes the player read as *initiating* the debate: after the
+one-shot opening exchange (§11), nothing happens until the player
+acts, and all enemy dialogue from that point develops in response to
+the player's moves. (The original design had the enemy act first every
+round so it could reliably "open" with a barbed remark; §28 reversed
+this deliberately — see there for the rationale and the rebalance the
+flip forced.)
 
 ## 4. Move Types
 
@@ -131,10 +139,15 @@ every hit is now:
    clear Exposed. A non-Fact hit landed while the defender is Exposed
    gets no bonus from it at all; the window is simply spent.
 
-Both statuses last for exactly one turn: each is available through the
-other side's very next move, and expires in upkeep afterward whether or
-not it was ever used (§27) — a patient opponent can't stockpile an old
-window and cash it in several turns later. A Primed hit landed during
+Both statuses last for exactly one turn: a grant carries a 2-tick TTL
+(§28) — it survives the end-of-round upkeep of the round it was granted
+in, is live for exactly the one following round, and expires at that
+round's upkeep whether or not it was ever used — a patient opponent
+can't stockpile an old window and cash it in several turns later.
+(Under the original enemy-first order this was a blanket clear in
+upkeep, which sat between the two phases of a round; player-first
+upkeep runs at the end of a round, where a blanket clear would wipe a
+just-granted status before its window ever arrived — hence the TTL.) A Primed hit landed during
 an Exposed window benefits from both at once (add the flat bonus, then
 double, provided that hit is a Fact). Unlike the old Defence stat,
 neither status is itself a resource pool (§2) or something a move can
@@ -177,11 +190,12 @@ including its "nearly went down" log line.)
 Fact+Feeling is no longer a *rule* the engine enforces — it's the
 *practically necessary* strategy given Fen's numbers. As of the §24
 redesign, this no longer rests on a permanent Defence stat: Fen's
-reactive AI switches to pure self-heal (Consideration) the moment his
-own HP drops below 30%, and Rhetoric/Consideration-only play can't
-reliably out-pace that heal on its own — see §24 for the current
-exhaustive-search confirmation (basics-only cannot win within a
-depth-45 search) and the human-heuristic verification.
+reactive AI switches to heal-priority (Consideration) the moment his
+own HP drops below his heal threshold (25% as of the §28 rebalance),
+and Rhetoric/Consideration-only play can't reliably out-pace that heal
+on its own — see §28 for the current exhaustive-search confirmation
+(basics-only cannot win within a depth-65 search under player-first
+turn order) and the human-heuristic verification.
 
 ## 6. Loss State
 
@@ -289,7 +303,9 @@ bars, alternating top/bottom `transform-origin`, staggered
    covering the frozen overworld underneath.
 3. **Content swap**, at the moment of full cover: `RatLand.startBattle`
    runs (builds the fresh battle state, shows the battle screen,
-   plays the opening lines per §11, resolves Fen's first move).
+   plays the opening lines per §11 — and nothing else: under §28's
+   player-first turn order no enemy move resolves until the player
+   acts).
 4. **Wipe out.** The bars open over ~0.27s, revealing the battle
    screen. Total round trip ≈0.6s, confirmed by direct timing —
    comfortably under the 1s ceiling so repeated testing isn't slowed
@@ -703,9 +719,10 @@ Both are re-triggered by removing the class, forcing a reflow, then
 re-adding it, so back-to-back triggers of the same animation restart
 cleanly instead of no-op'ing.
 
-**Turn-order timing change.** Since turn order is enemy-first (§3),
-Fen's next move previously ran in the same synchronous tick as the
-player's move resolving — so a damaging hit's `sprite-hurt` trigger and
+**Turn-order timing change.** Fen's move otherwise runs in the same
+synchronous tick as the player's move resolving (true under both the
+original enemy-first order and §28's player-first order — either way
+his response is immediate) — so a damaging hit's `sprite-hurt` trigger and
 Fen's immediately-following `sprite-attack` trigger would stomp each
 other before either was ever painted, silently swallowing the hurt
 flash on every non-fatal hit. Fixed by deferring Fen's turn behind a
@@ -824,9 +841,13 @@ tap required — e.g. `Fen Wicket: "…alright, fair point." (Consideration
 — Heals Fen a little and gives him 1 🧠.)`. The 💬 tap-to-reveal status
 icon this replaces is removed (along with the now-dead `lastMoveId`
 tracking and `FEN_MOVES_BY_ID` lookup it existed for) rather than kept
-alongside a redundant auto-reveal.
+alongside a redundant auto-reveal. (The parenthetical format shown here
+was later standardized by §28 into `[Name] used [Move]: [explanation].
+[damage/effort/status dealt].`, built from the actual state diff.)
 
-**2. Vague enemy-intent hint.** At the start of each player turn, a
+**2. Vague enemy-intent hint.** At the start of each player turn
+(from the player's *second* turn onward as of §28 — under player-first
+turn order there is no enemy action yet to hint at on turn 1), a
 line above the log gives a category-level hint of Fen's next move —
 "Fen Wicket seems to be just deflecting" (basic), "…looks like he's
 gathering a comeback" (Fact), "…seems to be getting worked up"
@@ -893,7 +914,8 @@ overlay`, not the smaller centered-modal treatment `.overlay-menu`
 uses elsewhere — a centered modal here would leave gaps where a move
 button underneath could still be tapped by accident while reading),
 opened via a "?" button in the battle screen's corner and closed via
-its own Back button. Covers: turn order (enemy-first), what each
+its own Back button. Covers: turn order (enemy-first at the time;
+player-first since §28, overlay text updated), what each
 resource does (HP, Effort, 👄, 🧠, 🛡️ Defence, 😤 Confident), the goal
 (reduce opponent's HP to 0), and the standard numeric rules (Effort
 +2/round, R/C +1/basic move, R/C capped at 10) — deliberately omits
@@ -1294,3 +1316,159 @@ No further rebalancing is needed to hit the round-count target: 9
 rounds is within (in fact slightly under) the "roughly 15-20" range
 established as a target in earlier rounds, with room to spare rather
 than scraping the ceiling.
+
+## 28. Player-First Turn Order (Permanent Core Rule) + From-Scratch Rebalance
+
+Structural change with implications for all future fights, plus five
+smaller changes riding along with it, plus the full from-scratch
+rebalance the turn-order flip forced. Every prior balance result in
+this document (§21, §24, §26, §27 round counts and search results)
+assumed enemy-first turn order and is superseded as a reference point
+by the numbers at the end of this section.
+
+### The core rule change
+
+**The player now always takes the first move in combat — in every
+fight, against every enemy, permanently.** §3 is rewritten
+accordingly; "enemy always acts first" is no longer a pillar. The
+round loop is now: player move → enemy response → end-of-round upkeep
+(Effort regen, status TTL ticks, turn counter).
+
+The original enemy-first rationale (§3: the enemy reliably "opens"
+each round with a barbed remark) is deliberately traded away for a
+stronger framing: **the player reads as initiating the debate.** At
+battle start only the one-shot opening exchange plays (Fen's opening
+line, then the player's — §11, unchanged text), and then *nothing
+else happens* until the player picks a move. All of Fen's dialogue
+from that point on develops in response to the player's moves.
+
+### Changes riding along
+
+1. **Fen no longer opens with Big Swing.** No special-case code was
+   needed: under player-first order Fen's first action follows the
+   player's first move, and his existing AI (§26) already banks R via
+   Rhetoric until Big Swing's 2👄 cost is covered — he starts on
+   basic play and builds to his first Big Swing naturally (round 3 in
+   the verification trace below), consistent with his kit logic
+   everywhere else.
+2. **Intent hints (§22) begin from the player's second turn.** Turn 1
+   has no enemy action to hint at; the first hint is generated right
+   after Fen's first response. Verified: `intentHint` is empty at
+   battle start and non-empty from round 2 in every checked
+   playthrough.
+3. **Opening dialogue trimmed to the initial exchange only.**
+   Previously Fen's opening line was immediately followed by his first
+   move's dialogue + effect (enemy-first); now the log at battle start
+   is exactly two lines (Fen's opening, the player's), nothing more.
+4. **Standardized enemy move log entries.** Every enemy move now logs
+   as `[Name] used [Move]: [explanation]. [damage/effort/status
+   dealt].` — e.g. `Fen Wicket used Big Swing: throws his whole
+   argument at you in one go. Dealt 5 damage. Spent 9 Effort and 2 👄.
+   Now Exposed: experiences double damage from Facts for 1 turn.`
+   Each enemy move carries a short fixed `explanation` string; the
+   dealt/spent/status tail is built from the *actual before/after
+   state diff* of the move's effect plus its declared cost, so it
+   always reports what really happened (a below-threshold Big Swing
+   that grants no Exposed doesn't claim one). The move's dialogue line
+   still plays above it (§11 unchanged).
+5. **Exposed status text simplified** to: *"Experiences double damage
+   from Facts for 1 turn."* — used in the status-icon explanation, the
+   Rules overlay, Big Swing's description, and the standardized log
+   line. Wording only; the mechanic (§27 Fact-only doubling, 1-turn
+   expiry) is unchanged.
+
+### Status expiry reworked: TTL instead of blanket clear
+
+§27's "expires after exactly one turn" rule was implemented as a
+blanket clear of Exposed/Primed in upkeep — correct only because
+enemy-first upkeep ran *mid-round*, between the player's move and
+Fen's. Player-first upkeep runs at the *end* of a round, where the
+blanket clear would wipe an Exposed granted by Fen's move in that same
+round before the player's one-round window ever arrived. Each grant
+now carries a 2-tick TTL (`exposedTtl`/`primedTtl`): it survives the
+granting round's upkeep (2→1), is live for exactly the one following
+round, and expires at that round's upkeep (1→0) whether or not it was
+used. Same anti-banking guarantee as §27 (exactly one player-move
+window per grant), verified again by the basics-only search below.
+
+A real side effect, surfaced by this rework: under the old enemy-first
+flow, upkeep's blanket clear ran immediately after the player's move —
+which wiped the `nextAttackBonus` granted by Understand *before the
+player's next attack could ever use it*. Primed was effectively dead
+in realistic play. With the TTL it genuinely works now (the
+verification trace below ends on a Primed-boosted finisher), which is
+part of why the rebalance below was mandatory rather than optional.
+
+### From-scratch rebalance
+
+Baseline measurement with the flip applied and all §27 numbers kept:
+the free tempo the player gains (one full extra move before ever being
+hit, and one less enemy hit landed by any given round) broke both
+sides of the balance at once — **basics-only could now win** (pure
+Rhetoric attrition, confirmed by the restricted search), and the human
+heuristic finished in 8 rounds, under the 10-15 tutorial-fight target.
+
+The space turned out to be knife-edged (swept via source-substitution
+on the real `js/combat.js`, same §26/§27 methodology). Findings that
+shaped the final numbers:
+
+- **Fen HP alone can't land the target**: 14 → basics-only wins;
+  15 → safe but 9 rounds; 16 → 25 rounds; 18 → permanent stalemate.
+  The 16+ blowout is a *pin stall*: Fen's second Big Swing knocks the
+  player to ~2 HP, and the player's Consideration (+2) exactly cancels
+  Fen's chip damage (2), so the endgame crawls at +0 net HP per round.
+- **Every Fen-weakening lever re-opened the basics-only exploit**
+  (Big Swing damage 4, Big Swing R cost 3-4, Snipe cost < 8, cheaper
+  Big Swing Effort): Fen's sustained pressure is precisely what makes
+  pure-Rhetoric attrition non-viable, so it can't be traded away.
+- **The safe lever is Understand** — it's the one sustain knob a
+  basics-only player *cannot use at all*, so buffing it shortens the
+  realistic fight's stall without feeding the exploit even slightly.
+
+**Adopted numbers** (all four required checks pass, table below):
+
+| Knob | Old (§27) | New | Why |
+|---|---|---|---|
+| Fen max HP | 14 | **17** | Big enough that player-first tempo + basics-only attrition can't kill him (14-15 are on/near that cliff); paired with the other knobs to avoid 16-18's stall/stalemate zone. |
+| Snipe damage | 3 | **2** | Snipe is Fen's endgame chip move in practice; at 3 it deepened the low-HP pin and stretched the stall. Still breaks up his Consideration stretches. (Cost stays 8 — §27's reasoning unchanged.) |
+| Fen heal threshold | 0.30 | **0.25** | At 0.30 Fen oscillated in a heal-lock band (25+ round fights); triggering desperation later keeps him aggressive longer so the endgame resolves. |
+| Understand heal | +3 | **+4** | Breaks the +0-net-HP pin stall at pace (+2 net per cast vs. +1). Basics-safe by construction — Understand isn't in the basics moveset. |
+
+### Verification (all four required checks, against the real js/combat.js)
+
+| Check | Result |
+|---|---|
+| 1. Computer-optimal exhaustive search | Wins in 8 moves: rhetoric ×6, consideration, actually |
+| 2. Human heuristic (attack / heal-below-30% / opportunistic strike) | **WIN in 13 rounds**, player HP 6/20 remaining |
+| 3. Basics-only restricted search | **Cannot win** — confirmed at depth 50 and re-confirmed at depth 65 |
+| 4. Full playthrough trace | Below — no new repetition problems from the turn-order flip |
+
+```
+P#1  rhetoric      | P20 F17 -> P18 F15 | hint: none | Fen: Rhetoric
+P#2  rhetoric      | P18 F15 -> P16 F13 | hint: yes  | Fen: Rhetoric
+P#3  actually      | P16 F13 -> P11 F10 | hint: yes  | Fen: Big Swing (Exposed granted, from strength)
+P#4  rhetoric [Fen Exposed] | P11 F10 -> P9 F8 | hint: yes | Fen: Rhetoric
+P#5  rhetoric      | P9  F8  -> P7  F6  | hint: yes  | Fen: Rhetoric
+P#6  actually      | P7  F6  -> P7  F5  | hint: yes  | Fen: Consideration
+P#7  rhetoric      | P7  F5  -> P2  F3  | hint: yes  | Fen: Big Swing (below threshold: no Exposed)
+P#8  consideration | P2  F3  -> P4  F5  | hint: yes  | Fen: Consideration
+P#9  consideration | P4  F5  -> P4  F5  | hint: yes  | Fen: Rhetoric
+P#10 consideration | P4  F5  -> P4  F5  | hint: yes  | Fen: Rhetoric
+P#11 understand    | P4  F5  -> P6  F5  | hint: yes  | Fen: Snipe
+P#12 rhetoric      | P6  F5  -> P6  F3  | hint: yes  | Fen: Consideration
+P#13 actually      | P6  F3  -> P6  F0  | outcome: player wins
+```
+
+Feel-check reading of the trace: Fen's first action is Rhetoric (no
+turn-1 Big Swing, per this section's change #1); Big Swing fires
+**twice** (rounds 3 and 7 — once from strength granting Exposed, once
+as the §26 below-threshold override) and Snipe once (round 11); the
+longest identical-line stretch is 3 rounds (P#8-10, the post-pin
+recovery), versus 11+ in the worst pre-§26 baseline; the finisher is a
+real sequence (Understand prime into a Fact) rather than a rote chip.
+The intent hint is absent on turn 1 and present every turn thereafter,
+as specified.
+
+**No further rebalancing needed**: 13 rounds sits mid-target (10-15),
+with margin on both sides, and the win margin (6/20 HP) reads as a
+tutorial fight that pushed back without being a near-loss.
