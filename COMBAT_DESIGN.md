@@ -116,7 +116,7 @@ cost Effort. Facts and Feelings now spend **both** their R/C amount
 *and* a flat Effort cost (3 for any Fact, 4 for any Feeling) — see the
 confirmed test kits in §14 for exact per-move numbers.
 
-### 4a. Exposed & Primed (status effects, replacing Defence — §24)
+### 4a. Exposed & Primed (status effects, replacing Defence — §24, Exposed refined in §27)
 
 **Defence-stacking is gone entirely.** In its place, damage math for
 every hit is now:
@@ -126,16 +126,36 @@ every hit is now:
    "I just want to understand"), add its flat bonus (+2) — then clear
    Primed, whether or not this hit actually landed for damage.
 3. If the defender is **Exposed** (granted by Fen's Big Swing landing
-   on his opponent — it exposes *Fen*, not whoever he hit), double the
-   running total — then clear Exposed.
+   on his opponent — it exposes *Fen*, not whoever he hit) **and this
+   hit is specifically a Fact** (§27), double the running total — then
+   clear Exposed. A non-Fact hit landed while the defender is Exposed
+   gets no bonus from it at all; the window is simply spent.
 
-Both statuses are one-shot: each is consumed by the very next attack
-that checks for it, regardless of which move that attack was, and
-neither persists past that. A Primed hit landed during an Exposed
-window benefits from both at once (add the flat bonus, then double).
-Unlike the old Defence stat, neither status is itself a resource pool
-(§2) or something a move can "raise" incrementally — a combatant
-either currently has the status or doesn't.
+Both statuses last for exactly one turn: each is available through the
+other side's very next move, and expires in upkeep afterward whether or
+not it was ever used (§27) — a patient opponent can't stockpile an old
+window and cash it in several turns later. A Primed hit landed during
+an Exposed window benefits from both at once (add the flat bonus, then
+double, provided that hit is a Fact). Unlike the old Defence stat,
+neither status is itself a resource pool (§2) or something a move can
+"raise" incrementally — a combatant either currently has the status or
+doesn't.
+
+**Exposed is a general, reusable mechanic, not specific to Fen or to
+Big Swing.** Any future enemy or player move can grant Exposed the same
+way (set the target's `exposed` flag), and it will always resolve the
+same way: only a Fact landed during the window doubles, anything else
+just lets it lapse. This is deliberate — it keeps Exposed strictly a
+*Fact-payoff* tool (rewarding a well-timed Fact specifically, not
+"whichever move happens to land next"), and it closes off a real
+exploit found in practice: before the Fact-only restriction, Exposed
+doubled *any* attack, which meant a Rhetoric/Consideration-only
+strategy could capitalize on an opponent's own Exposed window just as
+well as a deliberate Fact could — confirmed via a basics-only restricted
+search actually finding a win through exactly that path (§27). Gating
+the bonus to Facts specifically means a moveset with no Facts at all
+can never benefit from Exposed, structurally, regardless of the
+specific numbers involved.
 
 ### 4b. Confident — removed (§24)
 
@@ -1113,3 +1133,164 @@ existing "Talk always available after Walk Away" behavior (tested
 under the old top-level Walk Away) still holds under the relocated
 one. A full Debate → Debate path was also driven through to confirm
 the battle actually starts.
+
+## 26. Snipe, Big Swing's R Cost, and a Below-Threshold Aggression Exception
+
+A real playtest finding against the §24 kit: Big Swing only ever fires
+once, at turn 1 (Fen always has full Effort then), because his own
+heal-below-30%-HP rule takes strict priority afterward with no
+exception — once his HP drops that low, he never swings again for the
+rest of the fight, producing a long, flat stretch of repeated
+Consideration turns before the fight ends. Three changes address this:
+
+1. **Snipe** — a new Fen move: 3 damage, costs Effort only (no meter),
+   no status effect. Gives him a lightweight aggressive option in the
+   gaps between Big Swings instead of falling all the way back to bare
+   Rhetoric.
+2. **Big Swing gains an R cost** (2, on top of its existing 9 Effort) —
+   Fen's R meter previously climbed uselessly with nothing to spend it
+   on; now Big Swing actually draws it down, and Fen has to bank
+   Rhetoric uses toward it like the player does toward Actually.
+3. **AI exception below the heal threshold**: healing is still the
+   default, but if Fen has enough R and Effort banked specifically for
+   Big Swing (and, at a higher Effort cost, Snipe — see below), he
+   takes that over healing — occasional aggression breaking through his
+   own defensive posture, not a scheduled pattern.
+
+**A genuine exploit was found and closed during verification, not
+after.** Once Big Swing costs R, `chooseFenMove`'s natural fallback
+order (Big Swing → Snipe → Rhetoric, in that priority) meant Fen never
+deliberately banked R at all — Snipe out-competed Rhetoric whenever
+affordable, so Big Swing's R requirement was never met and it stopped
+firing *entirely* (the opposite of the goal). Fixed by making Rhetoric
+take priority over Snipe specifically when R is still short of Big
+Swing's cost, so Fen only reaches for Snipe once R is already banked
+and Effort is the sole thing being waited on.
+
+**A second exploit, more serious, was found next: giving Big Swing's
+below-threshold override its Exposed grant too let a basics-only
+search win outright.** Big Swing normally exposes Fen (§4a) when cast
+from a position of strength — already safe, verified back in §24/§21.
+But the new below-threshold override meant Fen could *also* cast Big
+Swing while critically low, and if that swing also granted Exposed, it
+handed *any* attack (not just a well-timed Fact, back when Exposed
+still doubled anything) a free lethal follow-up on Fen's most
+vulnerable state — a basics-only restricted search confirmed a real win
+through exactly this path. Fixed (initially) by only granting Exposed
+when Fen swings from a position of strength (HP at/above the
+threshold at cast time); the below-threshold override still lands its
+damage, it just doesn't leave him doubly open the way a swing from
+strength does.
+
+**That fix alone wasn't sufficient — basics-only could still win by
+patiently banking an old, legitimate Exposed window rather than
+capitalizing immediately**, delaying several turns (via Consideration)
+while Fen was forced to rebuild R, then cashing in the still-active
+Exposed status later once conditions were more convenient. This is
+resolved together with the Fact-only restriction in §27 below — see
+that section for why "Exposed lasts for 1 turn, no exceptions, no
+banking" was the fix that actually closed it for good, not just this
+per-cast HP check.
+
+**Snipe was tried in the below-threshold exception too, and it
+backfired.** Giving Snipe (at its original, cheap 4-Effort cost) the
+same "prioritize over healing" exception fixed the repetitive-turns
+problem beautifully (lots of move variety) but made Fen reckless about
+his own survival — cheap Snipe was almost always affordable, so he
+barely healed at all once low, which simultaneously made him *easier*
+to grind down via flat attrition (helping basics-only) and *harder*
+for realistic play to survive (his damage output against the player
+went up), flipping the human-heuristic check from a win into a loss.
+Resolved in §27 by costing Snipe higher (8, not 4) for this specific
+exception — expensive enough that healing stays the clear default,
+while still breaking up long identical-Consideration stretches with
+real variety when Fen does have the Effort banked. See §27 for the
+final numbers and full re-verification, including the round-by-round
+trace confirming the repetitive-turns problem is actually resolved.
+
+## 27. Exposed Restricted to Facts Only — Closing the Basics-Only Exploit for Good
+
+§26 found (and partially fixed) two separate ways a basics-only
+restricted search could win: capitalizing on a below-threshold Big
+Swing's self-inflicted Exposed, and patiently banking an old,
+legitimate Exposed window across several turns before cashing it in.
+Both were symptoms of the same underlying property: **Exposed doubled
+*any* attack that landed during its window, not specifically a Fact**
+— so a Rhetoric/Consideration-only strategy could exploit an opponent's
+own Exposed status just as effectively as a deliberately-timed Fact
+could, given the right sequencing. No amount of numeric tuning closed
+this reliably; every rebalance attempt in §26 either left some
+basics-only path open or overcorrected Fen's own survivability.
+
+**The actual fix: Exposed's damage-doubling now only triggers when the
+attacking move is specifically a Fact.** Any other move — Rhetoric,
+Consideration, a Feeling — lands normally and the Exposed window is
+simply spent with no bonus. This closes the exploit *structurally*:
+since basics-only by definition never uses a Fact, it can never trigger
+Exposed's bonus at all, regardless of Big Swing's numbers, regardless
+of how the window is timed or banked. `computeDamage` now takes an
+`isFact` parameter, and every damage-dealing move passes `true` or
+`false` according to its own `type` (Actually, Big Swing, and Snipe are
+all `type: 'fact'`; Rhetoric is `type: 'basic'` on both sides).
+
+**Exposed's 1-turn expiry (added in §26 to stop banking) is unchanged
+and still essential**: it lasts exactly one turn regardless of whether
+a Fact ever capitalized on it, cleared unconditionally in `upkeep()`.
+Together with the Fact-only restriction, this means a Fact must land on
+the *very next* opportunity after Exposed is granted to get any benefit
+from it at all — no delaying, no banking, and (structurally) no
+basics-only path to it whatsoever.
+
+**Exposed is documented as a general, reusable mechanic (§4a), not
+specific to Fen or Big Swing** — any future enemy or player move can
+grant it the same way, and it will always resolve identically: Fact
+lands during the window → doubled; anything else → window wasted.
+
+**Snipe's below-threshold exception (§26) was re-enabled at a higher
+cost.** With the Fact-only restriction closing the exploit at the
+mechanism level, the numeric tuning that was fighting basics-only
+safety in §26 was re-examined: raising Snipe's Effort cost from 4 to 8
+(instead of 4) for this specific exception keeps Fen's healing the
+clear default (still often unaffordable when critically low) while
+still breaking up long repeated-Consideration stretches on the turns
+it does fire. Snipe's description was updated from "cheap" to "small,"
+since at 8 Effort it's no longer meaningfully cheaper than Big Swing's 9.
+
+**Full re-verification, against the live `js/combat.js` (not a
+mirror), driven through its real public API exactly as in §24:**
+
+| Check | Result |
+|---|---|
+| 1. Computer-optimal exhaustive search | Wins in **7 moves**: `rhetoric ×5, actually ×2` |
+| 2. Human heuristic (attack / heal-below-30% / opportunistic-strike / capitalize-on-Exposed) | **WIN at turn 9**, player HP 8/20 remaining |
+| 3. Basics-only restricted search | **Cannot win** — confirmed at depth 45 *and* re-confirmed at depth 65 for extra margin |
+
+**Full round-by-round trace of check 2** (the required feel-check, not
+just the outcome):
+
+```
+P#1 rhetoric  | P18 F14 -> P16 F12 | Fen: Rhetoric
+P#2 rhetoric  | P16 F12 -> P11 F10 | Fen: Big Swing (Exposed granted)
+P#3 actually  | P11 F10 [Exposed]  -> P11 F6  | Fen: Consideration  (Fact capitalized: doubled)
+P#4 rhetoric  | P11 F6  -> P11 F6  | Fen: Consideration
+P#5 rhetoric  | P11 F6  -> P11 F6  | Fen: Consideration
+P#6 actually  | P11 F6  -> P8  F3  | Fen: Snipe            (below-threshold aggression)
+P#7 rhetoric  | P8  F3  -> P8  F3  | Fen: Consideration
+P#8 rhetoric  | P8  F3  -> P8  F3  | Fen: Consideration
+P#9 actually  | P8  F3  -> P8  F0  | outcome: player wins
+```
+
+Both required feel questions are answered directly by this trace:
+**Big Swing/Exposed recurs meaningfully** (fires once from strength at
+turn 2, and the below-threshold Snipe exception fires once more at
+turn 6 — Fen is never *only* healing for the rest of the fight the way
+he was in §24's version), and **the longest repeated-line stretch is 2
+turns** (P#4-5, P#7-8), down from 11+ consecutive identical
+Consideration lines in the §24 baseline this task set out to fix. The
+fight is also shorter overall (9 rounds vs. 12 in §24) with a
+comfortable margin (8/20 HP, not a near-loss).
+
+No further rebalancing is needed to hit the round-count target: 9
+rounds is within (in fact slightly under) the "roughly 15-20" range
+established as a target in earlier rounds, with room to spare rather
+than scraping the ceiling.

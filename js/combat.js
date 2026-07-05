@@ -3,8 +3,8 @@
 // confirmation screen showing the NPC's opening opinion before the fight
 // actually starts (§8/§25),
 // enemy-first turn order (§3), Rhetoric/Consideration/Facts/Feelings (§4),
-// Exposed (§4a: Fen's Big Swing leaves him open to a doubled follow-up
-// hit for one attack), an instant-KO win condition (§5) — HP hitting 0
+// Exposed (§4a/§27: Fen's Big Swing leaves him open to a doubled
+// follow-up Fact for one attack), an instant-KO win condition (§5) — HP hitting 0
 // always ends the fight immediately, no soft floor — with Fen's own
 // heal-below-30%-HP reactive AI making a Fact+Feeling strategy
 // practically necessary to close the fight out in reasonable time rather
@@ -40,13 +40,17 @@ window.RatLand = RatLand;
   var PLAYER_OPENING = 'Right. Okay. I can do this.';
   var PLAYER_FINISHING = '…maybe he’s got a point, actually.';
 
-  // Damage math shared by every move (§4a/§24): start from the move's flat
-  // base damage, add the attacker's own primed next-attack bonus if one is
-  // pending (granted by the player's Feeling, consumed by this hit), then
-  // double the total if the defender is Exposed (granted by Fen's Big
-  // Swing, consumed by this hit) — in that order, so a primed hit landed
-  // during an Exposed window benefits from both at once.
-  function computeDamage(battle, atkSide, defSide, baseDamage) {
+  // Damage math shared by every move (§4a/§24/§27): start from the move's
+  // flat base damage, add the attacker's own primed next-attack bonus if
+  // one is pending (granted by a Feeling, consumed by this hit), then
+  // double the total if the defender is Exposed *and* this hit is
+  // specifically a Fact (§27) — Exposed is a general "make my opponent's
+  // next well-reasoned point land harder" status, not a blanket
+  // next-hit-doubler: a Rhetoric jab or a Feeling landed during the
+  // window gets no bonus from it and the window is simply spent (still
+  // cleared by upkeep's 1-turn expiry either way, whether or not a Fact
+  // ever capitalized on it).
+  function computeDamage(battle, atkSide, defSide, baseDamage, isFact) {
     var attacker = battle[atkSide];
     var defender = battle[defSide];
     var dmg = baseDamage;
@@ -54,7 +58,7 @@ window.RatLand = RatLand;
       dmg += attacker.nextAttackBonus;
       attacker.nextAttackBonus = 0;
     }
-    if (defender.exposed) {
+    if (defender.exposed && isFact) {
       dmg *= EXPOSED_MULTIPLIER;
       defender.exposed = false;
     }
@@ -127,16 +131,29 @@ window.RatLand = RatLand;
   // (Consideration build-up).
   var METER_SYMBOL = { r: '👄', c: '🧠' };
   // Big Swing (§24, replacing the old Defence-stacking kit entirely):
-  // deals a big hit and leaves Fen Exposed for one turn (his opponent's
-  // next attack against him deals double damage). Effort cost is high
-  // enough relative to Fen's regen rate that it only fires once at full
-  // Effort at the very start of a fight and essentially never again once
-  // Fen's own HP has dropped low enough to switch into pure self-heal
-  // (see chooseFenMove) — verified against the balance-search targets in
-  // COMBAT_DESIGN.md rather than picked arbitrarily.
+  // deals a big hit and leaves Fen Exposed for one turn (a well-timed
+  // Fact against him deals double damage — §27). §26 added an R cost on
+  // top of its Effort cost (so Fen's R meter -- previously climbing with
+  // nothing to spend it on -- has a real purpose again), and gave Fen a
+  // second, smaller "Snipe" option so he isn't reduced to bare Rhetoric
+  // in the gaps between Big Swings. See chooseFenMove for how these combine.
   var BIG_SWING_DAMAGE = 5;
   var BIG_SWING_EFFORT_COST = 9;
+  var BIG_SWING_R_COST = 2;
   var EXPOSED_MULTIPLIER = 2;
+  var SNIPE_DAMAGE = 3;
+  // Costed at 8, not the original 4, after balance verification (§27):
+  // at 4, Snipe was so cheap that giving it the same below-threshold
+  // exception as Big Swing (needed so Fen ever gets a chance to bank
+  // toward Big Swing at all, rather than being locked in a Consideration
+  // loop that exactly cancels a single incoming hit) let him skip
+  // healing almost entirely once low, which both made him easier to
+  // grind down via flat attrition and raised his output enough to lose
+  // the realistic-heuristic matchup. At 8, Snipe below threshold fires
+  // only when Fen has meaningfully banked Effort, keeping healing the
+  // clear default while still breaking up long identical-Consideration
+  // stretches with real variety.
+  var SNIPE_EFFORT_COST = 8;
   // Fen's reactive AI switches to pure self-heal once his own HP drops
   // below this fraction of his max (§24) — mirrors the same threshold the
   // human "heal when hurt" instinct naturally uses.
@@ -162,7 +179,7 @@ window.RatLand = RatLand;
       ] },
       description: 'Deals small damage and gives you 1 👄.',
       effect: function (battle, atk, def) {
-        var dmg = computeDamage(battle, atk, def, 2);
+        var dmg = computeDamage(battle, atk, def, 2, false);
         applyDamage(battle, atk, def, dmg);
         gainMeter(battle, atk, 'r', 1);
       },
@@ -177,9 +194,9 @@ window.RatLand = RatLand;
           'I checked, and, um, that’s not right.',
         ],
       },
-      description: 'Bigger damage than Rhetoric. Costs 👄 + Effort.',
+      description: 'Bigger damage than Rhetoric. Costs 👄 + Effort. Capitalizes fully on an Exposed opponent (§27).',
       effect: function (battle, atk, def) {
-        var dmg = computeDamage(battle, atk, def, 3);
+        var dmg = computeDamage(battle, atk, def, 3, true);
         applyDamage(battle, atk, def, dmg);
       },
     },
@@ -227,7 +244,7 @@ window.RatLand = RatLand;
       ] },
       description: 'Deals small damage to you and gives Fen 1 👄.',
       effect: function (battle, atk, def) {
-        var dmg = computeDamage(battle, atk, def, 2);
+        var dmg = computeDamage(battle, atk, def, 2, false);
         applyDamage(battle, atk, def, dmg);
         gainMeter(battle, atk, 'r', 1);
       },
@@ -247,7 +264,8 @@ window.RatLand = RatLand;
       },
     },
     {
-      id: 'big-swing', label: 'Big Swing', type: 'fact', cost: { effort: BIG_SWING_EFFORT_COST },
+      id: 'big-swing', label: 'Big Swing', type: 'fact',
+      cost: { meter: 'r', amount: BIG_SWING_R_COST, effort: BIG_SWING_EFFORT_COST },
       dialogue: {
         firstUse: 'You want to talk about danger? Half of Mouse Land’s out there right now, bobbing about on a Wotsit packet!',
         pool: [
@@ -257,11 +275,37 @@ window.RatLand = RatLand;
           'If cheese wrappers can hold three mice and a dream, that’s not immigration policy, that’s a design flaw.',
         ],
       },
-      description: 'Big damage. Costs Effort. Leaves Fen Exposed for 1 turn: your next attack against him deals double damage.',
+      description: 'Big damage. Costs 👄 + Effort. Leaves Fen Exposed for 1 turn: your next Fact against him deals double damage.',
       effect: function (battle, atk, def) {
-        var dmg = computeDamage(battle, atk, def, BIG_SWING_DAMAGE);
+        var dmg = computeDamage(battle, atk, def, BIG_SWING_DAMAGE, true);
         applyDamage(battle, atk, def, dmg);
-        battle[atk].exposed = true;
+        // Exposed is only earned when Fen swings from a position of
+        // strength (§26) -- when this fires as the below-threshold
+        // override instead (chooseFenMove), he's already at his most
+        // vulnerable, and leaving him *also* Exposed there would hand
+        // any attack (not just a well-timed Fact) a free lethal
+        // follow-up on a basics-only-reachable state. The desperate
+        // low-HP swing still lands its damage; it just doesn't leave him
+        // doubly open the way a swing from strength does.
+        if (battle[atk].hp >= battle[atk].maxHp * FEN_HEAL_THRESHOLD) {
+          battle[atk].exposed = true;
+        }
+      },
+    },
+    {
+      id: 'snipe', label: 'Snipe', type: 'fact', cost: { effort: SNIPE_EFFORT_COST },
+      dialogue: {
+        firstUse: 'Oh, don’t give me that look.',
+        pool: [
+          'Just saying it how it is.',
+          'Somebody’s got to.',
+          'Don’t act so surprised.',
+        ],
+      },
+      description: 'Small hit. Costs Effort only, no meter.',
+      effect: function (battle, atk, def) {
+        var dmg = computeDamage(battle, atk, def, SNIPE_DAMAGE, true);
+        applyDamage(battle, atk, def, dmg);
       },
     },
   ];
@@ -334,17 +378,47 @@ window.RatLand = RatLand;
     move.effect(battle, atkSide, defSide);
   }
 
-  // Fen's AI (§24, replacing the old scripted turn-window pattern
+  // Fen's AI (§24/§26, replacing the old scripted turn-window pattern
   // entirely): purely reactive, no scripted turn numbers, no
-  // once-per-battle gating, no held-back/no-op turns. Heal the moment his
-  // own HP drops below FEN_HEAL_THRESHOLD (healing always takes priority
-  // over swinging, even if Big Swing happens to be affordable at the
-  // same time); otherwise swing big whenever Effort allows; otherwise
-  // fall back to Rhetoric.
+  // once-per-battle gating, no held-back/no-op turns.
+  //
+  // Below FEN_HEAL_THRESHOLD, healing is still the default -- but if he
+  // has enough R and Effort banked specifically for Big Swing, he takes
+  // that over healing (§26): occasional aggression breaking through his
+  // own defensive posture when the opportunity is actually there, not a
+  // scheduled pattern layered on top of the heal-priority rule. Snipe
+  // gets the same exception, at its higher §27 cost -- without it, Fen's
+  // own heal exactly cancels a single incoming hit near the threshold in
+  // practice, locking him into Consideration indefinitely (he re-evaluates
+  // from *already below* threshold every round) with no variety and no
+  // chance to ever bank toward Big Swing. An earlier attempt gave Snipe
+  // this exception at its original, cheaper cost and it backfired -- Fen
+  // stopped healing almost entirely once low (cheap Snipe nearly always
+  // affordable), which both let flat attrition grind him down faster than
+  // intended and raised his output enough to flip realistic play from a
+  // win into a loss. Costing Snipe higher keeps healing the clear
+  // default while still breaking up long identical-Consideration
+  // stretches. Above the threshold, Big Swing again comes first when
+  // affordable, then Snipe as the lightweight aggressive option for the
+  // gaps between Big Swings, falling back to bare Rhetoric only when
+  // neither is affordable.
   function chooseFenMove(battle) {
     var e = battle.enemy;
-    if (e.hp < e.maxHp * FEN_HEAL_THRESHOLD) return FEN_MOVES[1]; // Consideration
-    if (canAfford(battle, 'enemy', FEN_MOVES[2])) return FEN_MOVES[2]; // Big Swing
+    var bigSwing = FEN_MOVES[2];
+    var snipe = FEN_MOVES[3];
+    if (e.hp < e.maxHp * FEN_HEAL_THRESHOLD) {
+      if (canAfford(battle, 'enemy', bigSwing)) return bigSwing;
+      if (canAfford(battle, 'enemy', snipe)) return snipe;
+      return FEN_MOVES[1]; // Consideration
+    }
+    if (canAfford(battle, 'enemy', bigSwing)) return bigSwing;
+    // Snipe never competes with actually banking toward the next Big
+    // Swing -- if R is still short of Big Swing's cost, Rhetoric (the
+    // only thing that builds it) takes priority; Snipe only fills the
+    // gap once R is already banked and Effort is the sole thing being
+    // waited on, which is the "resource-constrained" case it's meant for.
+    if (e.r < BIG_SWING_R_COST) return FEN_MOVES[0]; // Rhetoric
+    if (canAfford(battle, 'enemy', snipe)) return snipe;
     return FEN_MOVES[0]; // Rhetoric
   }
 
@@ -410,6 +484,20 @@ window.RatLand = RatLand;
       player: battle.player.effort - playerBefore,
       enemy: battle.enemy.effort - enemyBefore,
     };
+    // Exposed/Primed genuinely last "for 1 turn" (§26): each is granted on
+    // one side's move and is available through the other side's very next
+    // move, then expires here regardless of whether it was ever used --
+    // upkeep runs right after the player's move and before Fen's, so this
+    // is exactly one player-turn opportunity per grant. Without this, an
+    // unused window would persist indefinitely (until whenever an attack
+    // eventually lands), letting a patient player delay and stockpile
+    // resources before cashing in an old exposure rather than actually
+    // reacting to it -- confirmed exploitable by a basics-only search
+    // before this was added.
+    battle.player.exposed = false;
+    battle.enemy.exposed = false;
+    battle.player.nextAttackBonus = 0;
+    battle.enemy.nextAttackBonus = 0;
     battle.turn += 1;
   }
 
@@ -656,15 +744,15 @@ window.RatLand = RatLand;
         symbol: '💥', badge: null, active: exposedActive || primedActive, // Exposed (Big Swing) / Primed (Feeling)
         explain: exposedActive
           ? possessive + ' Exposed status: granted for 1 turn by a big hit landing on ' + objectPronoun +
-            ', consumed by the next attack against ' + objectPronoun + '. Currently active — the next ' +
-            'attack against ' + objectPronoun + ' deals double damage.'
+            '. Currently active — the next Fact used against ' + objectPronoun + ' deals double damage; ' +
+            'any other move against ' + objectPronoun + ' just lets the window expire.'
           : primedActive
             ? possessive + ' Primed status: granted by a Feeling, consumed by ' + possessivePronoun +
               ' own next attack. Currently active — ' + possessivePronoun + ' next attack deals +' +
               c.nextAttackBonus + ' bonus damage.'
-            : possessive + ' Exposed/Primed status: Exposed doubles the next attack landed against ' +
-              objectPronoun + '; Primed adds a flat bonus to ' + possessivePronoun + ' own next attack. ' +
-              'Both are one-shot and currently inactive.',
+            : possessive + ' Exposed/Primed status: Exposed doubles the next Fact landed against ' +
+              objectPronoun + ' specifically (any other move just lets it expire); Primed adds a flat ' +
+              'bonus to ' + possessivePronoun + ' own next attack. Both are one-shot and currently inactive.',
       },
     ];
 
