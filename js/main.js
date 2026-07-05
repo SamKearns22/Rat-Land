@@ -52,6 +52,11 @@ window.RatLand = RatLand;
   function renderDialoguePage() {
     dialogueText.textContent = dialoguePages[dialoguePageIndex];
     var multiPage = dialoguePages.length > 1;
+    // Reserves the pagination row's height (style.css) only while actually
+    // paginated, so an ordinary one-line NPC exchange keeps sizing tightly
+    // to its content instead of always reserving room for a control row
+    // most lines never use.
+    dialogueBox.classList.toggle('multi-page', multiPage);
     if (dialoguePagination) dialoguePagination.style.display = multiPage ? 'flex' : 'none';
     if (dialoguePageIndicator) {
       dialoguePageIndicator.textContent = multiPage ? (dialoguePageIndex + 1) + '/' + dialoguePages.length : '';

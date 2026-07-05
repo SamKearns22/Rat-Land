@@ -605,6 +605,18 @@ window.RatLand = RatLand;
   // --- Pre-battle menu (§8) -----------------------------------------------
 
   RatLand.openPreBattleMenu = function (game, npc) {
+    // A dialogue box left open from a previous, unrelated NPC (nothing
+    // closes it just from walking away -- only re-pressing Talk while not
+    // adjacent, the new cancel button, or Reset Save do) would otherwise
+    // sit visibly on screen through the entire battle-menu -> battle-
+    // opinion -> battle-wipe -> battle -> exit-wipe cycle and still be
+    // showing on return to the overworld, since none of those steps ever
+    // called hideDialogue. Confirmed via a real repro: talk to any
+    // ordinary NPC, then walk straight to Fen Wicket and press Talk
+    // without closing the first dialogue -- its stale text was still
+    // showing after the fight ended, reading as a broken/wrong view
+    // rather than what it actually was (leftover dialogue).
+    if (RatLand.hideDialogue) RatLand.hideDialogue();
     game.mode = 'battle-menu';
     game.preBattleNpc = npc;
     var nameEl = document.getElementById('prebattle-name');

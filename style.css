@@ -204,11 +204,18 @@ html, body {
 #dialogue-text {
   font-size: 14px;
   line-height: 1.4;
-  /* Fixed so the box doesn't resize as the player pages through a long
-     line (js/main.js's pagination) -- sized for the ~240-character-per-
-     page budget at this font size/box width, with a little headroom. */
-  min-height: 108px;
   white-space: pre-wrap;
+}
+
+/* Reserved page height only applies while actually paginated (js/main.js
+   toggles this class) -- the vast majority of NPC lines are one short
+   sentence and should still size the box tightly to their content, same
+   as before pagination existed. Applying this height unconditionally to
+   every dialogue line (an earlier version of this rule did) made every
+   short one-line NPC exchange render as a much taller, mostly-empty box
+   than before -- a real regression, not just a multi-page concern. */
+#dialogue-box.multi-page #dialogue-text {
+  min-height: 108px;
 }
 
 /* Pagination (green): strictly for one line too long to fit in a single
@@ -233,6 +240,7 @@ html, body {
   background: rgba(80, 200, 110, 0.25);
   border: 1px solid rgba(90, 220, 120, 0.85);
   color: #d6f5dc;
+  font-family: inherit;
   font-size: 11px;
   line-height: 22px;
   text-align: center;
@@ -268,6 +276,7 @@ html, body {
   background: rgba(200, 60, 50, 0.3);
   border: 1px solid rgba(220, 80, 70, 0.9);
   color: #ffe0dc;
+  font-family: inherit;
   font-size: 12px;
   line-height: 26px;
   text-align: center;
