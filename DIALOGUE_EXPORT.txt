@@ -1,0 +1,343 @@
+RAT LAND — FULL DIALOGUE EXPORT
+================================
+Extracted from NPC_DIALOGUE.md (every NPC) and js/npc.js (in-game line
+data, used to confirm exact wording/order) plus Fen Wicket's full battle
+dialogue from js/combat.js (the implementation of the moveset described
+in COMBAT_DESIGN.md). Locations are the nearest named landmark on the
+overworld map (js/map.js RatLand.LOCATIONS) to each character's map
+position, given as approximate col/row grid coordinates.
+
+Where a character's written material includes a two-rat "Exchange"
+passage from NPC_DIALOGUE.md, that character's own lines from the
+exchange are included in their numbered list, tagged with which other
+character they're exchanging with, so no line is lost even though it
+only makes full sense in context.
+
+================================================================
+GROUP 1 — POLITICAL RATS
+================================================================
+
+--------------------------------------------------------------
+Character name: Colonel Bartholomew Nutkin
+Character location: Overworld — near Church of the Rat God (col 4, row 6)
+Character personality: Posh, ex-Sewer Regiment, earnest — sincere, not rude.
+Character topics of conversation: Pro-separation, patriotic duty to Rat Land's twenty years of independence, pride in the borough and its "drainpipe."
+Dialogue line 1: We didn't spend twenty years excavating this borough for it to become a thoroughfare, thank you very much.
+Dialogue line 2: I've nothing against the mice personally. Splendid whiskers, some of them. It's a matter of principle.
+Dialogue line 3: A rat who won't defend his own drainpipe is no rat at all. Chin up. Tail straight.
+Dialogue line 4: Twenty years, and the old drainpipe's still standing! Do buff your medals for the parade, there's a good chap.
+
+--------------------------------------------------------------
+Character name: Gristle
+Character location: Overworld — near The Rusty Pipe (col 18, row 18)
+Character personality: Rough dockside rat, blunt, genuinely rude.
+Character topics of conversation: Pro-separation, economic and cultural resentment mixed together.
+Dialogue line 1: Shut the grate, that's what I say. Simple as.
+Dialogue line 2: Every time I try to complain about somethin', someone tells me I'm 'not looking at the bigger picture.' I am. It's smaller than it used to be, is what.
+Dialogue line 3: Nothin' personal. Well. It's a bit personal.
+Dialogue line 4 (exchange with Marguerite Thistlewood-Vole): Like a log, thanks. Doesn't cost me nothin' to keep my own tunnel my own tunnel.
+Dialogue line 5 (exchange with Marguerite Thistlewood-Vole): Takes one to know one, your ladyship.
+
+--------------------------------------------------------------
+Character name: Marguerite Thistlewood-Vole
+Character location: Overworld — near The Gilded Rat (col 9, row 9)
+Character personality: Posh, sanctimonious — rude via contempt for anyone she considers small-minded.
+Character topics of conversation: Pro-open-borders, hospitality toward mice, her own social/anniversary events.
+Dialogue line 1: One does wonder how some rats sleep at night, frankly, with views like that rattling round such small burrows.
+Dialogue line 2: We ought to be a touch more hospitable, don't you think? It costs nothing to be gracious. Well — it costs a little. But one absorbs it.
+Dialogue line 3: I had the most marvellous mouse caterer for my anniversary do. Divine little vol-au-vents. It's really opened my eyes.
+Dialogue line 4 (exchange with Gristle): One does wonder how some rats sleep at night, with views like that.
+Dialogue line 5 (exchange with Gristle): How refreshingly small of you.
+
+--------------------------------------------------------------
+Character name: Pip
+Character location: Overworld — near The Gilded Rat (col 13, row 9)
+Character personality: Young, working-class, earnest — warm rather than preachy. Drawn as a mouse, not a rat.
+Character topics of conversation: Pro-open-borders, everyday solidarity between rats and mice.
+Dialogue line 1: Me mum always said a full sewer's a happy sewer. More whiskers, more warmth, that's what I reckon.
+Dialogue line 2: Dunno about all the fuss, honestly. A rat's a rat. A mouse works just as hard for a crust as the rest of us.
+
+--------------------------------------------------------------
+Character name: The Drain-Watcher
+Character location: Overworld — near The Gilded Rat (col 11, row 13)
+Character personality: Cynical, apathetic, invested in neither side.
+Character topics of conversation: Mocks both separation and unification equally; wants to be left alone and dry.
+Dialogue line 1: Separation, unification, whatever — none of it's fixed my leaky pipe, has it.
+Dialogue line 2: They're all up there shouting past each other. I just want the shouting to happen somewhere drier.
+Dialogue line 3: Vote for whoever you like. I'm voting for a nap.
+Dialogue line 4 (exchange with Corporal Nettle): The roach business. Right. Is that near here?
+Dialogue line 5 (exchange with Corporal Nettle): Then I've got a solution for you: don't think about it. Works for me.
+
+--------------------------------------------------------------
+Character name: Twitchy Nostrum
+Character location: Overworld — near Rat Shopping District (col 24, row 3)
+Character personality: Conspiratorial, jittery, convinced of a hidden hand behind everything.
+Character topics of conversation: Believes the separation debate is an engineered distraction; the cheese supply; "Grate Nine."
+Dialogue line 1: You don't hear much about who's really running the cheese supply, do you? Funny, that.
+Dialogue line 2: The whole separation debate? Distraction. Someone up top wants us squabbling so we don't look at the U-bend.
+Dialogue line 3: I'm not saying it's the Overground rats. I'm saying nobody's ruled it out.
+Dialogue line 4: Nobody wants to talk about what happened at Grate Nine. I've noticed. I've written it down.
+
+--------------------------------------------------------------
+Character name: Nan Gribble
+Character location: Overworld — near Church of the Rat God (col 5, row 10)
+Character personality: Elderly, rambling, doesn't fully engage with modern politics.
+Character topics of conversation: Nostalgia for "the old sewers," a simpler and murkier time, mild bemusement at the current riots.
+Dialogue line 1: In my day the water ran browner and nobody made a fuss about it.
+Dialogue line 2: We didn't have 'sides.' We had one good tunnel and you were grateful for it.
+Dialogue line 3: Mouse Land, Rat Land — in my day it was just 'the wet bit' and 'the wetter bit.'
+Dialogue line 4: Riots at the Culvert. Shocking, everyone says. I say it's the first shocking thing to happen down there in about six years, which if you ask me is the real shock.
+
+--------------------------------------------------------------
+Character name: Bramwell
+Character location: Overworld — near Rat Café (col 15, row 3)
+Character personality: Separation-sympathetic but conflicted; bravado that cracks, then gets quickly covered back up.
+Character topics of conversation: Pro-separation on the surface; an unresolved personal thread about a sister who crossed to Mouse Land.
+Dialogue line 1: Best thing we ever did, drawing that line. Keeps things tidy.
+Dialogue line 2: ...My sister crossed over, you know. Mouse Land side. Eleven years this spring. Not that I'm counting.
+Dialogue line 3: Anyway. Tidy. That's the main thing.
+
+--------------------------------------------------------------
+Character name: Ferdy Cobb
+Character location: Overworld — near Rat Beach (col 11, row 18)
+Character personality: Working-class, union rat, earnest.
+Character topics of conversation: Pro-separation for economic reasons (wages, cheese-hauling work), not cultural ones — distances himself from Colonel Nutkin's patriotism.
+Dialogue line 1: It's not about mice, personally, it's about wages. Cheese-hauling work's been split three ways since the crossing opened.
+Dialogue line 2: Man's got to feed his kits. Nothin' fancy about it, whatever the Colonel dresses it up as.
+
+--------------------------------------------------------------
+Character name: The Wavering Rat
+Character location: Overworld — near Rat Town Hall (col 11, row 1)
+Character personality: Confused moderate who will not, under any circumstances, commit to a position.
+Character topics of conversation: The separation debate in general, without ever landing on a side.
+Dialogue line 1: I go back and forth, don't I. Monday I'm all for the wall. Tuesday I feel dreadful about it.
+Dialogue line 2: Honestly I just nod along with whoever's talking. Saves an argument.
+Dialogue line 3: Twenty years, is it. I keep meaning to have a view on that.
+
+--------------------------------------------------------------
+Character name: Reg Cutwater
+Character location: Overworld — near Rat Beach (col 13, row 17)
+Character personality: Normally a level-headed dock foreman; badly shaken and uncharacteristically angry after witnessing unrest. Rough class, sincere rather than performative.
+Character topics of conversation: The shelter riots at the Intake Culvert, outrage angle.
+Dialogue line 1: I've hauled scrap alongside all sorts for thirty years and never said a wrong word. But what happened down the Intake Culvert — that's not on. That's not on at all.
+Dialogue line 2: Say what you like about me now. I know what I saw.
+Dialogue line 3: A packed pipe with no way out isn't a shelter, it's a kettle. Somebody should've known that before it went off.
+
+--------------------------------------------------------------
+Character name: Sister Bramble
+Character location: Overworld — near Church of the Rat God (col 3, row 11); volunteers at the Intake Culvert shelter
+Character personality: Tired, sympathetic, not naive about what she's seen. Drawn as a mouse.
+Character topics of conversation: The shelter riots at the Intake Culvert, sympathy angle; her faith.
+Dialogue line 1: I was there the night it turned. It wasn't wickedness, it was despair with nowhere left to go. Doesn't make it less frightening.
+Dialogue line 2: We'd had complaints about that Culvert for months. Nobody funded the fix. Now everyone's very interested indeed.
+Dialogue line 3: The Rat God doesn't ask which side of the river you were born on. I try to follow His example, on the days I've got the energy for it.
+
+--------------------------------------------------------------
+Character name: Fen Wicket
+Character location: Overworld — a toll-house by a river bridge, near Rat School (col 14, row 11). Also the game's one fightable NPC — see Battle dialogue below.
+Character personality: Weary realist. Knows more than he says and doesn't like saying it.
+Character topics of conversation: Small-boat river crossings from Mouse Land; the nearby bridge nobody uses instead.
+
+  — Overworld dialogue —
+Dialogue line 1: They come across on whatever floats. Bottle crates, half a shoe, once a rat came over on what I'm fairly sure was a biscuit tin lid.
+Dialogue line 2: I've fished three mice out of the current this year. Alive, thank goodness, all three. Doesn't mean the next one goes the same way.
+Dialogue line 3: There's a perfectly good bridge forty yards from where most of them go in. I don't know why they don't use it. I expect I do know, actually. I just don't like saying it.
+
+  — Battle dialogue (Debate opening position) —
+Dialogue line 4 (opening position, shown on the Debate confirmation screen): These boat crossings are never justified. The Mice are just putting all of us in danger!
+
+  — Battle dialogue (one-shot opening/finishing lines) —
+Dialogue line 5 (battle opening line): Oh, here we go. Another one come to tell me how to think.
+Dialogue line 6 (battle finishing line, said only if his HP hits 0): …fine. Fine! Maybe I've not thought it all the way through.
+
+  — Battle dialogue (Rhetoric — basic attack, random pool, no first-use line) —
+Dialogue line 7: You're not even listening to me!
+Dialogue line 8: Typical.
+Dialogue line 9: Here we go again.
+Dialogue line 10: You always do this.
+
+  — Battle dialogue (Consideration — basic heal, random pool, no first-use line) —
+Dialogue line 11: …alright, fair point.
+Dialogue line 12: …s'pose that's true.
+Dialogue line 13: Hm. Didn't think of it that way.
+Dialogue line 14: …fine. Whatever.
+
+  — Battle dialogue (Big Swing — Fact special; first-use line fires once, then random pool) —
+Dialogue line 15 (first use): You want to talk about danger? Half of Mouse Land's out there right now, bobbing about on a Wotsit packet!
+Dialogue line 16: One went across on a flip-flop last week. A flip-flop!
+Dialogue line 17: They say it's a human rights issue. I say it's a buoyancy issue.
+Dialogue line 18: Nobody voted for the sewer to become a shipping lane.
+Dialogue line 19: If cheese wrappers can hold three mice and a dream, that's not immigration policy, that's a design flaw.
+
+  — Battle dialogue (Snipe — Fact special; first-use line fires once, then random pool) —
+Dialogue line 20 (first use): Oh, don't give me that look.
+Dialogue line 21: Just saying it how it is.
+Dialogue line 22: Somebody's got to.
+Dialogue line 23: Don't act so surprised.
+
+--------------------------------------------------------------
+Character name: Dredge
+Character location: Overworld — near The Rusty Pipe (col 16, row 19)
+Character personality: Rough, blunt, fixated on fairness and procedure rather than general separatism.
+Character topics of conversation: Small-boat river crossings, "do it properly" resentment — everyone should pay the bridge toll and queue like he did.
+Dialogue line 1: Bridge is right there. Toll's four scraps. I paid it. Everyone can pay it.
+Dialogue line 2: Funny how it's always a tragedy right up until someone suggests they use the bridge like the rest of us.
+Dialogue line 3: Not saying send 'em back. Saying there's a queue, and I stood in it, and it wasn't fun for me either.
+
+--------------------------------------------------------------
+Character name: Mrs. Pemberton-Vole
+Character location: Overworld — near Rat Shopping District (col 27, row 4)
+Character personality: Posh, tabloid-minded rather than ideological — deals entirely in rumor and innuendo.
+Character topics of conversation: The cheese-shop crime front and crossing-smugglers; gossip generally.
+Dialogue line 1: Well, I shan't name the shop, but there's a cheese emporium by the Shopping District that's sold suspiciously little cheese for a place with quite so many customers.
+Dialogue line 2: They say the same fellow arranges 'crossings' for a fee, if you follow. Dreadful business. I heard it over sherry, obviously, so do take it with a pinch of salt.
+Dialogue line 3: One simply repeats what one hears. It isn't gossip if it's concerning, is it.
+
+--------------------------------------------------------------
+Character name: Marsh
+Character location: Overworld — near Rat Town Hall (col 3, row 1)
+Character personality: Bitter and sardonic — unlike the Drain-Watcher, he actually cares, which is exactly why the celebrating offends him.
+Character topics of conversation: The 20th anniversary celebrations, disgusted angle; the unfixed Culvert and shelter fire underneath the bunting.
+Dialogue line 1: Twenty years! Marvellous. Meanwhile half the town's arguing about a shelter fire and nobody's fixed the Culvert roof.
+Dialogue line 2: Bunting doesn't paper over a crack. Well — it can, actually, if you've got enough bunting. That seems to be the plan.
+Dialogue line 3: Happy anniversary to us. Let's hang some flags and not discuss any of it.
+
+--------------------------------------------------------------
+Character name: Wetherby
+Character location: Overworld — near Rat Town Hall (col 9, row 2); Town Hall clerk
+Character personality: Professional information-haver — reports every side without landing on one, and clearly enjoys the reporting more than the news itself.
+Character topics of conversation: The Mayor's resignation, gossip angle.
+Dialogue line 1: Between us — and I do mean between us — His Worship didn't jump so much as get a firm nudge from his own back benches.
+Dialogue line 2: Some say good riddance, the sewage contracts wanted looking at anyway. Others are furious — say he was hounded out over nothing worse than bad timing.
+Dialogue line 3: I couldn't possibly comment on who leaked the minutes. I will say I typed them, and I know my own typeface.
+
+--------------------------------------------------------------
+Character name: Corporal Nettle
+Character location: Overworld — near Rat Gymnasium (col 25, row 11)
+Character personality: A minor local defense-rat, aggrieved rather than militant.
+Character topics of conversation: The Cockroach Nation war, resentment angle — Rat Land's scrap and rations keep getting tithed to a distant conflict.
+Dialogue line 1: Half my unit's rations are going to 'the war effort' now. What war effort. I've never seen a cockroach in my life.
+Dialogue line 2: They say it's solidarity. Feels like a tax with extra steps.
+Dialogue line 3 (exchange with The Drain-Watcher): They want another tithe for the roach business. Third one this year.
+Dialogue line 4 (exchange with The Drain-Watcher): Nowhere near here. That's rather my point.
+
+--------------------------------------------------------------
+Character name: Barry Gutt
+Character location: Overworld — near The Gilded Rat (col 8, row 6); placed close to the player's spawn point so he's one of the first rats a new player meets
+Character personality: No hedging, no self-doubt, no gossip-y remove — says it straight, loud and proud.
+Character topics of conversation: Ratxit and anti-mouse populism.
+Dialogue line 1: Yeah, I voted Ratxit. What's it to you?
+Dialogue line 2: Mayor made a mess of it, of course. Time to get Terry in. He'll sort it out.
+Dialogue line 3: Rat Land should be for the rats. Don't like it, scurry back to where you came from.
+Dialogue line 4: Rat Land. It's in the name, see? It's not hard.
+
+================================================================
+GROUP 2 — ORDINARY RATS
+================================================================
+
+--------------------------------------------------------------
+Character name: Doreen
+Character location: Overworld — near Rat Café (col 19, row 6); runs the counter
+Character personality: Warm, unbothered, generous with crusts — treats Kevin the mouse like any other regular.
+Character topics of conversation: The weather (damp), giving away crusts at the café.
+Dialogue line 1: Damp again today. Mind you, it's always damp. I mean proper wet-through damp.
+Dialogue line 2: Saved you the good crusts, love — oh, not you, I meant the fella behind you. But you can have one too.
+
+--------------------------------------------------------------
+Character name: Sooty
+Character location: Overworld — near Rat Gymnasium (col 21, row 11)
+Character personality: Light, needling, entirely apolitical.
+Character topics of conversation: Football — Outfall Rovers vs. Big Sump United rivalry (with Chalky).
+Dialogue line 1: Outfall Rovers put four past Sump on Sunday. Four!
+Dialogue line 2 (exchange with Chalky): Excuses are the only thing Sump's any good at collecting these days.
+
+--------------------------------------------------------------
+Character name: Chalky
+Character location: Overworld — near Rat Gymnasium (col 21, row 14)
+Character personality: Light, needling, entirely apolitical.
+Character topics of conversation: Football — Outfall Rovers vs. Big Sump United rivalry (with Sooty).
+Dialogue line 1 (exchange with Sooty): Against ten rats and a ref who couldn't see past his own whiskers.
+
+--------------------------------------------------------------
+Character name: Old Fenwick
+Character location: Overworld — near Rat Shopping District (col 25, row 8)
+Character personality: Nostalgic in a much smaller, more edible way than Nan Gribble.
+Character topics of conversation: Cheese prices.
+Dialogue line 1: Cheddar's up again. At this rate we'll be back to gnawing candle stubs.
+Dialogue line 2: Used to get a whole rind for tuppence. Now they charge you to look at it.
+
+--------------------------------------------------------------
+Character name: The Scrap Grumbler
+Character location: Overworld — near Rat Shopping District (col 22, row 8)
+Character personality: Perpetually aggrieved by the market.
+Character topics of conversation: The bottle-cap economy.
+Dialogue line 1: Bottle caps are through the floor. Through the floor! And I've got a whole hoard of the things.
+Dialogue line 2: Man down the shopping district offered me half what he did last spring. Half!
+
+--------------------------------------------------------------
+Character name: The Countryside Dreamer
+Character location: Overworld — near Rat Park (col 6, row 14)
+Character personality: Wistful.
+Character topics of conversation: The surface world — real grass, real soil, someday.
+Dialogue line 1: Sometimes I dream about grass. Actual grass. Not the mossy sort — the proper green kind, up top.
+Dialogue line 2: They say there's a garden two streets over with real soil. I'm saving my scraps for the trip.
+
+--------------------------------------------------------------
+Character name: Nora Sopwell
+Character location: Overworld — near The Rusty Pipe (col 21, row 17); placeholder name pending full character redesign; stands beside Barry Trench, facing him
+Character personality: The straight man in a linked weather-small-talk exchange with Barry Trench.
+Character topics of conversation: The weather (damp), Barry's drip gauge.
+Dialogue line 1 (shared exchange with Barry Trench): Damp again.
+Dialogue line 2 (shared exchange with Barry Trench): You have a drip gauge?
+
+--------------------------------------------------------------
+Character name: Barry Trench
+Character location: Overworld — near The Rusty Pipe (col 23, row 17); placeholder name pending full character redesign; stands beside Nora Sopwell, facing her
+Character personality: Inordinately proud of his drip gauge.
+Character topics of conversation: The weather (damp), his drip gauge.
+Dialogue line 1 (shared exchange with Nora Sopwell): Extra damp, actually. I checked the drip gauge this morning.
+Dialogue line 2 (shared exchange with Nora Sopwell): Everyone should have a drip gauge.
+
+--------------------------------------------------------------
+Character name: The Queue Complainer
+Character location: Overworld — near Rat Café (col 18, row 2)
+Character personality: Perpetually behind someone slow.
+Character topics of conversation: Queuing at Rat Café.
+Dialogue line 1: Twenty minutes for a coffee-rind and a nibble. Twenty minutes!
+Dialogue line 2: Whole town's queuing for something these days. Queuing's basically our national pastime.
+
+--------------------------------------------------------------
+Character name: The Allotment Bragger
+Character location: Overworld — near Rat Park (col 4, row 17)
+Character personality: Fiercely proud.
+Character topics of conversation: His prize-winning moss patch.
+Dialogue line 1: My moss patch took Best in Show at the tunnel fair. Third year running.
+Dialogue line 2: Secret's compost. Don't let anyone tell you otherwise.
+
+--------------------------------------------------------------
+Character name: The Parade Gossip
+Character location: Overworld — near Rat Town Hall (col 6, row 1)
+Character personality: Excited, apolitical.
+Character topics of conversation: The 20th anniversary bunting and parade preparations.
+Dialogue line 1: Twenty years! Can you believe it. They're doing bunting all down Main Street.
+Dialogue line 2: I heard the Mayor's ordering a whole new sash for the occasion. Velvet, apparently.
+
+--------------------------------------------------------------
+Character name: The Bin Day Grumbler
+Character location: Overworld — near Rat School (col 18, row 14)
+Character personality: Aggrieved.
+Character topics of conversation: The unreliable scrap collection schedule.
+Dialogue line 1: Scrap collection's moved again. Third time this year. Nobody tells you anything round here.
+Dialogue line 2: I had a perfectly good bottle cap out for collection Tuesday. Still there Friday. Tragic.
+
+================================================================
+OUTSIDER
+================================================================
+
+--------------------------------------------------------------
+Character name: Kevin
+Character location: Overworld — near Rat Café (col 21, row 3)
+Character personality: Unassuming, weary-but-good-humored. Born on Culvert Street, in Rat Land, and treated as a foreigner anyway. Drawn as a mouse, in a distinct silhouette and color from every rat character.
+Character topics of conversation: Being treated as an outsider in his own hometown. Has two alternate lines depending on which group of NPCs the player is near.
+Dialogue line 1 (said near the political rats): Colonel Nutkin tips his hat to me every morning — right before asking when I'm 'heading back.' Lovely manners. Terrible math. I was born on Culvert Street.
+Dialogue line 2 (said near the ordinary rats): Doreen saves me the good crusts down the Café. Reckons a mouse who queues properly is alright by her. That's about the whole of it, really.
