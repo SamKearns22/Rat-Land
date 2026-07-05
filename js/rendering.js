@@ -6,6 +6,18 @@ RatLand.createCamera = function () {
   return { x: 0, y: 0 };
 };
 
+// Overworld/interior zoom: the whole world-space render (tiles, sprites,
+// labels) is scaled up by this factor via a single ctx.scale, so the
+// player sprite and everything else grow together proportionally rather
+// than needing per-element tuning. Camera math divides the raw canvas
+// size by this to get the *world-space* view window, so panning/edge
+// clamping is computed against how much world is actually visible at
+// this zoom, not the raw pixel size of the canvas. HUD/D-pad/dialogue
+// box are separate fixed-position DOM elements layered outside the
+// canvas (index.html/style.css), never touched by this -- there is
+// nothing here for them to be affected by.
+RatLand.CAMERA_ZOOM = 1.5;
+
 // Ground textures: a mossy/damp tile for the sewer floor, and a cracked
 // brick tile for walls and paths. Images load in the background; until
 // they're ready (and if they ever fail), tiles just use their flat
@@ -84,13 +96,15 @@ function clamp(v, lo, hi) {
 }
 
 RatLand.updateCamera = function (camera, player, viewW, viewH) {
+  var zoom = RatLand.CAMERA_ZOOM;
+  var vw = viewW / zoom, vh = viewH / zoom;
   var worldW = RatLand.OVERWORLD_COLS * RatLand.TILE_SIZE;
   var worldH = RatLand.OVERWORLD_ROWS * RatLand.TILE_SIZE;
-  var targetX = player.x + player.size / 2 - viewW / 2;
-  var targetY = player.y + player.size / 2 - viewH / 2;
+  var targetX = player.x + player.size / 2 - vw / 2;
+  var targetY = player.y + player.size / 2 - vh / 2;
 
-  camera.x = worldW <= viewW ? -(viewW - worldW) / 2 : clamp(targetX, 0, worldW - viewW);
-  camera.y = worldH <= viewH ? -(viewH - worldH) / 2 : clamp(targetY, 0, worldH - viewH);
+  camera.x = worldW <= vw ? -(vw - worldW) / 2 : clamp(targetX, 0, worldW - vw);
+  camera.y = worldH <= vh ? -(vh - worldH) / 2 : clamp(targetY, 0, worldH - vh);
 };
 
 RatLand.drawLabel = function (ctx, text, cx, bottomY) {
@@ -604,17 +618,24 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   var ts = RatLand.TILE_SIZE;
   var cam = game.camera;
   var TILE = RatLand.TILE;
+  var zoom = RatLand.CAMERA_ZOOM;
+  var vw = viewW / zoom, vh = viewH / zoom;
 
   ensureGroundPatterns(ctx);
 
   var startCol = Math.max(0, Math.floor(cam.x / ts));
-  var endCol = Math.min(RatLand.OVERWORLD_COLS - 1, Math.ceil((cam.x + viewW) / ts));
+  var endCol = Math.min(RatLand.OVERWORLD_COLS - 1, Math.ceil((cam.x + vw) / ts));
   var startRow = Math.max(0, Math.floor(cam.y / ts));
-  var endRow = Math.min(RatLand.OVERWORLD_ROWS - 1, Math.ceil((cam.y + viewH) / ts));
+  var endRow = Math.min(RatLand.OVERWORLD_ROWS - 1, Math.ceil((cam.y + vh) / ts));
 
   // Draw everything in world coordinates so the tiled textures line up
-  // seamlessly as the camera scrolls, instead of swimming per-frame.
+  // seamlessly as the camera scrolls, instead of swimming per-frame. The
+  // zoom scale is applied here, once, outside the translate -- every
+  // world-space draw call below (tiles, sprites, labels) grows together
+  // proportionally as a side effect of the transform, rather than each
+  // needing its own zoom-aware size.
   ctx.save();
+  ctx.scale(zoom, zoom);
   ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
 
   for (var row = startRow; row <= endRow; row++) {
@@ -704,10 +725,18 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
 RatLand.renderInterior = function (ctx, game, viewW, viewH) {
   var interior = RatLand.INTERIORS[game.currentInteriorId];
   var ts = RatLand.TILE_SIZE;
+  var zoom = RatLand.CAMERA_ZOOM;
+  var vw = viewW / zoom, vh = viewH / zoom;
   var worldW = interior.cols * ts;
   var worldH = interior.rows * ts;
-  var offsetX = Math.floor((viewW - worldW) / 2);
-  var offsetY = Math.floor((viewH - worldH) / 2);
+  var offsetX = Math.floor((vw - worldW) / 2);
+  var offsetY = Math.floor((vh - worldH) / 2);
+
+  // Same single-scale approach as renderOverworld: interiors have no
+  // camera to translate (small, centered map), but still need the same
+  // zoom applied so the player sprite matches its overworld size.
+  ctx.save();
+  ctx.scale(zoom, zoom);
 
   for (var row = 0; row < interior.rows; row++) {
     for (var col = 0; col < interior.cols; col++) {
@@ -730,7 +759,9 @@ RatLand.renderInterior = function (ctx, game, viewW, viewH) {
   ctx.fillStyle = '#f4f4f4';
   ctx.font = 'bold 16px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText(interior.title, viewW / 2, Math.max(24, offsetY - 12));
+  ctx.fillText(interior.title, vw / 2, Math.max(24, offsetY - 12));
 
   RatLand.drawPlayer(ctx, offsetX + game.player.x, offsetY + game.player.y, game.player.size, game.player.facing);
+
+  ctx.restore();
 };
