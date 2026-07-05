@@ -148,6 +148,45 @@ html, body {
   background: rgba(0, 0, 0, 0.45);
 }
 
+/* iOS pinch/double-tap zoom coverage (root cause of a real-device
+   "everything huge and clipped after the Fen battle" report):
+   touch-action does NOT inherit, so setting it on html/body/#game/the
+   pad buttons still left every overlay -- the battle screen, pre-battle
+   menus, rules overlay, dialogue box, HUD cluster, move buttons -- as
+   unprotected touch targets. During battle, #battle-screen covers the
+   whole viewport, so every touch landed on an element where iOS Safari
+   was free to treat rapid two-thumb taps (which the select-then-confirm
+   move flow actively encourages) as double-tap/pinch zoom -- and iOS
+   deliberately ignores user-scalable=no/maximum-scale=1 (accessibility
+   override since iOS 10), so the meta tag alone can't stop it. Once
+   zoomed, the page STAYS zoomed after the battle ends, which is what
+   made it read as "the view is broken after the fight." The scrollable
+   overlays keep vertical panning (pan-y) so the battle log/rules/menus
+   still scroll; everything else gets taps only. js/input.js's
+   initZoomGuards adds the JS-level backstop for gesture paths
+   touch-action can't cover. */
+.overlay-menu,
+.fullscreen-overlay,
+.fullscreen-overlay-inner,
+#battle-log,
+#battle-rules-text {
+  touch-action: pan-y;
+}
+
+#dialogue-box,
+#dialogue-pagination,
+#hud-top-right,
+#help,
+#battle-wipe,
+#controls,
+.overlay-btn,
+.move-btn,
+.battle-rules-btn,
+.status-icon,
+.combatant-panel {
+  touch-action: none;
+}
+
 #dialogue-box {
   position: fixed;
   left: 50%;

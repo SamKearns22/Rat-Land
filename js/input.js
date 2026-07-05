@@ -57,6 +57,34 @@ RatLand.initTouchControls = function () {
   }
 };
 
+// JS-level zoom guards, layered on top of style.css's touch-action
+// coverage (see the comment there for the real-device bug this pair
+// fixes): iOS Safari ignores user-scalable=no/maximum-scale=1 in the
+// viewport meta tag (deliberate accessibility override since iOS 10),
+// and touch-action alone doesn't cover every gesture path on every iOS
+// version -- so pinch (gesture* events are WebKit-specific and exactly
+// the right hook there; harmless no-ops elsewhere), multi-touch drags,
+// and double-tap smart zoom each get blocked directly. The double-tap
+// guard only preventDefaults the SECOND tap of a rapid pair, so single
+// taps still produce clicks (Reset Save's confirm() flow relies on
+// click); all gameplay controls are pointerdown-driven and fire before
+// touchend regardless, so rapid double-tapping a move button -- the
+// select-then-confirm flow itself -- keeps working identically.
+RatLand.initZoomGuards = function () {
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (type) {
+    window.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
+  });
+  document.addEventListener('touchmove', function (e) {
+    if (e.touches && e.touches.length > 1 && e.cancelable) e.preventDefault();
+  }, { passive: false });
+  var lastTouchEnd = 0;
+  document.addEventListener('touchend', function (e) {
+    var now = Date.now();
+    if (now - lastTouchEnd < 350 && e.cancelable) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
+};
+
 // Talk to whichever NPC (Town Crier or any of the 31 NPC_ROSTER
 // characters) is adjacent, otherwise close any open dialogue. Fightable
 // NPCs (see RatLand.NPC_ROSTER's `fightable` flag) open the Talk/Debate

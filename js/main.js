@@ -157,16 +157,36 @@ window.RatLand = RatLand;
 
   // Mobile Safari (and some other mobile browsers) can let the *layout*
   // viewport (window.innerWidth/innerHeight) diverge from the actual
-  // *visible* area -- during pinch-zoom, while the dynamic address-bar/
-  // toolbar is animating, or with an on-screen keyboard open. Sizing the
-  // canvas (and everything anchored to "the viewport") off innerWidth/
-  // innerHeight in that state renders content wider/taller than what's
-  // actually on screen, which reads as edge content being clipped. The
-  // VisualViewport API reports the real visible area when available;
-  // fall back to innerWidth/innerHeight on browsers without it.
+  // *visible* area -- while the dynamic address-bar/toolbar is animating,
+  // or with an on-screen keyboard open. Sizing the canvas (and everything
+  // anchored to "the viewport") off innerWidth/innerHeight in that state
+  // renders content wider/taller than what's actually on screen, which
+  // reads as edge content being clipped. The VisualViewport API reports
+  // the real visible area when available; fall back to
+  // innerWidth/innerHeight on browsers without it.
+  //
+  // The × scale factor matters for the pinch-zoom case specifically:
+  // visualViewport.width/height report the visible area in *visual* CSS
+  // pixels, which SHRINK as the user pinch-zooms in (390 -> ~340 at a
+  // ~15% zoom). The canvas's CSS box, though, is 100dvw/100dvh of the
+  // *layout* viewport (style.css) and doesn't shrink -- so sizing the
+  // backing store off the raw visual width during a zoom stretched ~340
+  // backing pixels across a 390px CSS box, blurring the world and
+  // scaling it up a second time on top of the OS-level zoom itself.
+  // Multiplying by visualViewport.scale converts back to layout-viewport
+  // units (scale is exactly 1 whenever no pinch-zoom is active, so
+  // ordinary toolbar-tracking behavior is unchanged), keeping the
+  // backing store matched to the box it's actually painted into no
+  // matter what zoom state iOS leaves the page in. Guards in
+  // style.css/input.js try to stop the zoom from ever engaging; this
+  // keeps the canvas coherent if one slips through anyway.
   function viewportSize() {
     if (window.visualViewport) {
-      return { width: window.visualViewport.width, height: window.visualViewport.height };
+      var scale = window.visualViewport.scale || 1;
+      return {
+        width: window.visualViewport.width * scale,
+        height: window.visualViewport.height * scale,
+      };
     }
     return { width: window.innerWidth, height: window.innerHeight };
   }
@@ -200,6 +220,7 @@ window.RatLand = RatLand;
 
   RatLand.initKeyboard();
   RatLand.initTouchControls();
+  RatLand.initZoomGuards();
   RatLand.initBattleUI();
   RatLand.initAudioToggle();
 
