@@ -64,24 +64,60 @@ RatLand.initTouchControls = function () {
 // and touch-action alone doesn't cover every gesture path on every iOS
 // version -- so pinch (gesture* events are WebKit-specific and exactly
 // the right hook there; harmless no-ops elsewhere), multi-touch drags,
-// and double-tap smart zoom each get blocked directly. The double-tap
-// guard only preventDefaults the SECOND tap of a rapid pair, so single
-// taps still produce clicks (Reset Save's confirm() flow relies on
-// click); all gameplay controls are pointerdown-driven and fire before
-// touchend regardless, so rapid double-tapping a move button -- the
-// select-then-confirm flow itself -- keeps working identically.
+// and tap-burst smart zoom each get blocked directly.
+//
+// Two hard-won details from real-device reports:
+//
+// 1. Smart zoom triggers on TRIPLE/QUADRUPLE tap bursts, not just neat
+//    tap pairs -- an earlier version of this guard only preventDefaulted
+//    the second tap of a rapid pair, which still let a longer burst
+//    present iOS with a clean unprevented pair. Every touchend is now
+//    preventDefaulted instead, so no tap pair ever exists for smart
+//    zoom to latch onto, no matter the burst length or rhythm. The one
+//    exception is the top-right HUD cluster: Reset Save is the single
+//    control in the game driven by a native `click` (its confirm()
+//    flow), and preventDefault on touchend is exactly what suppresses
+//    click synthesis. Everything gameplay-critical (D-pad, Talk, move
+//    buttons, dialogue cancel/pagination, mute) is pointerdown-driven,
+//    and pointer events are not suppressed by touchend preventDefault
+//    (only the mouse-compatibility click path is), so rapid
+//    double/triple-tapping a move button -- the select-then-confirm
+//    flow itself -- keeps working identically.
+//
+// 2. Every guard stands down while the page is ALREADY zoomed
+//    (visualViewport.scale > 1): the same gestures being blocked here
+//    are the only way iOS lets a user ESCAPE a zoom (pinch out /
+//    double-tap out). Blocking them unconditionally would turn an
+//    accidentally-zoomed page -- e.g. one zoomed before this guard
+//    shipped, or via any path that still slips through -- into a trap
+//    with a reload as the only way out. At scale 1 nothing is lost by
+//    blocking, and above scale 1 nothing is gained.
 RatLand.initZoomGuards = function () {
+  function atNormalZoom() {
+    return !window.visualViewport || !window.visualViewport.scale || window.visualViewport.scale <= 1.001;
+  }
+
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (type) {
-    window.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
+    window.addEventListener(type, function (e) {
+      if (atNormalZoom()) e.preventDefault();
+    }, { passive: false });
   });
+
   document.addEventListener('touchmove', function (e) {
-    if (e.touches && e.touches.length > 1 && e.cancelable) e.preventDefault();
+    if (atNormalZoom() && e.touches && e.touches.length > 1 && e.cancelable) e.preventDefault();
   }, { passive: false });
-  var lastTouchEnd = 0;
+
   document.addEventListener('touchend', function (e) {
-    var now = Date.now();
-    if (now - lastTouchEnd < 350 && e.cancelable) e.preventDefault();
-    lastTouchEnd = now;
+    if (!atNormalZoom() || !e.cancelable) return;
+    var t = e.target;
+    if (t && t.closest && t.closest('#hud-top-right')) return; // Reset Save's click flow
+    e.preventDefault();
+  }, { passive: false });
+
+  // macOS/iPadOS trackpad smart zoom arrives as dblclick rather than a
+  // touch sequence; same conditional stand-down applies.
+  window.addEventListener('dblclick', function (e) {
+    if (atNormalZoom()) e.preventDefault();
   }, { passive: false });
 };
 
