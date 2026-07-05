@@ -21,11 +21,45 @@ html, body {
   user-select: none;
 }
 
+/* Root cause of a real-device regression (HUD clipped at the right edge,
+   D-pad clipped at the left, dialogue box rendering off-center, extra map
+   terrain visible past where the HUD sits): #game previously had no CSS
+   width/height at all, so its on-screen box was governed entirely by its
+   intrinsic size -- the width/height *attributes* js/main.js sets from
+   window.visualViewport (or innerWidth/innerHeight as a fallback). If that
+   JS-computed value is ever momentarily wrong or too large (visualViewport
+   can plausibly report a transiently different figure right after a fresh
+   navigation/hard reload, before Safari's own viewport-fit=cover geometry
+   has fully settled), the canvas's rendered box grows past device-width --
+   and a wider-than-device-width element early in a page's life is a
+   well-documented trigger for mobile Safari widening its own calculated
+   layout viewport to fit it. Every position:fixed element's containing
+   block is that same layout viewport, so once it's stretched, `right:8px`
+   and `left:8px` both resolve against an edge that no longer matches the
+   physical screen -- explaining the clipping on both sides at once -- and
+   `left:50%` for the centered dialogue box lands at the wrong physical
+   x-coordinate for the same reason. This was never reproducible in this
+   project's Chromium-based testing (documented repeatedly in past commits
+   as a standing gap: no real WebKit/Safari available here), since Chromium
+   doesn't have the same viewport-widen-to-fit-content behavior.
+   Constraining the canvas's CSS box explicitly, independent of whatever
+   its intrinsic width/height attributes say, closes the loophole
+   regardless of why those attributes were ever wrong in the first place --
+   the canvas (and everything anchored to the viewport) can no longer
+   visually exceed the true viewport even if resizeCanvas() briefly
+   computes a bad size before a later resize/visualViewport event corrects
+   it. */
 #game {
   display: block;
   position: fixed;
   top: 0;
   left: 0;
+  width: 100vw;
+  width: 100dvw;
+  height: 100vh;
+  height: 100dvh;
+  max-width: 100vw;
+  max-height: 100dvh;
   touch-action: none;
   image-rendering: pixelated;
 }

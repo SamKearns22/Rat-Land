@@ -88,6 +88,17 @@ window.RatLand = RatLand;
     window.visualViewport.addEventListener('scroll', resizeCanvas);
   }
   resizeCanvas();
+  // visualViewport can plausibly still be settling (Safari's own
+  // viewport-fit=cover geometry hasn't finished laying out yet) at the
+  // exact moment this script runs synchronously on a fresh load, and if
+  // nothing changes afterward (no orientation change, no pinch-zoom),
+  // no later resize event ever fires to correct a bad initial read.
+  // Re-checking one frame later catches that window without waiting on
+  // a real viewport change; #game's CSS width/height is also now
+  // explicitly capped (style.css) as the actual backstop, but correcting
+  // the canvas's own intrinsic size too keeps its resolution sharp
+  // rather than just visually clamped.
+  window.requestAnimationFrame(resizeCanvas);
 
   RatLand.initKeyboard();
   RatLand.initTouchControls();
