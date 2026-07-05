@@ -612,7 +612,7 @@ html, body {
   background: rgba(255, 255, 255, 0.28);
 }
 
-/* Inactive icons (R/C at 0, no Defence, not Confident) stay visible per
+/* Inactive icons (R/C at 0, not Exposed/Primed) stay visible per
    COMBAT_DESIGN.md §9 -- always present, just visually muted -- rather
    than appearing/disappearing, so the tap targets never move around. */
 .status-icon.icon-inactive {

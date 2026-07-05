@@ -1,21 +1,23 @@
 // combat.js — turn-based "debate combat" against fightable NPCs.
 // Implements COMBAT_DESIGN.md: pre-battle Talk/Fight/Walk Away menu (§8),
 // enemy-first turn order (§3), Rhetoric/Consideration/Facts/Feelings (§4),
-// Defence (§4a), Confident (§4b), an instant-KO win condition (§5) — HP
-// hitting 0 always ends the fight immediately, no soft floor — with Fen's
-// flat baseline Defence making a Fact+Feeling strategy practically
-// necessary to break through rather than hard-gated (§21), the
-// no-penalty loss state (§6), Reputation-on-win via the existing save
-// system (§7), and a Pokémon-style battle screen layout (§9/§10):
-// opponent panel on top (with Fen's overworld sprite, §20), player panel
-// on the bottom-opposite corner, HP/Effort bars, always-visible
-// R/C/Defence/Confident status icons plus a tap-to-reveal "Fen's last
-// move" icon (§21) (text/symbol only, tap for a plain-text explanation),
-// a scrollable battle log (§21), and a 2x2 move grid with a
-// select-then-confirm flow that previews a move's plain-text description
-// before it's used, contextual/randomized battle dialogue (§11): a
-// one-shot opening/finishing line per combatant, a unique first-use line
-// for each Fact/Feeling, and a random 3-4 line pool for every repeat use
+// Exposed (§4a: Fen's Big Swing leaves him open to a doubled follow-up
+// hit for one attack), an instant-KO win condition (§5) — HP hitting 0
+// always ends the fight immediately, no soft floor — with Fen's own
+// heal-below-30%-HP reactive AI making a Fact+Feeling strategy
+// practically necessary to close the fight out in reasonable time rather
+// than hard-gated (§21/§24), the no-penalty loss state (§6),
+// Reputation-on-win via the existing save system (§7), and a
+// Pokémon-style battle screen layout (§9/§10): opponent panel on top
+// (with Fen's overworld sprite, §20), player panel on the
+// bottom-opposite corner, HP/Effort bars, always-visible R/C/Exposed
+// status icons plus a tap-to-reveal "Fen's last move" icon (§21)
+// (text/symbol only, tap for a plain-text explanation), a scrollable
+// battle log (§21), and a 2x2 move grid with a select-then-confirm flow
+// that previews a move's plain-text description before it's used,
+// contextual/randomized battle dialogue (§11): a one-shot
+// opening/finishing line per combatant, a unique first-use line for each
+// Fact/Feeling, and a random 3-4 line pool for every repeat use
 // (including all Rhetoric/Consideration uses), and a brief Pokémon-style
 // wipe transition (§10) entering/exiting battle.
 var RatLand = window.RatLand || {};
@@ -26,15 +28,7 @@ window.RatLand = RatLand;
   // --- Test moveset (§13/§14 — explicitly TEST/THROWAWAY per the design doc) ---
 
   var PLAYER_START = { hp: 20, maxHp: 20, effort: 10, maxEffort: 10 };
-  // Fen carries a flat +1 baseline Defence ("stubbornness") that never wears
-  // off on its own — only the player's Feeling "I just want to understand"
-  // strips it. This is what makes a Fact+Feeling strategy the practically
-  // optimal way to win (§5/§15): basics-only or facts-without-a-feeling play
-  // both stall out in a permanent stand-off once Fen drops low enough to
-  // start healing, since his heal (+2) can't be reliably out-paced by
-  // Rhetoric/Actually while that baseline Defence is still soaking a point
-  // of damage off every hit.
-  var FEN_START = { hp: 14, maxHp: 14, effort: 10, maxEffort: 10, defence: 1 };
+  var FEN_START = { hp: 14, maxHp: 14, effort: 10, maxEffort: 10 };
 
   // Opening/finishing lines: one-shot flavor tied to battle start and to a
   // combatant's HP actually hitting 0 (not the soft-floor near-miss) --
@@ -44,19 +38,23 @@ window.RatLand = RatLand;
   var PLAYER_OPENING = 'Right. Okay. I can do this.';
   var PLAYER_FINISHING = '…maybe he’s got a point, actually.';
 
-  // Damage/heal math shared by every move. `computeDamage` applies Defence
-  // first (flat, pre-modifier — §4a), then the Confident reduction for
-  // "Actually…" specifically (§4b), then the Persecution Complex
-  // vulnerability bonus (§14) — in that order, per §4a's order of operations.
-  function computeDamage(battle, atkSide, defSide, baseDamage, move) {
+  // Damage math shared by every move (§4a/§24): start from the move's flat
+  // base damage, add the attacker's own primed next-attack bonus if one is
+  // pending (granted by the player's Feeling, consumed by this hit), then
+  // double the total if the defender is Exposed (granted by Fen's Big
+  // Swing, consumed by this hit) — in that order, so a primed hit landed
+  // during an Exposed window benefits from both at once.
+  function computeDamage(battle, atkSide, defSide, baseDamage) {
+    var attacker = battle[atkSide];
     var defender = battle[defSide];
-    var dmg = Math.max(0, baseDamage - defender.defence);
-    if (move.id === 'actually' && defender.confidentTurns > 0) {
-      dmg = Math.floor(dmg / 2);
+    var dmg = baseDamage;
+    if (attacker.nextAttackBonus > 0) {
+      dmg += attacker.nextAttackBonus;
+      attacker.nextAttackBonus = 0;
     }
-    if (move.type === 'fact' && defender.vulnerableNextFact) {
-      dmg += 2;
-      defender.vulnerableNextFact = false;
+    if (defender.exposed) {
+      dmg *= EXPOSED_MULTIPLIER;
+      defender.exposed = false;
     }
     return Math.max(0, dmg);
   }
@@ -126,9 +124,21 @@ window.RatLand = RatLand;
   // the bare letters — mouth for R (Rhetoric build-up), brain for C
   // (Consideration build-up).
   var METER_SYMBOL = { r: '👄', c: '🧠' };
-  // "Someone's Going to Drown"'s Defence contribution caps at +3 total
-  // regardless of how many times it's cast (§12) — previously unlimited.
-  var DROWN_DEFENCE_CAP = 3;
+  // Big Swing (§24, replacing the old Defence-stacking kit entirely):
+  // deals a big hit and leaves Fen Exposed for one turn (his opponent's
+  // next attack against him deals double damage). Effort cost is high
+  // enough relative to Fen's regen rate that it only fires once at full
+  // Effort at the very start of a fight and essentially never again once
+  // Fen's own HP has dropped low enough to switch into pure self-heal
+  // (see chooseFenMove) — verified against the balance-search targets in
+  // COMBAT_DESIGN.md rather than picked arbitrarily.
+  var BIG_SWING_DAMAGE = 5;
+  var BIG_SWING_EFFORT_COST = 9;
+  var EXPOSED_MULTIPLIER = 2;
+  // Fen's reactive AI switches to pure self-heal once his own HP drops
+  // below this fraction of his max (§24) — mirrors the same threshold the
+  // human "heal when hurt" instinct naturally uses.
+  var FEN_HEAL_THRESHOLD = 0.30;
   function gainMeter(battle, side, meter, amount) {
     var c = battle[side];
     c[meter] = Math.min(METER_CAP, c[meter] + amount);
@@ -150,7 +160,7 @@ window.RatLand = RatLand;
       ] },
       description: 'Deals small damage and gives you 1 👄.',
       effect: function (battle, atk, def) {
-        var dmg = computeDamage(battle, atk, def, 2, this);
+        var dmg = computeDamage(battle, atk, def, 2);
         applyDamage(battle, atk, def, dmg);
         gainMeter(battle, atk, 'r', 1);
       },
@@ -165,9 +175,9 @@ window.RatLand = RatLand;
           'I checked, and, um, that’s not right.',
         ],
       },
-      description: 'Bigger damage. Costs 👄 + Effort. Deals half damage against a Confident opponent.',
+      description: 'Bigger damage than Rhetoric. Costs 👄 + Effort.',
       effect: function (battle, atk, def) {
-        var dmg = computeDamage(battle, atk, def, 3, this);
+        var dmg = computeDamage(battle, atk, def, 3);
         applyDamage(battle, atk, def, dmg);
       },
     },
@@ -195,10 +205,10 @@ window.RatLand = RatLand;
           'Can you help me see it your way?',
         ],
       },
-      description: 'Heals yourself a little and lowers the opponent’s Defence by 1. Costs 🧠 + Effort.',
+      description: 'Heals yourself and primes your next attack to deal +2 damage. Costs 🧠 + Effort.',
       effect: function (battle, atk, def) {
-        battle[def].defence = Math.max(0, battle[def].defence - 1);
-        heal(battle, atk, 2);
+        heal(battle, atk, 3);
+        battle[atk].nextAttackBonus = 2;
       },
     },
   ];
@@ -214,7 +224,7 @@ window.RatLand = RatLand;
       ] },
       description: 'Deals small damage to you and gives Fen 1 👄.',
       effect: function (battle, atk, def) {
-        var dmg = computeDamage(battle, atk, def, 2, this);
+        var dmg = computeDamage(battle, atk, def, 2);
         applyDamage(battle, atk, def, dmg);
         gainMeter(battle, atk, 'r', 1);
       },
@@ -234,74 +244,19 @@ window.RatLand = RatLand;
       },
     },
     {
-      id: 'council-tax', label: 'Fact: "Council Tax Correction"', type: 'fact',
-      cost: { meter: 'r', amount: 2, effort: 3 },
+      id: 'big-swing', label: 'Big Swing', type: 'fact', cost: { effort: BIG_SWING_EFFORT_COST },
       dialogue: {
-        firstUse: 'You lot always say that, and nothing ever changes, does it?',
+        firstUse: 'Right, that’s it — you want a proper answer? Here.',
         pool: [
-          'The Church gets more funding than my street does.',
-          'Nobody’s fixed my drain in three years.',
-          'Where’s my anniversary money gone, eh?',
+          'No, listen — actually listen —',
+          'You want to go on about it? Fine.',
         ],
       },
-      description: 'Bigger damage than Rhetoric. Costs 👄 + Effort. Also lowers your Defence by 1.',
+      description: 'Big damage. Costs Effort. Leaves Fen Exposed for 1 turn: your next attack against him deals double damage.',
       effect: function (battle, atk, def) {
-        var dmg = computeDamage(battle, atk, def, 3, this);
+        var dmg = computeDamage(battle, atk, def, BIG_SWING_DAMAGE);
         applyDamage(battle, atk, def, dmg);
-        battle[def].defence = Math.max(0, battle[def].defence - 1);
-      },
-    },
-    {
-      id: 'drown', label: 'Fact: "Someone\'s Going to Drown"', type: 'fact',
-      cost: { meter: 'r', amount: 2, effort: 3 },
-      dialogue: {
-        firstUse: 'You can call it heartless if you like. I call it common sense.',
-        pool: [
-          'It’s not safe. Never has been.',
-          'I’m not being funny, someone’s gonna die out there.',
-        ],
-      },
-      description: 'Bigger damage than Rhetoric. Costs 👄 + Effort. Also raises Fen’s own Defence by 1 (caps at +3 total from repeated casts).',
-      effect: function (battle, atk, def) {
-        var dmg = computeDamage(battle, atk, def, 3, this);
-        applyDamage(battle, atk, def, dmg);
-        // Defence contribution from repeated casts caps at +3 total
-        // (§12) -- further casts still deal damage but stop adding
-        // Defence once that total is reached.
-        if (battle[atk].drownDefenceBonus < DROWN_DEFENCE_CAP) {
-          battle[atk].defence += 1;
-          battle[atk].drownDefenceBonus += 1;
-        }
-      },
-    },
-    {
-      id: 'persecution', label: 'Feeling: "Persecution Complex"', type: 'feeling',
-      cost: { meter: 'c', amount: 3, effort: 4 }, turnWindow: [3, 4], oncePerBattle: true,
-      dialogue: {
-        firstUse: 'Don’t you dare tell me how I’m allowed to feel about this.',
-        pool: [
-          'Everyone’s against blokes like me these days.',
-          'No one’s on my side anymore.',
-        ],
-      },
-      description: 'Drains 4 of your Effort. Makes Fen Confident for 1 turn (temporary Defence boost) — but leaves him vulnerable to extra damage from your next Fact.',
-      effect: function (battle, atk, def) {
-        // "The next enemy Fact used against Fen deals bonus damage" (§14) —
-        // "enemy" here means Fen's opponent (the player), so it's Fen (atk)
-        // who becomes vulnerable to the player's next Fact, not the other
-        // way around. This is the self-inflicted vulnerability the design
-        // doc calls out: raising his own Defence generally, but leaving
-        // himself open to a well-aimed Fact specifically.
-        battle[def].effort = Math.max(0, battle[def].effort - 4);
-        // This Defence gain is temporary — tied to Confident's 1-turn
-        // window, not permanent. If it's somehow already active (re-cast),
-        // undo the previous grant first so it can never stack; it always
-        // represents "currently active," never an accumulating total.
-        battle[atk].defence -= battle[atk].persecutionDefenceBonus;
-        battle[atk].persecutionDefenceBonus = 1;
-        battle[atk].defence += battle[atk].persecutionDefenceBonus;
-        battle[atk].confidentTurns = 1;
-        battle[atk].vulnerableNextFact = true;
+        battle[atk].exposed = true;
       },
     },
   ];
@@ -311,8 +266,6 @@ window.RatLand = RatLand;
 
   function canAfford(battle, side, move) {
     var c = battle[side];
-    if (move.turnWindow && (battle.turn < move.turnWindow[0] || battle.turn > move.turnWindow[1])) return false;
-    if (move.oncePerBattle && c.usedOnce && c.usedOnce[move.id]) return false;
     if (!move.cost) return true;
     if (move.cost.meter === 'r' && c.r < move.cost.amount) return false;
     if (move.cost.meter === 'c' && c.c < move.cost.amount) return false;
@@ -355,16 +308,10 @@ window.RatLand = RatLand;
     return null;
   }
 
-  // Resolves one move: pays its cost, logs its dialogue, runs its numeric
-  // effect, then applies Confident (§4b: Fen gains it for 1 turn whenever
-  // *any* Fen Fact is used, not just Persecution Complex specifically).
+  // Resolves one move: pays its cost, logs its dialogue, then runs its
+  // numeric effect.
   function useMove(battle, atkSide, defSide, move) {
     payCost(battle, atkSide, move);
-    if (move.oncePerBattle) {
-      var c = battle[atkSide];
-      c.usedOnce = c.usedOnce || {};
-      c.usedOnce[move.id] = true;
-    }
     var speaker = atkSide === 'player' ? 'You' : battle.npcName;
     var line = pickMoveDialogue(battle, atkSide, move);
     battle.log.push(speaker + ': "' + line + '"');
@@ -380,44 +327,20 @@ window.RatLand = RatLand;
       battle.log.push('(' + move.label + ' — ' + move.description + ')');
     }
     move.effect(battle, atkSide, defSide);
-    if (move.type === 'fact' && atkSide === 'enemy') {
-      battle.enemy.confidentTurns = 1;
-    }
   }
 
-  // Fen's AI (test dummy, not final): bank C toward Persecution Complex
-  // through turns 1-4 so his signature move is actually reachable by its
-  // turn-3/4 window, fire it the moment it's affordable, otherwise use a
-  // Fact when he can afford one (alternating for variety), heal if he's
-  // under 40% HP, otherwise fall back to Rhetoric to build up R.
-  //
-  // Enemy affordability rule (§22): no enemy may plan or execute a move it
-  // can't currently pay for. This function only ever returns a move
-  // canAfford() (above) approves -- the turnWindow check on Persecution
-  // Complex is an *additional* restriction on top of the normal resource/
-  // effort cost, checked together in the same canAfford call, never a way
-  // to bypass it. Concretely: the persecution branch below only fires once
-  // canAfford confirms turn 3-4 window AND c>=3 AND effort>=4 all hold at
-  // once, so the scripted turn-3/4 timing can never fire "on credit" --
-  // if Fen hasn't actually banked enough C by then, canAfford stays false
-  // and the second branch (bank more C) keeps running instead.
+  // Fen's AI (§24, replacing the old scripted turn-window pattern
+  // entirely): purely reactive, no scripted turn numbers, no
+  // once-per-battle gating, no held-back/no-op turns. Heal the moment his
+  // own HP drops below FEN_HEAL_THRESHOLD (healing always takes priority
+  // over swinging, even if Big Swing happens to be affordable at the
+  // same time); otherwise swing big whenever Effort allows; otherwise
+  // fall back to Rhetoric.
   function chooseFenMove(battle) {
-    var persecution = FEN_MOVES[4];
-    var usedPersecution = battle.enemy.usedOnce && battle.enemy.usedOnce[persecution.id];
-
-    if (!usedPersecution && canAfford(battle, 'enemy', persecution)) return persecution;
-    if (!usedPersecution && battle.turn <= 4 && battle.enemy.c < persecution.cost.amount) {
-      return FEN_MOVES[1]; // Consideration — banking C for the window above.
-    }
-
-    var councilTax = FEN_MOVES[2], drown = FEN_MOVES[3];
-    var primary = battle.turn % 2 === 0 ? drown : councilTax;
-    var secondary = primary === drown ? councilTax : drown;
-    if (canAfford(battle, 'enemy', primary)) return primary;
-    if (canAfford(battle, 'enemy', secondary)) return secondary;
-
-    if (battle.enemy.hp <= battle.enemy.maxHp * 0.4) return FEN_MOVES[1];
-    return FEN_MOVES[0];
+    var e = battle.enemy;
+    if (e.hp < e.maxHp * FEN_HEAL_THRESHOLD) return FEN_MOVES[1]; // Consideration
+    if (canAfford(battle, 'enemy', FEN_MOVES[2])) return FEN_MOVES[2]; // Big Swing
+    return FEN_MOVES[0]; // Rhetoric
   }
 
   function runEnemyTurn(battle) {
@@ -482,17 +405,6 @@ window.RatLand = RatLand;
       player: battle.player.effort - playerBefore,
       enemy: battle.enemy.effort - enemyBefore,
     };
-    if (battle.enemy.confidentTurns > 0) {
-      battle.enemy.confidentTurns -= 1;
-      // Confident just expired -- fully revert Persecution Complex's
-      // temporary Defence grant (and only that amount; any Defence Fen
-      // earned separately, e.g. from "Someone's Going to Drown", is
-      // untouched) rather than let it persist for the rest of the battle.
-      if (battle.enemy.confidentTurns === 0 && battle.enemy.persecutionDefenceBonus > 0) {
-        battle.enemy.defence -= battle.enemy.persecutionDefenceBonus;
-        battle.enemy.persecutionDefenceBonus = 0;
-      }
-    }
     battle.turn += 1;
   }
 
@@ -501,9 +413,9 @@ window.RatLand = RatLand;
       hp: stats.hp, maxHp: stats.maxHp, effort: stats.effort, maxEffort: stats.maxEffort,
       effortRegenRate: 2, // standard regen/turn (§22) -- read here, not hardcoded, so a
                           // future move that alters it is reflected automatically
-      r: 0, c: 0, defence: stats.defence || 0,
-      confidentTurns: 0, vulnerableNextFact: false, usedOnce: {},
-      persecutionDefenceBonus: 0, drownDefenceBonus: 0,
+      r: 0, c: 0,
+      exposed: false, // §24: granted by Big Swing, consumed by the next attack against this combatant
+      nextAttackBonus: 0, // §24: granted by the player's Feeling, consumed by this combatant's next attack
       dialogueUsed: {}, // tracks which moves' firstUse line has already fired
     };
   }
@@ -686,8 +598,8 @@ window.RatLand = RatLand;
     if (textEl) textEl.textContent = current + '/' + max;
   }
 
-  // Status icons (§9): text/symbol only, no illustrated art. R, C, Defence,
-  // and Confident are always shown for both combatants — never appearing
+  // Status icons (§9/§24): text/symbol only, no illustrated art. R, C, and
+  // Exposed/Primed are always shown for both combatants — never appearing
   // or disappearing — so their tap targets stay in a fixed, predictable
   // spot; an icon just looks muted (`icon-inactive`) when its value/status
   // isn't currently doing anything.
@@ -695,8 +607,10 @@ window.RatLand = RatLand;
     var isPlayer = name === 'You';
     var possessive = isPlayer ? 'Your' : name + '’s';
     var subjectIs = isPlayer ? 'You are' : name + ' is';
-    var confidentActive = c.confidentTurns > 0;
-    var defenceActive = c.defence !== 0;
+    var objectPronoun = isPlayer ? 'you' : 'him';
+    var possessivePronoun = isPlayer ? 'your' : 'his';
+    var exposedActive = !!c.exposed;
+    var primedActive = c.nextAttackBonus > 0;
 
     var icons = [
       {
@@ -710,18 +624,12 @@ window.RatLand = RatLand;
           'Consideration is used (capped at 10); a Feeling spends some of it to cast.',
       },
       {
-        symbol: '🛡️', badge: (c.defence > 0 ? '+' : '') + c.defence, active: defenceActive, // shield + signed number
-        explain: possessive + ' Defence: ' + c.defence + '. A flat reduction applied to ' +
-          'incoming damage before any other modifier.' + (defenceActive ? '' : ' Currently no Defence bonus.'),
-      },
-      {
-        symbol: '😤', badge: null, active: confidentActive, // distinct icon for Confident
-        explain: confidentActive
-          ? subjectIs + ' Confident (' + c.confidentTurns + ' turn' +
-            (c.confidentTurns === 1 ? '' : 's') + ' left): the player’s Fact "Actually…" ' +
-            'deals half damage against a Confident target.'
-          : subjectIs + ' not currently Confident. When active, the player’s Fact ' +
-            '"Actually…" deals half damage against him.',
+        symbol: '💥', badge: null, active: exposedActive || primedActive, // Exposed (Big Swing) / Primed (Feeling)
+        explain: exposedActive
+          ? subjectIs + ' Exposed: the next attack against ' + objectPronoun + ' deals double damage.'
+          : primedActive
+            ? subjectIs + ' primed: ' + possessivePronoun + ' next attack deals +' + c.nextAttackBonus + ' damage.'
+            : subjectIs + ' not currently Exposed or primed.',
       },
     ];
 

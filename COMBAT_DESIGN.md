@@ -6,6 +6,17 @@ starts. The two movesets in §14 are explicitly test/throwaway (see
 that section) and a handful of smaller mechanics still aren't fully
 pinned down — flagged in §12 rather than guessed.
 
+**§24 supersedes the Defence-stacking system.** Fen's kit was
+redesigned from the ground up (§24): the permanent Defence stat,
+"Someone's Going to Drown," "Council Tax Correction," and Persecution
+Complex are all removed entirely, replaced by a single move (Big
+Swing) and a single status pair (Exposed / Primed). §4a, §4b, and §14
+below now describe the *current* system post-redesign. §15–§23 are
+left as-is as a historical record of the Defence-era playtesting that
+led up to it — their specific round-count and Defence/Confident/
+Persecution/Drown claims describe that earlier system, not the
+current one; see §24 for the current numbers and verification.
+
 ## 1. Concept
 
 Turn-based "debate combat." Rat Land's whole setting is an argument
@@ -105,54 +116,35 @@ cost Effort. Facts and Feelings now spend **both** their R/C amount
 *and* a flat Effort cost (3 for any Fact, 4 for any Feeling) — see the
 confirmed test kits in §14 for exact per-move numbers.
 
-### 4a. Defence
+### 4a. Exposed & Primed (status effects, replacing Defence — §24)
 
-**Defence is a flat damage reduction, applied per hit, before any
-other modifiers.** Order of operations for incoming damage:
+**Defence-stacking is gone entirely.** In its place, damage math for
+every hit is now:
 
 1. Start with the move's base damage.
-2. Subtract the defender's current Defence value (flat, not a
-   percentage). Result floors at 0 — a hit can't heal someone via
-   over-Defence (this floor is an assumption, not stated explicitly;
-   flagged in §12).
-3. *Then* apply any other situational modifier (e.g. the Confident
-   reduction in §4b, or "Persecution Complex"'s bonus-damage clause)
-   on top of the Defence-reduced number.
+2. If the attacker is **Primed** (granted by the player's Feeling,
+   "I just want to understand"), add its flat bonus (+2) — then clear
+   Primed, whether or not this hit actually landed for damage.
+3. If the defender is **Exposed** (granted by Fen's Big Swing landing
+   on his opponent — it exposes *Fen*, not whoever he hit), double the
+   running total — then clear Exposed.
 
-Defence itself is a battle-only modifier, not one of the three
-resource pools in §2 — several Facts/Feelings raise or lower it
-(e.g. "-1 enemy Defence," "+1 Fen Defence"). Whether a given
-Defence change persists for the rest of the battle or decays after
-some number of turns isn't specified in general — flagged in §12 —
-**except for "Persecution Complex" specifically**, which was found
-during extended playtesting to leave its +1 Defence in place
-permanently instead of tying it to the 1-turn Confident window it's
-meant to share (§4b). Fixed: that specific +1 is now tracked
-separately and fully reverts to baseline the moment Confident expires,
-regardless of how many times the grant has (re-)happened. "Someone's
-Going to Drown"'s own +1 Fen Defence per cast is untouched by this fix
-and still persists for the rest of the battle — see the note in §16.
+Both statuses are one-shot: each is consumed by the very next attack
+that checks for it, regardless of which move that attack was, and
+neither persists past that. A Primed hit landed during an Exposed
+window benefits from both at once (add the flat bonus, then double).
+Unlike the old Defence stat, neither status is itself a resource pool
+(§2) or something a move can "raise" incrementally — a combatant
+either currently has the status or doesn't.
 
-### 4b. Confident (status effect)
+### 4b. Confident — removed (§24)
 
-**Whenever Fen uses a Fact, he gains Confident for 1 turn.** As of the
-Defence fix above, casting **"Persecution Complex" also grants
-Confident for 1 turn directly** (previously it didn't — only Facts
-triggered it), so its temporary Defence bonus has a Confident window
-of its own to expire alongside, rather than needing to borrow one from
-whatever Fact happens to follow it. While Confident, the player's Fact
-"Actually…" deals reduced damage against him (§14) — this is currently
-the *only* defined interaction for Confident. The exact size of that
-reduction isn't specified (flat amount? percentage? full negation?) —
-flagged in §12.
-
-Confident is documented here as Fen-specific for now, matching how
-he's the only fightable NPC — the same "don't hardcode this as
-universal" caveat from §8's Talk/Fight independence applies: a future
-character could gain Confident differently, or have other status
-effects entirely. The status-effect *system* (§9, the on-screen icon
-requirement) needs to be generic; only Fen's specific trigger rule is
-fixed here.
+Confident (the temporary status the old Persecution Complex granted,
+which halved the player's "Actually…" for a turn) no longer exists —
+it was tied entirely to Persecution Complex and the old "any Fen Fact
+grants Confident" rule, both removed in the §24 redesign along with
+the rest of the Defence-stacking kit. See §4a for the current status
+pair (Exposed / Primed) and §24 for the full redesign writeup.
 
 ## 5. Win Condition
 
@@ -163,14 +155,13 @@ clamp on any would-be KO that didn't satisfy it — removed entirely,
 including its "nearly went down" log line.)
 
 Fact+Feeling is no longer a *rule* the engine enforces — it's the
-*practically necessary* strategy given Fen's numbers. Fen carries a
-flat +1 baseline Defence that never wears off on its own; only the
-player's Feeling ("I just want to understand") strips it. Without
-that, Rhetoric/Consideration-only play (and even Facts-without-a-
-Feeling play) runs into a permanent stand-off once Fen drops low
-enough to trigger his heal-below-40%-HP behavior, because his heal
-can't be reliably outpaced while that point of Defence is still
-soaking every hit. See §21 for the exhaustive-search confirmation.
+*practically necessary* strategy given Fen's numbers. As of the §24
+redesign, this no longer rests on a permanent Defence stat: Fen's
+reactive AI switches to pure self-heal (Consideration) the moment his
+own HP drops below 30%, and Rhetoric/Consideration-only play can't
+reliably out-pace that heal on its own — see §24 for the current
+exhaustive-search confirmation (basics-only cannot win within a
+depth-45 search) and the human-heuristic verification.
 
 ## 6. Loss State
 
@@ -240,7 +231,7 @@ that behavior baked into the menu code itself.
 
 ## 9. Status Effect Display (mobile requirement)
 
-**Every active status effect (Confident, Defence changes, etc.) must
+**Every active status effect (Exposed, Primed, etc. — §4a/§24) must
 show an on-screen icon during battle.** Tapping/selecting an icon
 shows a plain-text explanation of what it does. This is required
 because the game is played on mobile with no hover state (per the
@@ -256,7 +247,7 @@ this doc is pre-implementation):
   concern already solved for the on-screen D-pad/Talk button
   (`style.css`), reuse that sizing convention.
 - Applies to *any* status effect the system supports, not just
-  Confident/Defence specifically — this is a general battle-UI
+  Exposed/Primed specifically — this is a general battle-UI
   requirement, not a one-off for Fen's kit.
 
 ## 10. Battle Transition Sequence (Pokémon-style)
@@ -340,15 +331,13 @@ kit — only relevant if that constraint is ever lifted.
 1. **Effort cap.** Assumed capped at 10 (its starting value) for
    both test combatants; not stated explicitly. §15's playtest
    analysis holds either way, but the cap should be confirmed.
-2. **Defence's floor and persistence** (§4a) — assumed damage can't
-   go negative from over-Defence. "Persecution Complex"'s +1 Defence
-   is resolved (ties to Confident, §4a/§4b). **"Someone's Going to
-   Drown"'s Defence gain is resolved: capped at +3 total, regardless
-   of how many times it's cast** (§14/§17) — further casts past that
-   point still deal damage but stop adding Defence, matching the
-   capped, non-stacking pattern used elsewhere in the kit (R/C, §2).
-3. **Exact size of the Confident damage reduction** (§4b) — "Actually…"
-   deals reduced damage against a Confident Fen, but not by how much.
+2. ~~Defence's floor and persistence~~ — **moot as of §24**: Defence
+   was removed entirely and replaced by the one-shot Exposed/Primed
+   pair (§4a), neither of which has a "floor" or persistence question
+   in the same sense (each is consumed by the very next qualifying
+   attack, full stop).
+3. ~~Exact size of the Confident damage reduction~~ — **moot as of
+   §24**: Confident was removed entirely (§4b).
 4. **HP-floor handling for the win condition** (§5) — recommended the
    soft-floor-at-1 approach; needs sign-off, plus the exact
    near-miss line(s) to display.
@@ -392,13 +381,13 @@ under it.
 **These movesets are explicitly placeholders for wiring up and
 testing the combat system end to end. They are not final character
 design and should be discarded/replaced once real move design for
-Fen Wicket and the player is done.**
+Fen Wicket and the player is done.** Replaced in full by the §24
+redesign — Fen's kit went from 5 moves down to 3, and the player's
+Feeling was reworked. Facts cost their R amount **+ 3 Effort**;
+Feelings cost their C amount **+ 4 Effort** (§4); Fen's Big Swing
+costs Effort only, no meter (§24).
 
-"Moderate damage" = **3**. "Small self-heal" = **2**. Facts cost their
-R amount **+ 3 Effort**; Feelings cost their C amount **+ 4 Effort**
-(§4).
-
-### Fen Wicket (test dummy) — 5 moves
+### Fen Wicket (test dummy) — 3 moves
 
 **Opening:** "Oh, here we go. Another one come to tell me how to
 think." **Finishing** (only said if his own HP hits 0): "…fine.
@@ -408,9 +397,7 @@ Fine! Maybe I've not thought it all the way through."
 |---|---|---|
 | Rhetoric | 0 | 2 dmg, +1 R |
 | Consideration | 0 | Heals 2 (self), +1 C |
-| Fact — "Council Tax Correction" | 2 R + 3 Effort | 3 dmg; −1 enemy Defence |
-| Fact — "Someone's Going to Drown" | 2 R + 3 Effort | 3 dmg; +1 Fen Defence (caps at +3 total across all casts, §17) |
-| Feeling — "Persecution Complex" (turn 3–4 only) | 3 C + 4 Effort | Lowers enemy Effort significantly; **+1 Fen Defence for as long as Confident lasts (reverts fully once it expires — not permanent)**; the next enemy Fact used against Fen deals bonus damage; **grants Fen Confident for 1 turn directly** (in addition to the generic any-Fact trigger, §4b) |
+| Big Swing | 9 Effort | 5 dmg; leaves Fen Exposed for 1 turn (next attack against him deals double damage, §4a) |
 
 **Dialogue** (§11 — random pool used every time for Rhetoric/
 Consideration; first-use line once, then random pool, for the rest):
@@ -419,25 +406,10 @@ Consideration; first-use line once, then random pool, for the rest):
   "Here we go again." / "You always do this."
 - Consideration pool: "…alright, fair point." / "…s'pose that's
   true." / "Hm. Didn't think of it that way." / "…fine. Whatever."
-- Council Tax Correction first use: "You lot always say that, and
-  nothing ever changes, does it?" — pool after: "The Church gets
-  more funding than my street does." / "Nobody's fixed my drain in
-  three years." / "Where's my anniversary money gone, eh?"
-- Someone's Going to Drown first use: "You can call it heartless if
-  you like. I call it common sense." — pool after: "It's not safe.
-  Never has been." / "I'm not being funny, someone's gonna die out
-  there."
-- Persecution Complex first use: "Don't you dare tell me how I'm
-  allowed to feel about this." — pool after (never actually reached
-  while it's once-per-battle, see §11): "Everyone's against blokes
-  like me these days." / "No one's on my side anymore."
-
-Note on "Persecution Complex": the "next enemy Fact deals bonus
-damage" clause is a real vulnerability, not a typo — Fen's
-defensiveness raises his Defence generally but leaves him specifically
-exposed to a well-aimed Fact, which fits his character (per
-`NPC_DIALOGUE.md`: "I expect I do know, actually. I just don't like
-saying it").
+- Big Swing first use: "Right, that's it — you want a proper answer?
+  Here." — pool after: "No, listen — actually listen —" / "You want
+  to go on about it? Fine." (Placeholder lines — not a dialogue-polish
+  pass; §24 explicitly deferred further writing on these.)
 
 ### Player starter — 4 moves
 
@@ -448,8 +420,8 @@ if the player's own HP hits 0): "…maybe he's got a point, actually."
 |---|---|---|
 | Rhetoric | 0 | 2 dmg, +1 R |
 | Consideration | 0 | Heals 2 (self), +1 C |
-| Fact — "Actually…" | 2 R + 3 Effort | 3 dmg; reduced effect vs. a Confident opponent (§4b, §12.3) |
-| Feeling — "I just want to understand" | 3 C + 4 Effort | −1 enemy Defence; small self-heal (2) |
+| Fact — "Actually…" | 2 R + 3 Effort | 3 dmg |
+| Feeling — "I just want to understand" | 3 C + 4 Effort | Heals self 3 (up from 2); primes next attack for +2 damage (§4a/§24) |
 
 **Dialogue** (§11):
 
@@ -973,3 +945,123 @@ Full existing regression suite re-run and passing; the exhaustive
 win-path search still finds the fastest win at 10 rounds (unchanged,
 since this section adds tracking only — no damage/cost/Defence numbers
 were touched).
+
+## 24. Full Kit Redesign: Defence-Stacking Removed, Big Swing/Exposed Added
+
+**Motivation.** Player reports of losing repeated fights while playing
+well — timing Facts against Fen's temporary Defence windows, using
+Feelings when sensible — traced back to a structural problem, not a
+single bad number: Fen's Defence could permanently stack to +4
+(baseline +1, "Someone's Going to Drown" capped at +3), which zeroed
+out the player's Rhetoric entirely and blunted Actually for most of a
+long fight, while a "good but not perfectly optimal" human strategy
+reliably lost regardless of exactly how the remaining Defence-related
+numbers were tuned (root-caused across several rounds of diagnosis —
+Defence stacking, not player damage or the Effort economy, was the
+dominant driver). Rather than patch individual numbers on a system
+whose core mechanic was the problem, the whole Defence-stacking system
+was removed and replaced.
+
+**The new kit.**
+- **Fen: 3 moves instead of 5.** Rhetoric and Consideration unchanged.
+  "Council Tax Correction," "Someone's Going to Drown," and
+  "Persecution Complex" are all removed, replaced by a single move,
+  **Big Swing** (5 dmg, costs 9 Effort, leaves Fen **Exposed** for 1
+  turn — his opponent's next attack against him deals double damage,
+  §4a).
+- **Player's Feeling redesigned.** "I just want to understand" no
+  longer lowers the opponent's Defence (nothing left to lower). It now
+  heals slightly more (2 → 3) and **Primes** the player's next attack
+  for +2 flat damage (§4a) instead.
+- **Fen's AI replaced with pure reactive logic (no scripted turn
+  numbers, no once-per-battle gating, no held-back/no-op turns):**
+  heal (Consideration) the instant his own HP drops below 30%,
+  otherwise swing big whenever Effort allows, otherwise Rhetoric.
+  Because Big Swing's Effort cost (9) is high relative to his +2/turn
+  regen, in practice he only ever manages it once, right at the start
+  of a fight while at full Effort — after that, once his HP is low
+  enough to trigger the heal-priority branch, Big Swing is locked out
+  for the rest of the fight regardless of Effort, since the heal check
+  is evaluated first.
+
+**Balance verification method.** Per the request, all three checks
+were run *before* finalizing any numbers, and re-run after every
+change to the tunable numbers (Big Swing's damage/cost, the Exposed
+multiplier) — never assumed one fix was sufficient without
+re-checking all three:
+1. **Computer-optimal exhaustive search** (iterative-deepening DFS,
+   identical technique to §16/§21) — fastest possible win.
+2. **Human heuristic** — default Rhetoric; heal (Consideration or the
+   Feeling) whenever HP < 30%; between 30–50% HP, attack if it would
+   do worthwhile damage, otherwise heal; always capitalize on Fen's
+   Exposed window the instant it's active; use Actually whenever
+   affordable above 50% HP. Meant to model "simple, intuitive
+   first-fight play," not optimal play.
+3. **Basics-only restricted search** (Rhetoric/Consideration only,
+   ever) to the same depth-45 search used previously — must find no
+   winning path.
+
+**A methodology bug caught mid-testing, worth recording.** An early
+version of the balance-testing mirror closure-captured the Exposed
+multiplier as a plain variable inside each move's `effect` function at
+module-load time; patching the exported constant from outside silently
+failed to affect Rhetoric/Actually's own damage calculation (only Big
+Swing's, which never actually checks its own exposed flag). Every
+"Exposed multiplier" sweep run before this was caught was silently
+using the hardcoded default (×2) regardless of what was passed —
+caught by manually tracing a single hit's damage against an
+intentionally different override value and noticing it didn't change.
+Fixed by refactoring the mirror to route every move's damage
+calculation through one shared, mutable config object read at call
+time, then every affected sweep was re-run from scratch. (Mentioned
+here in case a future balance pass hits the same class of bug — it's
+an easy one to reintroduce.)
+
+**Sweep findings.** Across an exhaustive grid of Big Swing damage
+(3–7) × Effort cost (4–10) at the Exposed multiplier fixed to exactly
+×2 (the literal "double damage" spec), every safe, clean-win
+configuration for the human heuristic converged to a **hard plateau
+at 12 rounds** — below the "roughly 15-20" target. The reason: once
+Fen's own HP drops under 30%, his AI locks into pure self-heal, and
+that endgame (Fen heals 2/turn against the player's ~2.3 average DPS)
+is a fixed-length grind independent of Big Swing's numbers, since Big
+Swing only ever fires once before the lockout. Pushing the Exposed
+multiplier above ×2 does stretch the round count further (e.g. ×2.5
+reaches turn 15), but **breaks the basics-only invariant starting
+exactly at ×2.5** — confirmed via the depth-45 search: basics-only
+cannot win at ×2 or below, but can at ×2.5 and above, at every damage/
+cost combination tested. Raising Fen's own heal-threshold from 30% to
+40% (not one of the three sanctioned tuning knobs — an AI parameter
+the request specified directly) was also tested informationally and
+would land the heuristic at turn 18 with basics-only still safe, but
+changes a value the request specified explicitly rather than left open
+to iterate on.
+
+**Decision: ship the 12-round result.** Given the choice between
+accepting the 12-round plateau (exactly the specified numbers: Big
+Swing 5 dmg / 9 Effort, Exposed ×2, Fen heal-threshold 30%) or
+deviating from a directly-specified value to reach the 15-20 target,
+the 12-round result was chosen. Final verified numbers:
+
+| Check | Result |
+|---|---|
+| 1. Computer-optimal | Wins in **5 moves**: `rhetoric, rhetoric, rhetoric, consideration, actually` |
+| 2. Human heuristic | **WIN at turn 12**, player HP 9/20 remaining |
+| 3. Basics-only (depth 45) | **Cannot win** |
+
+All three checks were re-verified directly against the live
+`js/combat.js` (not just the offline balance-testing mirror) by
+driving its real public API (`RatLand.startBattle` /
+`RatLand.playerUseMove`) inside a stubbed DOM-less sandbox, with
+`setTimeout` forced synchronous to avoid needing real wall-clock waits
+for the enemy-turn-gap delay — confirmed to produce identical results
+to the mirror.
+
+**Status icons updated (§9).** The 🛡️ Defence and 😤 Confident icons
+are removed; a single 💥 icon now shows Exposed (for whichever side
+currently has it) or Primed (for the player's pending next-attack
+bonus), reusing the existing always-visible/tap-to-explain pattern —
+no new UI system, just the existing icon slot repurposed for the new
+status pair. The Rules overlay (§22.7) and the icon-inactive CSS
+comment (§9) were updated to match; no other UI/dialogue polish was
+done this round, per the request's explicit scope.
