@@ -154,10 +154,14 @@ html, body {
   bottom: calc(130px + env(safe-area-inset-bottom, 0px));
   transform: translate(-50%, 20px);
   width: min(90vw, 420px);
+  box-sizing: border-box;
   background: rgba(10, 10, 10, 0.88);
   border: 1px solid #c9a227;
   border-radius: 8px;
-  padding: 10px 14px;
+  /* Extra bottom padding reserves room for the pagination row (left) and
+     cancel button (right), added below, so neither one overlaps the
+     dialogue text. */
+  padding: 10px 44px 40px 14px;
   color: #f4f4f4;
   opacity: 0;
   pointer-events: none;
@@ -181,6 +185,11 @@ html, body {
 #dialogue-box.visible {
   opacity: 1;
   transform: translate(-50%, 0);
+  /* Re-enables pointer events for the cancel/pagination buttons only
+     while the box is actually shown -- while hidden, #dialogue-box's own
+     `pointer-events: none` above still applies to the whole subtree, so
+     there's no window where an invisible button is still clickable. */
+  pointer-events: auto;
 }
 
 #dialogue-name {
@@ -194,6 +203,82 @@ html, body {
 
 #dialogue-text {
   font-size: 14px;
+  line-height: 1.4;
+  /* Fixed so the box doesn't resize as the player pages through a long
+     line (js/main.js's pagination) -- sized for the ~240-character-per-
+     page budget at this font size/box width, with a little headroom. */
+  min-height: 108px;
+  white-space: pre-wrap;
+}
+
+/* Pagination (green): strictly for one line too long to fit in a single
+   page -- see js/main.js's DIALOGUE_MAX_CHARS_PER_PAGE. Positioned
+   bottom-left, separate from the cancel button's bottom-right corner, so
+   the two never crowd each other and stay easy to tell apart even though
+   both use a directional-arrow glyph. */
+#dialogue-pagination {
+  display: none;
+  position: absolute;
+  left: 14px;
+  bottom: 8px;
+  align-items: center;
+  gap: 6px;
+}
+
+.dialogue-page-btn {
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: rgba(80, 200, 110, 0.25);
+  border: 1px solid rgba(90, 220, 120, 0.85);
+  color: #d6f5dc;
+  font-size: 11px;
+  line-height: 22px;
+  text-align: center;
+  padding: 0;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.dialogue-page-btn:active {
+  background: rgba(90, 220, 120, 0.45);
+}
+
+#dialogue-page-indicator {
+  font-size: 11px;
+  color: rgba(244, 244, 244, 0.75);
+  min-width: 24px;
+  text-align: center;
+}
+
+/* Cancel (red): closes the dialogue outright, without walking away
+   first. Bottom-right corner of the box, deliberately not part of
+   #controls or its hide-while-an-overlay-is-open rule below -- see the
+   comment on that rule and on this button's wiring in js/main.js. */
+#dialogue-cancel {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: rgba(200, 60, 50, 0.3);
+  border: 1px solid rgba(220, 80, 70, 0.9);
+  color: #ffe0dc;
+  font-size: 12px;
+  line-height: 26px;
+  text-align: center;
+  padding: 0;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#dialogue-cancel:active {
+  background: rgba(220, 80, 70, 0.5);
 }
 
 #controls {

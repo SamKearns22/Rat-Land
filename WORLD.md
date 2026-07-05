@@ -47,3 +47,6 @@ everywhere. But underneath the patriotic surface, the town is fraying:
   elite, dripping with polished bottle-cap chandeliers and old money.
 - **The Rusty Pipe (working-class pub)** — A no-frills bar where most of
   the town actually drinks, and where anti-mouse sentiment is loudest.
+- **Mousque** — A small mouse place of worship at the edge of town,
+  tucked in the bottom-right corner of the map. Not yet a working
+  interior, same as most of the list above.

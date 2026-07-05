@@ -45,6 +45,11 @@ RatLand.LOCATIONS = [
   { id: 'school', name: 'Rat School', col: 18, row: 12, color: '#4f83c9', hasInterior: false },
   { id: 'gym', name: 'Rat Gymnasium', col: 23, row: 12, color: '#e07b39', hasInterior: false },
   { id: 'rustypipe', name: 'The Rusty Pipe', col: 20, row: 19, color: '#8b5a2b', hasInterior: true, interiorId: 'rustypipe' },
+  // Bottom-right of the map, well clear of the road network and every
+  // other NPC/location -- a walkable-up-to placeholder like every other
+  // non-interior entry above (see isSolidOverworldTile: any location
+  // without hasInterior blocks entry the same way regardless of position).
+  { id: 'mousque', name: 'Mousque', col: 29, row: 21, color: '#7a8a9a', hasInterior: false },
 ];
 
 RatLand._locationLookup = {};

@@ -649,14 +649,27 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
     }
   }
 
+  // Placeholder buildings (every location without a working interior) are
+  // drawn 50% larger than their tile -- centered on it, so the extra size
+  // bleeds evenly outward rather than shifting the building off its own
+  // tile -- since they read as too small on their own, independently of
+  // the general camera zoom above (that zoom scales this box along with
+  // everything else afterward; this is a separate, additional increase).
+  // Buildings with a working interior (Town Hall, The Rusty Pipe) keep
+  // their original 1-tile size -- they're real, entered locations, not
+  // placeholders, so they were never part of this complaint.
+  var PLACEHOLDER_BUILDING_SCALE = 1.5;
   RatLand.LOCATIONS.forEach(function (loc) {
     var wx = loc.col * ts, wy = loc.row * ts;
+    var boxSize = loc.hasInterior ? ts : ts * PLACEHOLDER_BUILDING_SCALE;
+    var boxX = wx + ts / 2 - boxSize / 2;
+    var boxY = wy + ts / 2 - boxSize / 2;
     ctx.fillStyle = loc.color;
-    ctx.fillRect(wx, wy, ts, ts);
+    ctx.fillRect(boxX, boxY, boxSize, boxSize);
     ctx.strokeStyle = 'rgba(0,0,0,0.55)';
     ctx.lineWidth = 1;
-    ctx.strokeRect(wx + 0.5, wy + 0.5, ts - 1, ts - 1);
-    RatLand.drawLabel(ctx, loc.name, wx + ts / 2, wy - 4);
+    ctx.strokeRect(boxX + 0.5, boxY + 0.5, boxSize - 1, boxSize - 1);
+    RatLand.drawLabel(ctx, loc.name, wx + ts / 2, boxY - 4);
   });
 
   // With 31 NPCs, several are deliberately clustered near the same

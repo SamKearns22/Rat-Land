@@ -25,6 +25,22 @@
 <div id="dialogue-box">
   <div id="dialogue-name"></div>
   <div id="dialogue-text"></div>
+  <!-- Pagination (green): strictly for a single line too long to fit in
+       one box -- separate from Talk cycling between an NPC's different
+       lines. Prev only shows once page > 0, next only while more pages
+       remain, both driven by js/main.js. -->
+  <div id="dialogue-pagination">
+    <button id="dialogue-page-prev" class="dialogue-page-btn" type="button" aria-label="Previous page">&#9650;</button>
+    <span id="dialogue-page-indicator"></span>
+    <button id="dialogue-page-next" class="dialogue-page-btn" type="button" aria-label="Next page">&#9660;</button>
+  </div>
+  <!-- Cancel (red): closes the dialogue outright without needing to walk
+       away first. Lives inside #dialogue-box itself, governed only by
+       its own .visible toggle -- deliberately NOT added to style.css's
+       "hide #controls while an overlay is open" selector chain, since
+       that's the exact class of soft-lock previously found with the
+       Talk button (see style.css's comment on #dialogue-box.visible). -->
+  <button id="dialogue-cancel" type="button" aria-label="Close dialogue">&#9660;</button>
 </div>
 
 <div id="prebattle-menu" class="overlay-menu">
@@ -115,23 +131,19 @@
     <div class="overlay-title">Rules</div>
     <div id="battle-rules-text">
       <p><strong>How turns work</strong><br>
-      You always take the first move. Each round, you choose a move, then
-      Fen responds; after his response, Effort regenerates and 👄/🧠
-      build-up may adjust before your next turn.</p>
+      The player takes turns debating their opponent. The player goes
+      first. Once the debate is underway, the player can interpret
+      vaguely what their opponent might do next. The debate ends when
+      one participant is defeated.</p>
       <p><strong>Resources</strong><br>
-      <strong>HP</strong> — your health and Fen's. The battle ends the
-      instant either side's HP reaches 0.<br>
+      <strong>HP</strong> — Health. The battle ends when this drops to
+      zero.<br>
       <strong>Effort</strong> — spent on Facts and Feelings. Regenerates
       +2 per round under standard conditions, capped at your max.<br>
-      <strong>👄 (Rhetoric build-up)</strong> — builds +1 each time
-      Rhetoric is used under standard conditions, capped at 10. Facts
-      spend some of it to cast.<br>
-      <strong>🧠 (Consideration build-up)</strong> — builds +1 each time
-      Consideration is used under standard conditions, capped at 10.
-      Feelings spend some of it to cast.<br>
-      <strong>💥 Exposed / Primed</strong> — temporary statuses granted by
-      certain moves. Exposed: experiences double damage from Facts for
-      1 turn. Primed: its owner's own next attack deals a flat bonus.</p>
+      <strong>💥 Exposed</strong> — experiences double damage from Facts
+      for 1 turn.<br>
+      <strong>💥 Primed</strong> — its owner's own next attack deals a
+      flat bonus.</p>
       <p><strong>Goal</strong><br>
       Reduce your opponent's HP to 0.</p>
     </div>

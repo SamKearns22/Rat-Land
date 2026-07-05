@@ -8,18 +8,111 @@ window.RatLand = RatLand;
   var dialogueBox = document.getElementById('dialogue-box');
   var dialogueName = document.getElementById('dialogue-name');
   var dialogueText = document.getElementById('dialogue-text');
+  var dialoguePagination = document.getElementById('dialogue-pagination');
+  var dialoguePagePrev = document.getElementById('dialogue-page-prev');
+  var dialoguePageNext = document.getElementById('dialogue-page-next');
+  var dialoguePageIndicator = document.getElementById('dialogue-page-indicator');
+  var dialogueCancelBtn = document.getElementById('dialogue-cancel');
   var reputationEl = document.getElementById('reputation');
   var resetSaveBtn = document.getElementById('reset-save');
 
+  // --- Dialogue pagination (strictly for one line too long to fit in the
+  // box) -------------------------------------------------------------
+  // Deliberately separate from RatLand.getNpcLine/getPairLine, which
+  // cycle between an NPC's different lines each time Talk is pressed --
+  // this only ever splits whatever single line is currently showing.
+  // Word-wrap greedy split at a fixed character budget: no live DOM
+  // measurement (font/box width can vary by device), just a budget
+  // picked to comfortably wrap within the box at every supported width.
+  // Crazy Joe (js/npc.js) is the standing regression check -- each of
+  // his three lines is sized to land at exactly 3 pages under this
+  // budget, exercising the prev-hidden/both-shown/next-hidden states.
+  var DIALOGUE_MAX_CHARS_PER_PAGE = 240;
+
+  function paginateDialogueText(text) {
+    var words = text.split(' ');
+    var pages = [];
+    var current = '';
+    words.forEach(function (w) {
+      var candidate = current ? current + ' ' + w : w;
+      if (candidate.length > DIALOGUE_MAX_CHARS_PER_PAGE && current) {
+        pages.push(current);
+        current = w;
+      } else {
+        current = candidate;
+      }
+    });
+    pages.push(current);
+    return pages;
+  }
+
+  var dialoguePages = [''];
+  var dialoguePageIndex = 0;
+
+  function renderDialoguePage() {
+    dialogueText.textContent = dialoguePages[dialoguePageIndex];
+    var multiPage = dialoguePages.length > 1;
+    if (dialoguePagination) dialoguePagination.style.display = multiPage ? 'flex' : 'none';
+    if (dialoguePageIndicator) {
+      dialoguePageIndicator.textContent = multiPage ? (dialoguePageIndex + 1) + '/' + dialoguePages.length : '';
+    }
+    if (dialoguePagePrev) dialoguePagePrev.style.visibility = dialoguePageIndex > 0 ? 'visible' : 'hidden';
+    if (dialoguePageNext) {
+      dialoguePageNext.style.visibility = dialoguePageIndex < dialoguePages.length - 1 ? 'visible' : 'hidden';
+    }
+  }
+
   RatLand.showDialogue = function (name, text) {
     dialogueName.textContent = name;
-    dialogueText.textContent = text;
+    dialoguePages = paginateDialogueText(text);
+    dialoguePageIndex = 0;
+    renderDialoguePage();
     dialogueBox.classList.add('visible');
   };
 
   RatLand.hideDialogue = function () {
     dialogueBox.classList.remove('visible');
   };
+
+  RatLand.dialogueNextPage = function () {
+    if (dialoguePageIndex >= dialoguePages.length - 1) return;
+    dialoguePageIndex++;
+    renderDialoguePage();
+  };
+
+  RatLand.dialoguePrevPage = function () {
+    if (dialoguePageIndex <= 0) return;
+    dialoguePageIndex--;
+    renderDialoguePage();
+  };
+
+  if (dialoguePagePrev) {
+    dialoguePagePrev.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      RatLand.dialoguePrevPage();
+    });
+  }
+  if (dialoguePageNext) {
+    dialoguePageNext.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      RatLand.dialogueNextPage();
+    });
+  }
+  // Closes the dialogue outright, without needing to walk away first.
+  // Lives inside #dialogue-box, governed only by its own .visible
+  // toggle -- deliberately not folded into style.css's "hide #controls
+  // while an overlay is open" rule, since that rule's whole purpose is
+  // to NOT touch dialogue (a prior fix: hiding the D-pad/Talk button
+  // while ordinary dialogue was open removed a touch-only player's only
+  // way to close it, since dialogue doesn't freeze game.mode). Same
+  // principle applies here in reverse -- this button must stay reachable
+  // exactly when dialogue-box is visible, nothing more, nothing less.
+  if (dialogueCancelBtn) {
+    dialogueCancelBtn.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      RatLand.hideDialogue();
+    });
+  }
 
   var game = {
     mode: 'overworld', // 'overworld' | 'interior'
