@@ -72,7 +72,7 @@ async function measureSpot(page, id) {
     return {
       H: window.innerHeight,
       boxTop: box.top, boxBottom: box.bottom, boxHeight: box.height,
-      playerBottom: (pCenterY + 12 - g.camera.y) * zoom, // 24px-tall sprite centered on the player box
+      playerBottom: (pCenterY + 16 - g.camera.y) * zoom, // 32px-tall rat sprite (rat.png), centered on the player box
       npcBottom: (npc.row * 32 + 32 - g.camera.y) * zoom, // NPC tile's bottom edge (worst case)
       dpadTop: dpad.top, talkTop: talk.top,
       visible: document.getElementById('dialogue-box').classList.contains('visible'),

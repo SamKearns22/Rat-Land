@@ -26,12 +26,20 @@ RatLand.assets = {
   mossy: new Image(),
   brick: new Image(),
   fenwicket: new Image(),
-  player: new Image(),
+  rat: new Image(),
+  mouse: new Image(),
 };
 RatLand.assets.mossy.src = 'assets/tile-mossy-damp.png';
 RatLand.assets.brick.src = 'assets/tile-cracked-brick.png';
 RatLand.assets.fenwicket.src = 'assets/fenwicket-sprite.png';
-RatLand.assets.player.src = 'assets/player-sprite.png';
+// "Rodents (Rat Rework)" (CREDITS.md), CC-BY: the default sprite for the
+// player and every NPC except Fen Wicket (who keeps his own hand-picked
+// image, above). Grey for rat characters (incl. the player), brown for
+// mouse characters. Both sheets share one layout: 4 rows of 32x32
+// frames (up, right, down, left, confirmed by direct pixel inspection --
+// not assumed), 3 walk-cycle columns per row.
+RatLand.assets.rat.src = 'assets/rat.png';
+RatLand.assets.mouse.src = 'assets/mouse.png';
 
 RatLand._mossyPattern = null;
 RatLand._brickPattern = null;
@@ -506,38 +514,80 @@ function drawImageSprite(ctx, x, y, size, img, highlight) {
   ctx.restore();
 }
 
-// Draws the player character: the uploaded 29x24 pixel-art sprite
-// (assets/player-sprite.png, background color-keyed to transparent),
-// drawn at native resolution centered on the player's tile, exactly the
-// treatment Fen's image sprite gets. Falls back to the original
-// procedural grey rat while the image is still loading (or if it ever
-// fails), same graceful-degradation pattern as the tile textures. The
-// sprite is static art, so `facing` only matters for the fallback --
-// same trade-off already accepted for Fen's sprite.
-RatLand.drawPlayer = function (ctx, x, y, size, facing) {
-  var img = RatLand.assets.player;
+// Rodent sprite sheets (rat.png/mouse.png, "Rodents (Rat Rework)" --
+// CREDITS.md): each is a 4-row x 3-column grid of 32x32 frames. Row is
+// facing direction, confirmed by direct pixel inspection of the actual
+// files rather than assumed from a common convention -- this pack
+// happens to order them up/right/down/left, not the also-common
+// up/left/down/right. Column is the walk-cycle frame; frame 1 (the
+// middle column) reads as the neutral/standing pose, used whenever the
+// character isn't moving (every NPC, always -- none of them walk
+// around -- and the player whenever input isn't held).
+var RODENT_FRAME_SIZE = 32;
+var RODENT_FRAME_MS = 150; // walk-cycle speed while actually moving
+var RODENT_ROW_FOR_FACING = { up: 0, right: 1, down: 2, left: 3 };
+
+function rodentFrameCol(moving) {
+  if (!moving) return 1;
+  return Math.floor(Date.now() / RODENT_FRAME_MS) % 3;
+}
+
+function drawRodentSprite(ctx, x, y, size, img, facing, moving, highlight) {
+  var f = RODENT_FRAME_SIZE;
+  var row = RODENT_ROW_FOR_FACING[facing];
+  if (row === undefined) row = 2; // default: facing down
+  var col = rodentFrameCol(moving);
+  var cx = x + size / 2, cy = y + size / 2;
+  var dx = cx - f / 2, dy = cy - f / 2;
+
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  if (highlight) {
+    ctx.shadowColor = 'rgba(80, 220, 120, 0.9)';
+    ctx.shadowBlur = size * 0.3;
+  }
+  ctx.drawImage(img, col * f, row * f, f, f, dx, dy, f, f);
+  ctx.restore();
+}
+
+// Draws the player character: the grey rat sprite sheet, animated by
+// the player's own facing/moving state (js/player.js already tracks
+// both for input handling). Falls back to the original procedural grey
+// rat while the image is still loading (or if it ever fails), same
+// graceful-degradation pattern as the tile textures.
+RatLand.drawPlayer = function (ctx, x, y, size, facing, moving) {
+  var img = RatLand.assets.rat;
   if (img && img.complete && img.naturalWidth) {
-    drawImageSprite(ctx, x, y, size, img, false);
+    drawRodentSprite(ctx, x, y, size, img, facing, moving, false);
     return;
   }
   RatLand.drawRat(ctx, x, y, size, '#9a9a9a', facing);
 };
 
-// Draws one NPC from the roster: base rat (or mouse) body shared with the
-// player, a body-level treatment if any, then hat/eyewear/neckwear/prop/pin
-// accessories layered on top in a sensible order. `highlight` marks this
-// as the character the player is currently close enough to talk to.
+// Draws one NPC from the roster. Every NPC except Fen Wicket now uses
+// the shared rat/mouse sprite sheet (grey for rats, brown for mice, per
+// spec.species) instead of the old procedural body + accessories --
+// always the idle frame (column 1), since no NPC in the roster actually
+// walks around. `highlight` marks this as the character the player is
+// currently close enough to talk to.
 //
 // If spec.spriteAsset names a loaded RatLand.assets image, that image is
-// drawn instead of the procedural body — used for the one-off hand-picked
-// sprite swap on Fen Wicket. Falls back to the procedural rat while the
-// image is still loading, same graceful-degradation pattern as the tile
-// textures.
+// drawn instead -- used for the one-off hand-picked sprite swap on Fen
+// Wicket, which takes priority over the rat/mouse sheet. Falls back to
+// the original procedural body (rat shape + accessories, or the mouse
+// silhouette) while whichever image applies is still loading, same
+// graceful-degradation pattern as the tile textures.
 RatLand.drawNpcRat = function (ctx, x, y, size, spec, facing, highlight) {
   if (spec.spriteAsset) {
     var img = RatLand.assets[spec.spriteAsset];
     if (img && img.complete && img.naturalWidth) {
       drawImageSprite(ctx, x, y, size, img, highlight);
+      return;
+    }
+  } else {
+    var rodentImg = spec.species === 'mouse' ? RatLand.assets.mouse : RatLand.assets.rat;
+    if (rodentImg && rodentImg.complete && rodentImg.naturalWidth) {
+      drawRodentSprite(ctx, x, y, size, rodentImg, facing || 'down', false, highlight);
       return;
     }
   }
@@ -724,9 +774,17 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   // NPCs you're about to speak to.
   var talkTarget = RatLand.findTalkTarget(playerCol, playerRow);
 
+  // Town Crier is a rat like everyone else in the roster, but he isn't
+  // part of RatLand.NPC_ROSTER (a separate object, per npc.js), so he
+  // doesn't go through drawNpcRat -- same rat-sheet treatment by hand.
   var crier = RatLand.townCrier;
   var crierX = crier.col * ts, crierY = crier.row * ts;
-  RatLand.drawRat(ctx, crierX, crierY, ts, crier.color, 'down', talkTarget === crier);
+  var crierImg = RatLand.assets.rat;
+  if (crierImg && crierImg.complete && crierImg.naturalWidth) {
+    drawRodentSprite(ctx, crierX, crierY, ts, crierImg, 'down', false, talkTarget === crier);
+  } else {
+    RatLand.drawRat(ctx, crierX, crierY, ts, crier.color, 'down', talkTarget === crier);
+  }
   RatLand.drawLabel(ctx, crier.name, crierX + ts / 2, crierY - 4);
 
   // Linked pairs (e.g. Nora & Barry) stand close together, so their own
@@ -769,7 +827,7 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
     }
   });
 
-  RatLand.drawPlayer(ctx, game.player.x, game.player.y, game.player.size, game.player.facing);
+  RatLand.drawPlayer(ctx, game.player.x, game.player.y, game.player.size, game.player.facing, game.player.moving);
 
   ctx.restore();
 };
@@ -813,7 +871,7 @@ RatLand.renderInterior = function (ctx, game, viewW, viewH) {
   ctx.textAlign = 'center';
   ctx.fillText(interior.title, vw / 2, Math.max(24, offsetY - 12));
 
-  RatLand.drawPlayer(ctx, offsetX + game.player.x, offsetY + game.player.y, game.player.size, game.player.facing);
+  RatLand.drawPlayer(ctx, offsetX + game.player.x, offsetY + game.player.y, game.player.size, game.player.facing, game.player.moving);
 
   ctx.restore();
 };
