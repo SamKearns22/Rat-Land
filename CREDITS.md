@@ -31,6 +31,17 @@ AI-generated character sprites.
 - **Artist:** Viktor Hahn
 - **Source:** https://opengameart.org/content/ruined-modern-city-tileset
 - **License:** CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+- **In use as:** environmental decay dressing cropped from this sheet —
+  `assets/decal-pavement-crack-clean.png` / `-worn.png` (cracked
+  pavement, clean and grimy variants, layered under PATH/PATH_WORN
+  tiles in place of the plain brick texture), `assets/decal-brick-
+  damage.png` (a visibly damaged brick variant scattered among ordinary
+  WALL tiles), `assets/decal-rubble.png` and `assets/decal-weeds.png`
+  (sparse props scattered on GROUND tiles). The worn-pavement, brick,
+  and rubble crops got a light retint (blended toward the game's
+  existing Muck-and-Grime-13 palette, ~25-30%) since their original
+  red tone sat noticeably off that palette; the clean pavement and
+  weeds crops were already close enough to use unretouched.
 
 ## sewer_1.png
 
@@ -46,6 +57,15 @@ AI-generated character sprites.
   unreliable result this file shouldn't repeat as fact. Title/source/
   license above come directly from the repository owner, not from
   that search, and are trustworthy; only the artist's name is pending.
+- **In use as:** the sheet's non-lava stone/water region, cropped as
+  `assets/tile-sewer-stone.png` (building interior walls/floors — Town
+  Hall, The Rusty Pipe) and `assets/tile-sewer-water.png` (the
+  overworld Sewer River tile, replacing its old flat fill). Both crops
+  were already close to the game's existing palette, so neither needed
+  retinting. The sheet's lava tiles are excluded from this integration;
+  a recolor experiment (lava → murky sludge, for possible future use on
+  the river) was previewed but is not wired into the game pending
+  review.
 
 ## rat.png / mouse.png
 

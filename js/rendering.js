@@ -28,10 +28,40 @@ RatLand.assets = {
   fenwicket: new Image(),
   rat: new Image(),
   mouse: new Image(),
+  pavementCrackClean: new Image(),
+  pavementCrackWorn: new Image(),
+  brickDamaged: new Image(),
+  rubble: new Image(),
+  weeds: new Image(),
 };
 RatLand.assets.mossy.src = 'assets/tile-mossy-damp.png';
 RatLand.assets.brick.src = 'assets/tile-cracked-brick.png';
 RatLand.assets.fenwicket.src = 'assets/fenwicket-sprite.png';
+// Environmental decay dressing, cropped from "Ruined Modern City Tileset"
+// by Viktor Hahn (CREDITS.md), CC-BY 4.0: cracked pavement (a stone-grey
+// crop for clean PATH, a retinted brick-red crop for PATH_WORN, mirroring
+// the existing clean/worn tint split), a damaged-brick variant scattered
+// among ordinary WALL tiles, and rubble/weeds prop decals scattered
+// sparingly on GROUND tiles. The red-toned crops (pavement-worn, brick,
+// rubble) got a light retint (blend toward the nearest Muck-and-Grime-13
+// palette color, ~25-30%) to sit closer to the game's existing muted
+// palette; the grey pavement and the weeds crop were already close
+// enough to use unretouched.
+RatLand.assets.pavementCrackClean.src = 'assets/decal-pavement-crack-clean.png';
+RatLand.assets.pavementCrackWorn.src = 'assets/decal-pavement-crack-worn.png';
+RatLand.assets.brickDamaged.src = 'assets/decal-brick-damage.png';
+RatLand.assets.rubble.src = 'assets/decal-rubble.png';
+RatLand.assets.weeds.src = 'assets/decal-weeds.png';
+// Non-lava crops of "Sewer tileset" (CREDITS.md), CC-BY: a plain stone
+// block texture for building-interior walls/floors (Town Hall, The Rusty
+// Pipe -- both read as converted tunnel spaces, not modern rooms), and a
+// teal ripple-water texture for the overworld Sewer River tile. Both
+// crops were already close to the game's existing palette, so neither
+// needed retinting.
+RatLand.assets.sewerStone = new Image();
+RatLand.assets.sewerWater = new Image();
+RatLand.assets.sewerStone.src = 'assets/tile-sewer-stone.png';
+RatLand.assets.sewerWater.src = 'assets/tile-sewer-water.png';
 // "Rodents (Rat Rework)" (CREDITS.md), CC-BY: the default sprite for the
 // player and every NPC except Fen Wicket (who keeps his own hand-picked
 // image, above). Grey for rat characters (incl. the player), brown for
@@ -43,6 +73,11 @@ RatLand.assets.mouse.src = 'assets/mouse.png';
 
 RatLand._mossyPattern = null;
 RatLand._brickPattern = null;
+RatLand._pavementCrackCleanPattern = null;
+RatLand._pavementCrackWornPattern = null;
+RatLand._brickDamagedPattern = null;
+RatLand._sewerStonePattern = null;
+RatLand._sewerWaterPattern = null;
 
 function ensureGroundPatterns(ctx) {
   if (!RatLand._mossyPattern && RatLand.assets.mossy.complete && RatLand.assets.mossy.naturalWidth) {
@@ -51,17 +86,85 @@ function ensureGroundPatterns(ctx) {
   if (!RatLand._brickPattern && RatLand.assets.brick.complete && RatLand.assets.brick.naturalWidth) {
     RatLand._brickPattern = ctx.createPattern(RatLand.assets.brick, 'repeat');
   }
+  if (!RatLand._pavementCrackCleanPattern && RatLand.assets.pavementCrackClean.complete && RatLand.assets.pavementCrackClean.naturalWidth) {
+    RatLand._pavementCrackCleanPattern = ctx.createPattern(RatLand.assets.pavementCrackClean, 'repeat');
+  }
+  if (!RatLand._pavementCrackWornPattern && RatLand.assets.pavementCrackWorn.complete && RatLand.assets.pavementCrackWorn.naturalWidth) {
+    RatLand._pavementCrackWornPattern = ctx.createPattern(RatLand.assets.pavementCrackWorn, 'repeat');
+  }
+  if (!RatLand._brickDamagedPattern && RatLand.assets.brickDamaged.complete && RatLand.assets.brickDamaged.naturalWidth) {
+    RatLand._brickDamagedPattern = ctx.createPattern(RatLand.assets.brickDamaged, 'repeat');
+  }
+  if (!RatLand._sewerStonePattern && RatLand.assets.sewerStone.complete && RatLand.assets.sewerStone.naturalWidth) {
+    RatLand._sewerStonePattern = ctx.createPattern(RatLand.assets.sewerStone, 'repeat');
+  }
+  if (!RatLand._sewerWaterPattern && RatLand.assets.sewerWater.complete && RatLand.assets.sewerWater.naturalWidth) {
+    RatLand._sewerWaterPattern = ctx.createPattern(RatLand.assets.sewerWater, 'repeat');
+  }
+}
+
+// Cheap, deterministic 0..1 pseudo-random value per tile coordinate, so
+// decay decals (which WALL tiles look extra-damaged, which GROUND tiles
+// get a rubble/weeds prop) are picked once from the map layout itself
+// and stay put every frame, instead of re-rolling (and visibly jittering)
+// on every render.
+function tileHash(row, col) {
+  var h = (row * 374761393 + col * 668265263) ^ 0;
+  h = (h ^ (h >>> 13)) * 1274126177;
+  h = (h ^ (h >>> 16)) >>> 0;
+  return (h % 10000) / 10000;
 }
 
 // Which fill to use for a given overworld tile: textured where we have a
-// loaded pattern for it, otherwise its plain TILE_COLORS fallback.
-function overworldFillFor(tile) {
+// loaded pattern for it, otherwise its plain TILE_COLORS fallback. PATH
+// and PATH_WORN get their own cracked-pavement texture (mirroring the
+// existing clean/worn tint split in paintPathContrast below) instead of
+// reusing the WALL brick texture; ~1 in 5 WALL tiles swaps in a visibly
+// more damaged brick variant so not every wall reads as freshly built.
+function overworldFillFor(tile, row, col) {
   var TILE = RatLand.TILE;
   if (tile === TILE.GROUND && RatLand._mossyPattern) return RatLand._mossyPattern;
-  if ((tile === TILE.WALL || tile === TILE.PATH || tile === TILE.PATH_WORN) && RatLand._brickPattern) {
+  if (tile === TILE.WATER && RatLand._sewerWaterPattern) return RatLand._sewerWaterPattern;
+  if (tile === TILE.PATH && RatLand._pavementCrackCleanPattern) return RatLand._pavementCrackCleanPattern;
+  if (tile === TILE.PATH_WORN && RatLand._pavementCrackWornPattern) return RatLand._pavementCrackWornPattern;
+  if (tile === TILE.WALL) {
+    if (RatLand._brickDamagedPattern && tileHash(row, col) < 0.2) return RatLand._brickDamagedPattern;
+    if (RatLand._brickPattern) return RatLand._brickPattern;
+  }
+  if ((tile === TILE.PATH || tile === TILE.PATH_WORN) && RatLand._brickPattern) {
     return RatLand._brickPattern;
   }
   return RatLand.TILE_COLORS[tile];
+}
+
+// Sparse rubble/weeds prop decals on ordinary GROUND tiles -- a light
+// sprinkle of "Ruined Modern City Tileset" decay dressing (CREDITS.md),
+// not a per-tile guarantee, using the same deterministic tileHash so a
+// given tile's decal (or lack of one) never changes between frames.
+var GROUND_DECAL_RUBBLE_CHANCE = 0.05;
+var GROUND_DECAL_WEEDS_CHANCE = 0.09; // cumulative: rubble slot + this
+function drawGroundDecal(ctx, row, col, ts) {
+  var h = tileHash(row + 5000, col + 5000); // offset so it doesn't correlate with the WALL-damage hash
+  var img = null;
+  if (h < GROUND_DECAL_RUBBLE_CHANCE) {
+    img = RatLand.assets.rubble;
+  } else if (h < GROUND_DECAL_WEEDS_CHANCE) {
+    img = RatLand.assets.weeds;
+  } else {
+    return;
+  }
+  if (!img.complete || !img.naturalWidth) return;
+
+  var iw = img.naturalWidth, ih = img.naturalHeight;
+  var scale = ts / Math.max(iw, ih);
+  var dw = iw * scale, dh = ih * scale;
+  var dx = col * ts + (ts - dw) / 2;
+  var dy = row * ts + (ts - dh) / 2;
+
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, dx, dy, dw, dh);
+  ctx.restore();
 }
 
 function isPathTileType(tile) {
@@ -730,10 +833,13 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
     var isPhantomRow = row >= RatLand.OVERWORLD_ROWS;
     for (var col = startCol; col <= endCol; col++) {
       var tile = isPhantomRow ? TILE.WALL : RatLand.overworldGrid[row][col];
-      ctx.fillStyle = overworldFillFor(tile);
+      ctx.fillStyle = overworldFillFor(tile, row, col);
       ctx.fillRect(col * ts, row * ts, ts, ts);
       if (!isPhantomRow && isPathTileType(tile)) {
         paintPathContrast(ctx, tile, row, col, ts);
+      }
+      if (!isPhantomRow && tile === TILE.GROUND) {
+        drawGroundDecal(ctx, row, col, ts);
       }
     }
   }
@@ -848,11 +954,29 @@ RatLand.renderInterior = function (ctx, game, viewW, viewH) {
   ctx.save();
   ctx.scale(zoom, zoom);
 
+  ensureGroundPatterns(ctx);
+
   for (var row = 0; row < interior.rows; row++) {
     for (var col = 0; col < interior.cols; col++) {
       var tile = interior.grid[row][col];
-      ctx.fillStyle = tile === RatLand.TILE.PROP ? interior.propColor : RatLand.TILE_COLORS[tile];
+      // Both interiors read as converted tunnel spaces, so wall and floor
+      // share the one stone-block texture ("Sewer tileset", CREDITS.md)
+      // rather than a flat color, falling back to the old flat fill while
+      // the image loads. A dark overlay on WALL cells keeps the room's
+      // outline readable -- with one shared texture and no tint, the
+      // border blended into the floor and the room's shape disappeared.
+      if (tile === RatLand.TILE.PROP) {
+        ctx.fillStyle = interior.propColor;
+      } else if ((tile === RatLand.TILE.WALL || tile === RatLand.TILE.PATH) && RatLand._sewerStonePattern) {
+        ctx.fillStyle = RatLand._sewerStonePattern;
+      } else {
+        ctx.fillStyle = RatLand.TILE_COLORS[tile];
+      }
       ctx.fillRect(offsetX + col * ts, offsetY + row * ts, ts, ts);
+      if (tile === RatLand.TILE.WALL && RatLand._sewerStonePattern) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        ctx.fillRect(offsetX + col * ts, offsetY + row * ts, ts, ts);
+      }
     }
   }
 
