@@ -19,6 +19,7 @@
 <div id="hud-top-right">
   <div id="reputation">Reputation: 0</div>
   <button id="reset-save" type="button">Reset Save</button>
+  <button id="credits-open" type="button" aria-label="Credits">ⓘ</button>
   <button id="mute-toggle" type="button" aria-label="Mute sound">🔊</button>
 </div>
 
@@ -148,6 +149,41 @@
       Reduce your opponent's HP to 0.</p>
     </div>
     <button id="battle-rules-back" class="overlay-btn" type="button">Back</button>
+  </div>
+</div>
+
+<!-- Credits (see CREDITS.md, kept in sync by hand): reachable from the
+     overworld HUD any time, not just during battle, since it covers
+     art credit for the overworld/environment art, not a battle
+     mechanic. Mirrors CREDITS.md's content, including its honest
+     "unconfirmed" flags -- an in-game screen claiming confident CC-BY
+     attribution for a source that isn't actually confirmed would be
+     worse than not crediting it at all. -->
+<div id="credits-overlay" class="fullscreen-overlay">
+  <div class="fullscreen-overlay-inner">
+    <div class="overlay-title">Credits</div>
+    <div id="credits-text">
+      <p>Third-party art assets, beyond Rat Land's own code, writing,
+      and AI-generated character sprites. Full detail in this
+      repository's <code>CREDITS.md</code>.</p>
+      <p><strong>Buildings (top view)</strong><br>
+      Artist: Kutejnikov<br>
+      opengameart.org/content/buildings-top-view<br>
+      License: CC-BY 4.0</p>
+      <p><strong>Cave tileset</strong><br>
+      Artist/source: unconfirmed<br>
+      License stated as CC-BY 4.0 by whoever added this file, not yet
+      independently verified.</p>
+      <p><strong>Ruins tileset</strong><br>
+      Artist/source: unconfirmed<br>
+      License stated as CC-BY 4.0 by whoever added this file, not yet
+      independently verified.</p>
+      <p><strong>Sewer tileset</strong><br>
+      Artist/source: unconfirmed<br>
+      License stated as CC-BY 4.0 by whoever added this file, not yet
+      independently verified.</p>
+    </div>
+    <button id="credits-back" class="overlay-btn" type="button">Back</button>
   </div>
 </div>
 

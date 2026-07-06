@@ -145,6 +145,26 @@ window.RatLand = RatLand;
   RatLand.applySaveData(game, RatLand.loadSaveData());
   updateReputationDisplay();
 
+  // Credits overlay (see CREDITS.md): reachable from the overworld HUD at
+  // any time, not gated behind battle like the Rules overlay is, since it
+  // covers overworld/environment art credit, not a battle mechanic. Same
+  // fullscreen-overlay open/close pattern as battle-rules-open/back.
+  var creditsOpenBtn = document.getElementById('credits-open');
+  var creditsOverlay = document.getElementById('credits-overlay');
+  var creditsBackBtn = document.getElementById('credits-back');
+  if (creditsOpenBtn && creditsOverlay) {
+    creditsOpenBtn.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      creditsOverlay.classList.add('visible');
+    });
+  }
+  if (creditsBackBtn && creditsOverlay) {
+    creditsBackBtn.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      creditsOverlay.classList.remove('visible');
+    });
+  }
+
   if (resetSaveBtn) {
     resetSaveBtn.addEventListener('click', function () {
       if (window.confirm('Reset your save? This clears your position, Reputation, and unlocked moves.')) {

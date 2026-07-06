@@ -148,6 +148,21 @@ html, body {
   background: rgba(0, 0, 0, 0.45);
 }
 
+#credits-open {
+  color: rgba(220, 210, 190, 0.7);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 5px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-family: inherit;
+  line-height: 1.3;
+}
+
+#credits-open:active {
+  background: rgba(0, 0, 0, 0.45);
+}
+
 /* iOS pinch/double-tap zoom coverage (root cause of a real-device
    "everything huge and clipped after the Fen battle" report):
    touch-action does NOT inherit, so setting it on html/body/#game/the
@@ -596,18 +611,26 @@ html, body {
   margin: 0 auto;
 }
 
-#battle-rules-text {
+#battle-rules-text,
+#credits-text {
   font-size: 13px;
   line-height: 1.5;
   color: #e8e4d8;
 }
 
-#battle-rules-text p {
+#battle-rules-text p,
+#credits-text p {
   margin: 0 0 12px;
 }
 
-#battle-rules-text strong {
+#battle-rules-text strong,
+#credits-text strong {
   color: #f4e4a8;
+}
+
+#credits-text code {
+  color: #baab98;
+  font-size: 12px;
 }
 
 /* Combatant panels: opponent on top, player on the bottom-opposite corner,
