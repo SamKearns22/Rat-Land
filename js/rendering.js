@@ -67,6 +67,18 @@ RatLand.assets.sewerStone = new Image();
 RatLand.assets.sewerWater = new Image();
 RatLand.assets.sewerStone.src = 'assets/tile-sewer-stone.png';
 RatLand.assets.sewerWater.src = 'assets/tile-sewer-water.png';
+// Custom exterior building sprites (CREDITS.md: Kenney's "Roguelike/Modern
+// City" pack + a CC0 "city_extension" building sheet), assembled per
+// location from cropped pieces of both sheets and retinted toward the
+// game's existing palette. Test case: Rat Town Hall only, for now -- the
+// rest of RatLand.LOCATIONS still fall back to their flat-color
+// placeholder box (see the LOCATIONS.forEach draw loop below) until each
+// location's sprite is built.
+RatLand.assets.buildingTownhall = new Image();
+RatLand.assets.buildingTownhall.src = 'assets/building-townhall.png';
+RatLand.BUILDING_SPRITES = {
+  townhall: 'buildingTownhall',
+};
 // "Rodents (Rat Rework)" (CREDITS.md), CC-BY: the default sprite for the
 // player and every NPC except Fen Wicket (who keeps his own hand-picked
 // image, above). Grey for rat characters (incl. the player), brown for
@@ -861,6 +873,24 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   var PLACEHOLDER_BUILDING_SCALE = 1.5;
   RatLand.LOCATIONS.forEach(function (loc) {
     var wx = loc.col * ts, wy = loc.row * ts;
+
+    // Custom exterior sprite, where one's been built for this location --
+    // bottom-aligned to the tile's base (so it "stands" on its plot and
+    // grows upward) and horizontally centered on it, same anchor logic as
+    // the flat-box placeholder below.
+    var spriteKey = RatLand.BUILDING_SPRITES[loc.id];
+    var img = spriteKey && RatLand.assets[spriteKey];
+    if (img && img.complete && img.naturalWidth) {
+      var bx = wx + ts / 2 - img.naturalWidth / 2;
+      var by = wy + ts - img.naturalHeight;
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, bx, by);
+      ctx.restore();
+      RatLand.drawLabel(ctx, loc.name, wx + ts / 2, by - 4);
+      return;
+    }
+
     var boxSize = loc.hasInterior ? ts : ts * PLACEHOLDER_BUILDING_SCALE;
     var boxX = wx + ts / 2 - boxSize / 2;
     var boxY = wy + ts / 2 - boxSize / 2;

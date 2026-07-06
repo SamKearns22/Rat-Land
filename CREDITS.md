@@ -4,6 +4,43 @@ Third-party art assets used (or under evaluation for use) in Rat Land,
 beyond the game's own original code, world-building text, and
 AI-generated character sprites.
 
+## roguelikeCity_magenta.png
+
+- **Title:** Roguelike/Modern City Pack (magenta-keyed export)
+- **Artist:** Kenney (kenney.nl)
+- **Source:** https://kenney.nl/assets/roguelike-modern-city
+- **License:** CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+- **Note:** The copy provided already carries a proper alpha channel
+  (binary 0/255, confirmed by full-sheet pixel scan) — the sheet's
+  magenta key color isn't actually present as opaque pixels anywhere in
+  this export, so no color-keying step was needed.
+- **In use as:** a stepped/ziggurat roofline piece cropped for Rat Town
+  Hall's roof cap. Measured avg. nearest-color distance 28.5 against the
+  game's 13-color Muck-and-Grime-13 reference palette before retinting
+  (pixel-sampled, same method used for the ruins/sewer tilesets) — close
+  enough that only a light blend (15% toward each pixel's nearest
+  palette color) was applied, landing at 23.7. More pieces to follow as
+  the rest of the named locations' exteriors are built.
+
+## city_extension.png
+
+- **Title:** city_extension (building exterior sheet)
+- **Artist:** JVBot Inc.
+- **Source:** provided directly by the repository owner
+- **License:** CC0 1.0, per the person who provided this file
+- **Note:** Several tiles in the lower-right of the sheet carry a
+  repeated "JVBot Inc." text watermark. A full-sheet pixel scan for the
+  watermark's saturated blue found it confined to y=594–734 (of a
+  736px-tall sheet); that entire row band is treated as off-limits and
+  nothing has been (or will be) cropped from it, watermarked or not.
+- **In use as:** a wall-facade texture and an arched door, both
+  assembled into Rat Town Hall's exterior. Measured avg. nearest-color
+  distance 36.6 (facade) and 52.5 (door) against the Muck-and-Grime-13
+  palette before retinting — both moderate enough to need it — and
+  landed at 25.7 and 26.6 respectively after a 30%/50% blend toward
+  each pixel's nearest palette color. More pieces to follow as the rest
+  of the named locations' exteriors are built.
+
 ## buildings.png
 
 - **Title:** Buildings (top view)
