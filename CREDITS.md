@@ -24,14 +24,6 @@ AI-generated character sprites.
   contradictory about the artist's exact username, so it's left
   unconfirmed here rather than risk a wrong name. Title/source/license
   above are otherwise settled.
-- **In use as:** two plain dirt/rock floor crops (`assets/decal-cave-
-  dirt-1.png`, `assets/decal-cave-dirt-2.png`), scattered in ~15% of
-  ordinary GROUND tiles as patches breaking up the flat sewer-floor moss
-  texture. Both crops measured avg. nearest-color distance ~24-25
-  against the game's 13-color Muck-and-Grime-13 reference palette (same
-  pixel-sampled method used for the ruins tileset crops) — close enough
-  that neither needed retinting. The sheet's red "blood cave" variant
-  and its lava pool are excluded entirely; nothing from either was used.
 
 ## ruins_tileset.png
 

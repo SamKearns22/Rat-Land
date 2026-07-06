@@ -67,18 +67,6 @@ RatLand.assets.sewerStone = new Image();
 RatLand.assets.sewerWater = new Image();
 RatLand.assets.sewerStone.src = 'assets/tile-sewer-stone.png';
 RatLand.assets.sewerWater.src = 'assets/tile-sewer-water.png';
-// Plain dirt/rock floor crops from "Cave tileset" (CREDITS.md), CC-BY:
-// two variants scattered sparingly across ordinary GROUND tiles as
-// patches breaking up the flat sewer-floor moss texture. Both crops
-// measured close to the game's existing palette (avg nearest-color
-// distance ~24-25 against the 13-color Muck-and-Grime-13 reference,
-// same method used for the ruins tileset crops), so neither needed
-// retinting. The sheet's red "blood cave" variant and its lava pool are
-// excluded entirely -- not used anywhere, on ground or otherwise.
-RatLand.assets.caveDirt1 = new Image();
-RatLand.assets.caveDirt2 = new Image();
-RatLand.assets.caveDirt1.src = 'assets/decal-cave-dirt-1.png';
-RatLand.assets.caveDirt2.src = 'assets/decal-cave-dirt-2.png';
 // "Rodents (Rat Rework)" (CREDITS.md), CC-BY: the default sprite for the
 // player and every NPC except Fen Wicket (who keeps his own hand-picked
 // image, above). Grey for rat characters (incl. the player), brown for
@@ -95,8 +83,6 @@ RatLand._pavementCrackWornPattern = null;
 RatLand._brickDamagedPattern = null;
 RatLand._sewerStonePattern = null;
 RatLand._sewerWaterPattern = null;
-RatLand._caveDirt1Pattern = null;
-RatLand._caveDirt2Pattern = null;
 
 function ensureGroundPatterns(ctx) {
   if (!RatLand._mossyPattern && RatLand.assets.mossy.complete && RatLand.assets.mossy.naturalWidth) {
@@ -120,12 +106,6 @@ function ensureGroundPatterns(ctx) {
   if (!RatLand._sewerWaterPattern && RatLand.assets.sewerWater.complete && RatLand.assets.sewerWater.naturalWidth) {
     RatLand._sewerWaterPattern = ctx.createPattern(RatLand.assets.sewerWater, 'repeat');
   }
-  if (!RatLand._caveDirt1Pattern && RatLand.assets.caveDirt1.complete && RatLand.assets.caveDirt1.naturalWidth) {
-    RatLand._caveDirt1Pattern = ctx.createPattern(RatLand.assets.caveDirt1, 'repeat');
-  }
-  if (!RatLand._caveDirt2Pattern && RatLand.assets.caveDirt2.complete && RatLand.assets.caveDirt2.naturalWidth) {
-    RatLand._caveDirt2Pattern = ctx.createPattern(RatLand.assets.caveDirt2, 'repeat');
-  }
 }
 
 // Cheap, deterministic 0..1 pseudo-random value per tile coordinate, so
@@ -146,19 +126,9 @@ function tileHash(row, col) {
 // existing clean/worn tint split in paintPathContrast below) instead of
 // reusing the WALL brick texture; ~1 in 5 WALL tiles swaps in a visibly
 // more damaged brick variant so not every wall reads as freshly built.
-// GROUND itself gets two cave-dirt variants scattered in ~15% of tiles
-// (own hash range, so it doesn't correlate with the WALL-damage roll or
-// the rubble/weeds prop scatter below) -- patches of bare dirt breaking
-// up the flat moss texture, replacing the tile's own base fill rather
-// than sitting on top of it like the rubble/weeds props do.
 function overworldFillFor(tile, row, col) {
   var TILE = RatLand.TILE;
-  if (tile === TILE.GROUND) {
-    var gh = tileHash(row + 9000, col + 9000);
-    if (RatLand._caveDirt1Pattern && gh < 0.08) return RatLand._caveDirt1Pattern;
-    if (RatLand._caveDirt2Pattern && gh < 0.15) return RatLand._caveDirt2Pattern;
-    if (RatLand._mossyPattern) return RatLand._mossyPattern;
-  }
+  if (tile === TILE.GROUND && RatLand._mossyPattern) return RatLand._mossyPattern;
   if (tile === TILE.WATER && RatLand._sewerWaterPattern) return RatLand._sewerWaterPattern;
   if (tile === TILE.PATH && RatLand._pavementCrackCleanPattern) return RatLand._pavementCrackCleanPattern;
   if (tile === TILE.PATH_WORN && RatLand._pavementCrackWornPattern) return RatLand._pavementCrackWornPattern;
