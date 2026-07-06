@@ -24,6 +24,14 @@ AI-generated character sprites.
   contradictory about the artist's exact username, so it's left
   unconfirmed here rather than risk a wrong name. Title/source/license
   above are otherwise settled.
+- **In use as:** two plain dirt/rock floor crops (`assets/decal-cave-
+  dirt-1.png`, `assets/decal-cave-dirt-2.png`), scattered in ~15% of
+  ordinary GROUND tiles as patches breaking up the flat sewer-floor moss
+  texture. Both crops measured avg. nearest-color distance ~24-25
+  against the game's 13-color Muck-and-Grime-13 reference palette (same
+  pixel-sampled method used for the ruins tileset crops) — close enough
+  that neither needed retinting. The sheet's red "blood cave" variant
+  and its lava pool are excluded entirely; nothing from either was used.
 
 ## ruins_tileset.png
 
@@ -60,12 +68,14 @@ AI-generated character sprites.
 - **In use as:** the sheet's non-lava stone/water region, cropped as
   `assets/tile-sewer-stone.png` (building interior walls/floors — Town
   Hall, The Rusty Pipe) and `assets/tile-sewer-water.png` (the
-  overworld Sewer River tile, replacing its old flat fill). Both crops
-  were already close to the game's existing palette, so neither needed
-  retinting. The sheet's lava tiles are excluded from this integration;
-  a recolor experiment (lava → murky sludge, for possible future use on
-  the river) was previewed but is not wired into the game pending
-  review.
+  overworld Sewer River tile, replacing its old flat fill). The stone
+  crop was already close to the game's existing palette and used
+  unretouched. The water crop's ripple/bubble detail is the original
+  sheet's, but recolored from clean teal to a murky sickly-green sludge
+  (hue retargeted, saturation/value scaled down, contrast preserved) to
+  read as stagnant polluted water rather than a clean tunnel stream.
+  The sheet's lava tiles are excluded from this integration entirely —
+  not used anywhere, recolored or otherwise.
 
 ## rat.png / mouse.png
 
