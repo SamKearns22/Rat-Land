@@ -650,7 +650,21 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   var startCol = Math.max(0, Math.floor(cam.x / ts));
   var endCol = Math.min(RatLand.OVERWORLD_COLS - 1, Math.ceil((cam.x + vw) / ts));
   var startRow = Math.max(0, Math.floor(cam.y / ts));
-  var endRow = Math.min(RatLand.OVERWORLD_ROWS - 1, Math.ceil((cam.y + vh) / ts));
+  // NOT clamped to OVERWORLD_ROWS-1 here (unlike startCol/endCol, and
+  // unlike this row's own old behavior) -- updateCamera's south-edge UI
+  // band deliberately lets cam.y scroll a bit past the point where the
+  // real map's bottom row fills the screen, so the player's sprite
+  // clears the on-screen controls/dialogue box even when standing at
+  // the southernmost walkable row. Clamping the DRAW range to the real
+  // grid while the CAMERA range goes further left the extra strip as
+  // undrawn canvas -- the plain #111 fill from RatLand.render showing
+  // through as a flat black void under the map, confirmed on a real
+  // south-bank NPC (Dredge) and reproducible at any south-edge position.
+  // The loop below paints real grid rows through OVERWORLD_ROWS-1 as
+  // usual, then keeps painting the border WALL's own fill for any
+  // further phantom rows the band exposes -- reading as more of the
+  // same solid tunnel wall the border already is, not a seam or a void.
+  var endRow = Math.ceil((cam.y + vh) / ts);
 
   // Draw everything in world coordinates so the tiled textures line up
   // seamlessly as the camera scrolls, instead of swimming per-frame. The
@@ -663,11 +677,12 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
 
   for (var row = startRow; row <= endRow; row++) {
+    var isPhantomRow = row >= RatLand.OVERWORLD_ROWS;
     for (var col = startCol; col <= endCol; col++) {
-      var tile = RatLand.overworldGrid[row][col];
+      var tile = isPhantomRow ? TILE.WALL : RatLand.overworldGrid[row][col];
       ctx.fillStyle = overworldFillFor(tile);
       ctx.fillRect(col * ts, row * ts, ts, ts);
-      if (isPathTileType(tile)) {
+      if (!isPhantomRow && isPathTileType(tile)) {
         paintPathContrast(ctx, tile, row, col, ts);
       }
     }

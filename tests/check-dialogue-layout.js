@@ -141,6 +141,41 @@ async function run() {
     assert(shortState.pag === 'none' && shortState.h < 120,
       `${tag} / short line: no pagination row, compact box (${shortState.h.toFixed(1)}px)`);
 
+    // South-edge over-scroll must never expose empty canvas background.
+    // The camera's south-edge UI band (js/rendering.js
+    // CAMERA_BOTTOM_UI_BAND) intentionally scrolls past the point where
+    // the map's real bottom row fills the screen, so a south-bank NPC's
+    // sprite still clears the dialogue box -- but the DRAW loop has to
+    // keep painting (phantom wall-textured rows) that whole exposed
+    // strip, or it's a flat #111 void. Checked at the deepest walkable
+    // row directly, not just at an existing NPC's position, since the
+    // void is a function of camera geometry, not of any particular NPC.
+    await page.evaluate(() => {
+      const g = window.RatLand.game;
+      const ts = window.RatLand.TILE_SIZE;
+      window.RatLand.hideDialogue();
+      g.player.x = 16 * ts;
+      g.player.y = (window.RatLand.OVERWORLD_ROWS - 2) * ts; // deepest walkable row
+    });
+    await page.waitForTimeout(250);
+    const voidCheck = await page.evaluate(() => {
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      const y = h - 3;
+      const data = ctx.getImageData(0, y, w, 1).data;
+      const bg = { r: 0x11, g: 0x11, b: 0x11 };
+      for (let x = 0; x < w; x += 5) {
+        const i = x * 4;
+        if (Math.abs(data[i] - bg.r) > 4 || Math.abs(data[i + 1] - bg.g) > 4 || Math.abs(data[i + 2] - bg.b) > 4) {
+          return { isVoid: false };
+        }
+      }
+      return { isVoid: true };
+    });
+    assert(!voidCheck.isVoid,
+      `${tag} / south-edge over-scroll: bottom canvas strip is real tile content, not the plain background fill`);
+
     await page.close();
   }
 
