@@ -27,7 +27,13 @@ window.RatLand = RatLand;
   // Crazy Joe (js/npc.js) is the standing regression check -- each of
   // his three lines is sized to land at exactly 3 pages under this
   // budget, exercising the prev-hidden/both-shown/next-hidden states.
-  var DIALOGUE_MAX_CHARS_PER_PAGE = 240;
+  // 140 (was 240): a page must never exceed ~3.5 wrapped lines (~72px)
+  // so the box's total height stays small enough to sit fully below the
+  // camera-centered player sprite and fully above the lowered D-pad --
+  // see style.css's dialogue-layout comments for the stacked math. A
+  // side effect worth knowing: NPC lines between 141 and 240 characters
+  // (several exist) now paginate where they used to fit one page.
+  var DIALOGUE_MAX_CHARS_PER_PAGE = 140;
 
   function paginateDialogueText(text) {
     var words = text.split(' ');

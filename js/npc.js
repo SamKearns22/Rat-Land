@@ -592,12 +592,16 @@ RatLand.NPC_ROSTER = [
     // under the dialogue box's pagination system (js/main.js) -- this
     // character exists specifically to exercise that system end to end:
     // page 1 (next-only), page 2 (both arrows + "2/3"), page 3 (prev-only).
+    // Line lengths are calibrated to the CURRENT
+    // DIALOGUE_MAX_CHARS_PER_PAGE (140): ~355-370 characters greedy-splits
+    // to exactly 3 pages. If that budget changes, retrim these (the
+    // dialogue-layout test asserts the 3-page property).
     id: 'crazyjoe', name: 'Crazy Joe', group: 'mouse', species: 'mouse',
     col: 13, row: 6, facing: 'right',
     lines: [
-      "Ohhh no no no, see, the thing is, the THING is, nobody ever asks the drain what it wants, do they, ' course not, ' cause the drain can't talk, ' cept it can, it talks to ME, every single night, and it says, it says, Joe, Joe old son, have another one, and honestly? Honestly. Who am I to argue with a drain. Who among us. Who among us, I ask you, standing here, on this bank, of this river, with this hat, which isn't even mine, I should say, found it, or it found me, hard to say who found who in a situation like that, and anyway the water's very cold-looking tonight, don't you think, very cold, very deep, very much like a drain in that sense, if you squint, if you REALLY squint.",
-      "Bit of string. Half a biscuit. Somebody's shoe, just the one, no owner in sight, tragic really. A cloud shaped like my aunt. Not the nice aunt. The other one. Three pebbles that looked at me funny, I clocked them, don't think I didn't. A very serious beetle, going somewhere important, late for it too, you could tell. The bridge, still there, every day, showing off. My reflection, but it blinked first, which isn't right, that's not how it's supposed to go, that's never how it's supposed to go, and frankly I've had about enough of it, I've had about enough of all of it, the string, the biscuit, the shoe, the lot.",
-      "PIGEONS. PIGEONS, RIGHT, LISTEN, LISTEN TO ME, THEY'RE NOT BIRDS, THEY'RE COUNTING US, THEY'VE BEEN COUNTING US SINCE THE BRIDGE WENT UP, ONE OF THEM LOOKED ME DEAD IN THE EYE ON TUESDAY AND I HAVEN'T SLEPT SINCE, NOT A WINK, NOT ONE WINK, YOU THINK THAT'S FUNNY, EVERYONE THINKS THAT'S FUNNY, NOBODY'S LAUGHING WHEN THE NUMBERS COME DUE, NOBODY'S LAUGHING THEN, ARE THEY, ARE THEY, I DIDN'T THINK SO, I DIDN'T THINK SO EITHER, SO WIPE THAT LOOK OFF YOUR FACE AND START WATCHING THE SKY LIKE THE REST OF US.",
+      "Ohhh no no no, see, the thing is, the THING is, nobody ever asks the drain what it wants, do they, 'course not, 'cause the drain can't talk, 'cept it can, it talks to ME, every night, and it says, Joe, Joe old son, have another one, and honestly? Who am I to argue with a drain. Who among us, I ask you, standing here, on this bank, with this hat, which isn't even mine.",
+      "Bit of string. Half a biscuit. Somebody's shoe, just the one, tragic really. A cloud shaped like my aunt. Not the nice aunt. The other one. Three pebbles that looked at me funny, I clocked them, don't think I didn't. A very serious beetle, late for something important. My reflection, but it blinked first, which isn't right, and frankly I've had about enough of it.",
+      "PIGEONS. PIGEONS, RIGHT, LISTEN TO ME, THEY'RE NOT BIRDS, THEY'RE COUNTING US, THEY'VE BEEN COUNTING US SINCE THE BRIDGE WENT UP, ONE LOOKED ME DEAD IN THE EYE ON TUESDAY AND I HAVEN'T SLEPT SINCE, NOT ONE WINK, YOU THINK THAT'S FUNNY, NOBODY'S LAUGHING WHEN THE NUMBERS COME DUE, ARE THEY, I DIDN'T THINK SO, SO START WATCHING THE SKY LIKE THE REST OF US.",
     ],
     lineIndex: 0,
     color: '#7a7488',

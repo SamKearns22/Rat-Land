@@ -201,6 +201,15 @@ html, body {
      cancel button (right), added below, so neither one overlaps the
      dialogue text. */
   padding: 10px 44px 40px 14px;
+  /* Hard cap: the box may never occupy more than a third of the screen
+     height, whatever its content does. The pagination budget
+     (js/main.js DIALOGUE_MAX_CHARS_PER_PAGE) is sized so real content
+     never actually reaches this cap -- worst case is ~145px, ~17% of an
+     844px viewport -- so the scrollbar this would introduce should
+     never appear in practice; it exists as a guarantee, not a layout
+     tool. */
+  max-height: calc(100dvh / 3);
+  overflow-y: auto;
   color: #f4f4f4;
   opacity: 0;
   pointer-events: none;
@@ -208,16 +217,19 @@ html, body {
 }
 
 /* On-screen D-pad/Talk button only render below the 900px breakpoint
-   (see #controls below) and reach up to 204px from the viewport bottom
-   (#btn-up), plus --safari-toolbar-clearance now that the D-pad/Talk
-   button are pushed up to clear Safari's toolbar too. Raise the dialogue
-   box clear of all of them there so it never sits on top of the controls
-   (previously it did, at every overworld NPC, not just one). Desktop has
-   no on-screen controls to clear, so its lower default position is
-   unaffected. */
+   (see #controls below). The dialogue box sits directly ABOVE the
+   lowered D-pad with a 10px gap: its bottom offset is derived from the
+   same terms as #dpad's bottom (8px - --controls-drop + inset +
+   toolbar clearance) plus the D-pad's 156px height plus the gap, i.e.
+   174px - --controls-drop + inset + clearance = 226px + inset at the
+   current values. Combined with the one-third max-height cap and the
+   shorter multi-page page height below, the box's top edge stays below
+   the camera-centered player sprite (see js/rendering.js's camera
+   bottom band for the south-edge case). Desktop has no on-screen
+   controls to clear, so its lower default position is unaffected. */
 @media (max-width: 899px) {
   #dialogue-box {
-    bottom: calc(228px + env(safe-area-inset-bottom, 0px) + var(--safari-toolbar-clearance));
+    bottom: calc(174px - var(--controls-drop) + env(safe-area-inset-bottom, 0px) + var(--safari-toolbar-clearance));
   }
 }
 
@@ -252,9 +264,12 @@ html, body {
    as before pagination existed. Applying this height unconditionally to
    every dialogue line (an earlier version of this rule did) made every
    short one-line NPC exchange render as a much taller, mostly-empty box
-   than before -- a real regression, not just a multi-page concern. */
+   than before -- a real regression, not just a multi-page concern.
+   72px fits the ~3.5 wrapped lines a 140-character page produces at
+   this font size/box width (was 108px for the old 240-char pages --
+   shrunk as part of keeping the whole box below the player sprite). */
 #dialogue-box.multi-page #dialogue-text {
-  min-height: 108px;
+  min-height: 72px;
 }
 
 /* Pagination (green): strictly for one line too long to fit in a single
@@ -357,13 +372,24 @@ html, body {
    a small margin for cross-device/iOS-version variance. */
 :root {
   --safari-toolbar-clearance: 70px;
+  /* Dialogue-layout rework: the D-pad/Talk button drop this much lower
+     than their previous position (still on top of, not instead of, the
+     safe-area inset + toolbar clearance above) to open vertical room
+     for the dialogue box to sit fully BELOW the player's sprite and
+     fully ABOVE the controls. 18px is the "slightly" the layout math
+     needs: with it, the tallest possible dialogue box (multi-page,
+     ~145px) tops out at y≈473 on an 844px viewport while the
+     camera-centered player sprite bottoms out at y≈440 -- 33px of
+     clearance -- and the box's bottom edge (y≈618) still clears the
+     lowered D-pad top (y≈628) by 10px. */
+  --controls-drop: 18px;
 }
 
 #dpad {
   --pad-size: 48px;
   position: fixed;
   left: calc(8px + env(safe-area-inset-left, 0px));
-  bottom: calc(8px + env(safe-area-inset-bottom, 0px) + var(--safari-toolbar-clearance));
+  bottom: calc(8px - var(--controls-drop) + env(safe-area-inset-bottom, 0px) + var(--safari-toolbar-clearance));
   display: grid;
   grid-template-columns: repeat(3, var(--pad-size));
   grid-template-rows: repeat(3, var(--pad-size));
@@ -399,7 +425,7 @@ html, body {
 #btn-interact {
   position: fixed;
   right: calc(20px + env(safe-area-inset-right, 0px));
-  bottom: calc(56px + env(safe-area-inset-bottom, 0px) + var(--safari-toolbar-clearance));
+  bottom: calc(56px - var(--controls-drop) + env(safe-area-inset-bottom, 0px) + var(--safari-toolbar-clearance));
   width: 58px;
   height: 58px;
   line-height: 56px;

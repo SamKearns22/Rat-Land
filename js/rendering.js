@@ -95,6 +95,27 @@ function clamp(v, lo, hi) {
   return Math.max(lo, Math.min(v, hi));
 }
 
+// The on-screen controls + dialogue box occupy roughly the bottom
+// 226px of the mobile viewport (see style.css's dialogue-layout
+// comments for the exact stack). Near the map's SOUTH edge the camera
+// used to pin so the world's bottom row sat at the screen's bottom
+// edge -- which parked the player sprite deep inside that UI band
+// whenever they talked to a south-bank NPC (Gristle, Dredge, the
+// beach cluster), where no amount of dialogue-box resizing could
+// uncover them. Letting the camera over-scroll past the world bottom
+// by the band's height (+8px margin) keeps the south rows rendering
+// above the UI band instead; the void below the world's bottom wall
+// row is plain background behind the semi-transparent controls.
+// Mid-map centering behavior is completely unchanged -- the band only
+// affects the bottom clamp, not the follow target. Desktop (no
+// on-screen controls, per the 900px breakpoint) keeps the original
+// clamp. The bottom-most talkable spot today (row 20, beside Dredge)
+// renders the sprite bottom at y≈460 with the band vs. the worst-case
+// dialogue top of y≈473; future NPCs placed at rows 21-22 would sit
+// below that line again -- keep them north of row 21.
+var CAMERA_BOTTOM_UI_BAND = 234; // 226px controls+box stack top + 8px margin
+var CONTROLS_MQ = window.matchMedia ? window.matchMedia('(max-width: 899px)') : null;
+
 RatLand.updateCamera = function (camera, player, viewW, viewH) {
   var zoom = RatLand.CAMERA_ZOOM;
   var vw = viewW / zoom, vh = viewH / zoom;
@@ -102,9 +123,12 @@ RatLand.updateCamera = function (camera, player, viewW, viewH) {
   var worldH = RatLand.OVERWORLD_ROWS * RatLand.TILE_SIZE;
   var targetX = player.x + player.size / 2 - vw / 2;
   var targetY = player.y + player.size / 2 - vh / 2;
+  var bandWorld = (CONTROLS_MQ && CONTROLS_MQ.matches ? CAMERA_BOTTOM_UI_BAND : 0) / zoom;
 
   camera.x = worldW <= vw ? -(vw - worldW) / 2 : clamp(targetX, 0, worldW - vw);
-  camera.y = worldH <= vh ? -(vh - worldH) / 2 : clamp(targetY, 0, worldH - vh);
+  camera.y = worldH <= vh
+    ? -(vh - worldH) / 2
+    : clamp(targetY, 0, Math.max(0, worldH - vh + bandWorld));
 };
 
 RatLand.drawLabel = function (ctx, text, cx, bottomY) {
