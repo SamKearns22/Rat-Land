@@ -77,9 +77,9 @@ RatLand.assets.sewerWater.src = 'assets/tile-sewer-water.png';
 // game's existing palette (ruins_tileset.png's damaged-brick decal and
 // sewer_1.png's stone tile are reused for Rusty Pipe and Mousque, for
 // material variety beyond the two new sheets). Every named location
-// with hasInterior or a real footprint now has one; Rat Park, Rat Beach,
-// and Rat Shopping District still fall back to their flat-color
-// placeholder box (see the LOCATIONS.forEach draw loop below).
+// with hasInterior or a real footprint now has one; Rat Park and Rat
+// Shopping District still fall back to their flat-color placeholder box
+// (see the LOCATIONS.forEach draw loop below).
 RatLand.assets.buildingTownhall = new Image();
 RatLand.assets.buildingGildedrat = new Image();
 RatLand.assets.buildingRustypipe = new Image();
@@ -231,9 +231,15 @@ function drawGroundDecal(ctx, row, col, ts) {
 // City Tileset" (CREDITS.md) -- a visual nod to the small-boats-crossing
 // plot thread (Fen Wicket's battle opinion: "these boat crossings are
 // never justified"), reading as chunks of masonry/junk the river's
-// carried down, not just empty water. Sparse (~6% of WATER tiles), own
-// hash offset so it doesn't correlate with the ground-decal scatter.
-var RIVER_DEBRIS_CHANCE = 0.06;
+// carried down, not just empty water. Own hash offset so it doesn't
+// correlate with the ground-decal scatter. The river only has ~39
+// actual WATER tiles total (three bridges' 3-row-deep aprons eat a good
+// chunk of its length) -- an earlier 6% chance produced exactly 1 hit
+// across the entire river on this map's fixed layout, which is too
+// sparse to read as an intentional detail rather than a rendering gap.
+// 16% puts multiple pieces of debris in view along most any stretch of
+// river, confirmed below.
+var RIVER_DEBRIS_CHANCE = 0.16;
 function drawRiverDebris(ctx, row, col, ts) {
   var h = tileHash(row + 13000, col + 13000);
   if (h >= RIVER_DEBRIS_CHANCE) return;
@@ -297,9 +303,9 @@ function clamp(v, lo, hi) {
 // comments for the exact stack). Near the map's SOUTH edge the camera
 // used to pin so the world's bottom row sat at the screen's bottom
 // edge -- which parked the player sprite deep inside that UI band
-// whenever they talked to a south-bank NPC (Gristle, Dredge, the
-// beach cluster), where no amount of dialogue-box resizing could
-// uncover them. Letting the camera over-scroll past the world bottom
+// whenever they talked to a south-bank NPC (Gristle, Dredge, and
+// others near the map's southern edge), where no amount of
+// dialogue-box resizing could uncover them. Letting the camera over-scroll past the world bottom
 // by the band's height (+8px margin) keeps the south rows rendering
 // above the UI band instead; the void below the world's bottom wall
 // row is plain background behind the semi-transparent controls.
