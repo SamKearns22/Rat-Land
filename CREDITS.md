@@ -113,11 +113,6 @@ Before committing any new AI-generated sprite:
   - Lightest teal facade (Rat Gymnasium's body): 30.8 → 24.4 (20%).
   - Medium teal-green facade (Rat Café's body): 30.3 → 26.0 (15%).
   - Garage-door/shutter icon (Rat Gymnasium's gate): 35.4 → 24.8 (28%).
-  - Plain tall glass door with a kick-plate divider (Rat School's
-    entrance, added alongside the roofline cap and yard fence to bring
-    School up to the same detail level as Town Hall/The Gilded Rat --
-    it previously had windows but no roofline or door at all): 48.0 →
-    31.1 (35%).
 
 ## buildings.png
 
