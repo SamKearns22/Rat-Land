@@ -39,17 +39,16 @@ RatLand.LOCATIONS = [
   { id: 'church', name: 'Church of the Rat God', col: 3, row: 9, color: '#7a4fae', hasInterior: false },
   { id: 'gildedrat', name: 'The Gilded Rat', col: 9, row: 7, color: '#d4af37', hasInterior: false },
   { id: 'park', name: 'Rat Park', col: 4, row: 15, color: '#4f9e4f', hasInterior: false },
-  { id: 'beach', name: 'Rat Beach', col: 11, row: 20, color: '#e0c880', hasInterior: false },
   { id: 'cafe', name: 'Rat Café', col: 19, row: 4, color: '#c47a3d', hasInterior: false },
   { id: 'shopping', name: 'Rat Shopping District', col: 24, row: 6, color: '#d9534f', hasInterior: false },
   { id: 'school', name: 'Rat School', col: 18, row: 12, color: '#4f83c9', hasInterior: false },
   { id: 'gym', name: 'Rat Gymnasium', col: 23, row: 12, color: '#e07b39', hasInterior: false },
   { id: 'rustypipe', name: 'The Rusty Pipe', col: 20, row: 19, color: '#8b5a2b', hasInterior: true, interiorId: 'rustypipe' },
-  // Bottom-right of the map, well clear of the road network and every
-  // other NPC/location -- a walkable-up-to placeholder like every other
-  // non-interior entry above (see isSolidOverworldTile: any location
-  // without hasInterior blocks entry the same way regardless of position).
-  { id: 'mousque', name: 'Mousque', col: 29, row: 21, color: '#7a8a9a', hasInterior: false },
+  // Moved from its old bottom-right-corner spot (29,21) to sit just east
+  // of Rat Park, on the same row-15 branch off the west-bank spine --
+  // connected to the path network like every other building, instead of
+  // isolated in an empty corner of the map.
+  { id: 'mousque', name: 'Mousque', col: 8, row: 15, color: '#7a8a9a', hasInterior: false },
 ];
 
 RatLand._locationLookup = {};
@@ -172,20 +171,22 @@ RatLand.buildOverworldMap = function () {
   }
 
   // West-bank spine, rooted at Town Hall's column (the hub), running the
-  // length of the west bank down to Rat Beach.
-  carveV(6, 3, 20);
+  // length of the west bank down to the south bridge's row.
+  carveV(6, 3, 19);
   // Town Hall's own row, running east across the top bridge to Rat Café.
   carveH(3, 6, 19);
 
   // Branches off the west spine to each west-bank location.
   carveH(9, 3, 6);    // Church of the Rat God
   carveH(7, 6, 9);    // The Gilded Rat
-  carveH(15, 4, 6);   // Rat Park
-  carveH(20, 6, 11);  // Rat Beach
+  carveH(15, 4, 8);   // Rat Park <-> Mousque
 
-  // Beach connector up to the bottom bridge, then across to the east bank.
-  carveV(11, 19, 20);
-  carveH(19, 11, 20);
+  // South bridge crossing, linking the bridge itself to The Rusty Pipe's
+  // approach on the east bank. (This used to run all the way to col 11
+  // for a Rat Beach spur; with Rat Beach removed, it starts at the
+  // bridge instead of dead-ending in open ground with nothing at its
+  // west end.)
+  carveH(19, 14, 20);
 
   // East-bank spine, running past Rat School and Rat Gymnasium down to
   // The Rusty Pipe.
@@ -200,7 +201,7 @@ RatLand.buildOverworldMap = function () {
   // Civic widening: the roads that lead straight to Town Hall get a second
   // lane, reflecting its importance. The spine narrows back to a single
   // lane south of Main Street, on its way out to the quieter Rat Park and
-  // Rat Beach.
+  // Mousque.
   carveV(7, 3, 11);  // second lane alongside the Town Hall spine
   carveH(2, 6, 19);  // second lane alongside Town Hall's frontage road
 

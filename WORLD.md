@@ -29,9 +29,6 @@ everywhere. But underneath the patriotic surface, the town is fraying:
 - **The Sewer River (with a few bridges)** — The murky waterway running
   through town, crossed by a handful of rickety bridges that double as
   informal borders between neighborhoods.
-- **Rat Beach** — A muddy stretch along the Sewer River where rats sunbathe
-  under a distant grate of daylight, pretending the water is cleaner than
-  it is.
 - **Rat Park** — The town's green space (such as it is), host to the
   anniversary parade route and increasingly tense public gatherings.
 - **Rat Town Hall** — Seat of Rat Land's government, where the mayor and
@@ -47,6 +44,6 @@ everywhere. But underneath the patriotic surface, the town is fraying:
   elite, dripping with polished bottle-cap chandeliers and old money.
 - **The Rusty Pipe (working-class pub)** — A no-frills bar where most of
   the town actually drinks, and where anti-mouse sentiment is loudest.
-- **Mousque** — A small mouse place of worship at the edge of town,
-  tucked in the bottom-right corner of the map. Not yet a working
+- **Mousque** — A small mouse place of worship near the town center,
+  just off Rat Park along the western spine. Not yet a working
   interior, same as most of the list above.

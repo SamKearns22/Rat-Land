@@ -32,6 +32,11 @@ AI-generated character sprites.
     intentional, not an oversight.
   - Wooden barrel (The Rusty Pipe's exterior prop): 35.6 → 28.6 (20%).
   - Red brick facade (Church of the Rat God's body): 39.4 → 27.9 (30%).
+  - Small 4-pane window (Town Hall/Gilded Rat/Rusty Pipe/School/Gym, each
+    hue-shifted to that building's own facade color before retinting):
+    50.6 raw → 22.7/25.6/18.2/21.0/29.3 respectively.
+  - Trash bin (a small decay prop at the base of Rat Gymnasium): 17.5,
+    already close — used unretouched.
   - Orange/white barrier stripe (Rat Café's awning): 50.8 → 32.9 (35%).
 
 ## city_extension.png
@@ -100,7 +105,11 @@ AI-generated character sprites.
   `assets/decal-brick-damage.png` is also reused (unmodified, already
   on-palette from the pass above) as The Rusty Pipe's exterior wall
   texture, and `assets/decal-weeds.png`'s round-bush shape is reused,
-  hue-shifted from green to a warm stone-tan, as Mousque's dome.
+  hue-shifted from green to a warm stone-tan, as Mousque's dome. A small
+  chunk of this sheet's rubble texture is separately cropped as
+  `assets/decal-river-debris.png`, scattered sparingly on the Sewer
+  River's WATER tiles as small floating debris (36.2 → 25.5 after a 30%
+  retint) — a nod to the small-boats-crossing plot thread.
 
 ## sewer_1.png
 

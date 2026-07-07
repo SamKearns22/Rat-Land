@@ -52,6 +52,10 @@ RatLand.assets.pavementCrackWorn.src = 'assets/decal-pavement-crack-worn.png';
 RatLand.assets.brickDamaged.src = 'assets/decal-brick-damage.png';
 RatLand.assets.rubble.src = 'assets/decal-rubble.png';
 RatLand.assets.weeds.src = 'assets/decal-weeds.png';
+// Small floating river debris (also from Ruined Modern City Tileset) --
+// see drawRiverDebris below for the plot-thread tie-in.
+RatLand.assets.riverDebris = new Image();
+RatLand.assets.riverDebris.src = 'assets/decal-river-debris.png';
 // Non-lava crops of "Sewer tileset" (CREDITS.md), CC-BY: a plain stone
 // block texture for building-interior walls/floors (Town Hall, The Rusty
 // Pipe -- both read as converted tunnel spaces, not modern rooms), and a
@@ -183,7 +187,23 @@ function overworldFillFor(tile, row, col) {
 // given tile's decal (or lack of one) never changes between frames.
 var GROUND_DECAL_RUBBLE_CHANCE = 0.05;
 var GROUND_DECAL_WEEDS_CHANCE = 0.09; // cumulative: rubble slot + this
+
+// Mousque used to sit at (29, 21), in a big stretch of open GROUND with
+// no paths or NPCs to break it up -- exactly the conditions where the
+// scatter below reads as noise instead of light dressing, since there's
+// nothing else on screen to offset it. Mousque has since moved next to
+// Rat Park, but this corner of the map is still that same empty
+// stretch, so it stays a deliberately plain, decal-free patch of ground
+// rather than reproducing the same clutter somewhere no one asked for.
+var QUIET_ZONE_COLS = [25, 31];
+var QUIET_ZONE_ROWS = [12, 22];
+function inQuietZone(row, col) {
+  return col >= QUIET_ZONE_COLS[0] && col <= QUIET_ZONE_COLS[1] &&
+    row >= QUIET_ZONE_ROWS[0] && row <= QUIET_ZONE_ROWS[1];
+}
+
 function drawGroundDecal(ctx, row, col, ts) {
+  if (inQuietZone(row, col)) return;
   var h = tileHash(row + 5000, col + 5000); // offset so it doesn't correlate with the WALL-damage hash
   var img = null;
   if (h < GROUND_DECAL_RUBBLE_CHANCE) {
@@ -203,6 +223,32 @@ function drawGroundDecal(ctx, row, col, ts) {
 
   ctx.save();
   ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, dx, dy, dw, dh);
+  ctx.restore();
+}
+
+// Small floating debris on the Sewer River, cropped from "Ruined Modern
+// City Tileset" (CREDITS.md) -- a visual nod to the small-boats-crossing
+// plot thread (Fen Wicket's battle opinion: "these boat crossings are
+// never justified"), reading as chunks of masonry/junk the river's
+// carried down, not just empty water. Sparse (~6% of WATER tiles), own
+// hash offset so it doesn't correlate with the ground-decal scatter.
+var RIVER_DEBRIS_CHANCE = 0.06;
+function drawRiverDebris(ctx, row, col, ts) {
+  var h = tileHash(row + 13000, col + 13000);
+  if (h >= RIVER_DEBRIS_CHANCE) return;
+  var img = RatLand.assets.riverDebris;
+  if (!img.complete || !img.naturalWidth) return;
+
+  var iw = img.naturalWidth, ih = img.naturalHeight;
+  var scale = (ts * 0.6) / Math.max(iw, ih);
+  var dw = iw * scale, dh = ih * scale;
+  var dx = col * ts + (ts - dw) / 2;
+  var dy = row * ts + (ts - dh) / 2;
+
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.globalAlpha = 0.85;
   ctx.drawImage(img, dx, dy, dw, dh);
   ctx.restore();
 }
@@ -661,6 +707,43 @@ function ensureBuildingSilhouette(img) {
   return oc;
 }
 
+// A small, slightly-leaning commemorative sign near Town Hall/the Town
+// Crier -- drawn procedurally (a wooden post, a cracked board, and
+// canvas-text lettering) rather than as a cropped sprite, since it
+// needs its own real text, same technique already used for name labels.
+// The lean and the crack across the board are the "cheap upkeep, 20
+// years on" detail; not a caricature, just weathered.
+function drawAnniversarySign(ctx, cx, baseY) {
+  ctx.save();
+  ctx.translate(cx, baseY);
+  ctx.rotate(-0.06); // slight lean
+  // post
+  ctx.fillStyle = '#5e4a36';
+  ctx.fillRect(-2, -30, 4, 30);
+  // board
+  ctx.fillStyle = '#8a7a6c';
+  ctx.fillRect(-17, -44, 34, 16);
+  ctx.strokeStyle = '#5e4a36';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-17, -44, 34, 16);
+  // crack across the board
+  ctx.strokeStyle = 'rgba(25, 20, 15, 0.6)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(-6, -44);
+  ctx.lineTo(-2, -37);
+  ctx.lineTo(2, -34);
+  ctx.lineTo(6, -28);
+  ctx.stroke();
+  // text
+  ctx.fillStyle = '#2a2420';
+  ctx.font = 'bold 8px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('20 Years!', 0, -36);
+  ctx.restore();
+}
+
 function drawBuildingWithOutline(ctx, img, x, y) {
   var sil = ensureBuildingSilhouette(img);
   ctx.save();
@@ -915,6 +998,9 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
       if (!isPhantomRow && tile === TILE.GROUND) {
         drawGroundDecal(ctx, row, col, ts);
       }
+      if (!isPhantomRow && tile === TILE.WATER) {
+        drawRiverDebris(ctx, row, col, ts);
+      }
     }
   }
 
@@ -971,6 +1057,11 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
     ctx.strokeRect(boxX + 0.5, boxY + 0.5, boxSize - 1, boxSize - 1);
     RatLand.drawLabel(ctx, loc.name, wx + ts / 2, boxY - 4);
   });
+
+  // Faded "20 Years!" commemorative sign, planted on the path between
+  // Rat Town Hall and the Town Crier -- close to both without sitting on
+  // either one's tile.
+  drawAnniversarySign(ctx, 7 * ts + ts / 2, 5 * ts + ts * 0.75);
 
   // With 31 NPCs, several are deliberately clustered near the same
   // building — showing every name at once turns into an unreadable pile
