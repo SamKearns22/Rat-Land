@@ -80,6 +80,14 @@ Before committing any new AI-generated sprite:
   - Wooden barrel (reused unmodified from The Rusty Pipe's crop above,
     placed beside the Shopping District's left stall): 35.6 → 28.6
     (20%, already applied).
+  - Barrier-post trim (Rat School's roofline cap, same source piece as
+    the awning above, desaturated then heavily retinted toward a
+    neutral cornice grey rather than kept as a color accent, since a
+    school's roofline should read as plain, not decorative): 50.8 →
+    12.6 (roughly 90% blend after desaturation).
+  - Wooden picket fence panel (a short schoolyard fence run beside Rat
+    School, desaturated from its original warm-brown and retinted
+    toward grey-tan): 46.3 → 8.3.
 
 ## city_extension.png
 
@@ -105,6 +113,11 @@ Before committing any new AI-generated sprite:
   - Lightest teal facade (Rat Gymnasium's body): 30.8 → 24.4 (20%).
   - Medium teal-green facade (Rat Café's body): 30.3 → 26.0 (15%).
   - Garage-door/shutter icon (Rat Gymnasium's gate): 35.4 → 24.8 (28%).
+  - Plain tall glass door with a kick-plate divider (Rat School's
+    entrance, added alongside the roofline cap and yard fence to bring
+    School up to the same detail level as Town Hall/The Gilded Rat --
+    it previously had windows but no roofline or door at all): 48.0 →
+    31.1 (35%).
 
 ## buildings.png
 
