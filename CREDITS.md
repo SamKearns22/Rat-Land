@@ -4,6 +4,40 @@ Third-party art assets used (or under evaluation for use) in Rat Land,
 beyond the game's own original code, world-building text, and
 AI-generated character sprites.
 
+## Dev rule: pre-resize sprites before committing
+
+Never commit an AI-generated (or otherwise large-source) sprite at its
+raw generated resolution and let the engine's `drawImage` scale it down
+live. The engine draws character images at their own native pixel
+dimensions with no runtime resampling (`ctx.drawImage(img, dx, dy,
+img.naturalWidth, img.naturalHeight)`) — whatever file you commit *is*
+the in-game size, pixel for pixel. A large source scaled down casually
+(or an editor's default resize, which is often nearest-neighbor) can
+silently lose all fine detail, which is exactly what happened to Fen
+Wicket's first sprite: a 1024x1024 source, naively downscaled, ended up
+as an unreadable 29x24 purple blob with no visible ears, whiskers, or
+paws — nobody caught it because it "looked fine" as a thumbnail in a
+file browser.
+
+Before committing any new AI-generated sprite:
+1. Figure out the actual in-game display size first (check every place
+   the image is drawn — Rat Land's Fen Wicket sprite, for example, is
+   used both at native canvas size in the overworld *and* via a CSS
+   `width` on the battle screen; both matter).
+2. Resize from the original high-resolution source down to that exact
+   size using a quality resampling filter — Lanczos or bicubic, not
+   nearest-neighbor (nearest-neighbor is correct for *integer upscaling*
+   of already-pixel-art assets, e.g. this game's `image-rendering:
+   pixelated` CSS and `imageSmoothingEnabled = false` canvas setting,
+   but wrong for downscaling a large source).
+3. Zoom in on the result at actual pixel size (not a giant preview) and
+   confirm the character's key identifying details — eyes, ears,
+   whiskers/paws/hands, anything the design calls out — are still
+   legible. If they're not, the target size is too small for that
+   source's level of detail; increase the display size rather than
+   accept an unreadable sprite.
+4. Commit the pre-resized file, not the raw source.
+
 ## roguelikeCity_magenta.png
 
 - **Title:** Roguelike/Modern City Pack (magenta-keyed export)

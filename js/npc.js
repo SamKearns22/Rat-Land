@@ -311,7 +311,7 @@ RatLand.NPC_ROSTER = [
       { type: 'body', style: 'damp' },
       { type: 'pin', style: 'tollcoin', color: '#9c9060' },
     ],
-    note: 'Now uses a hand-drawn 29x24 sprite (assets/fenwicket-sprite.png, background removed and resized) instead of the procedural rat body -- a tubby, hunched, chip-on-his-shoulder look that fits his "I know why but I don\'t like saying it" weariness. Accessories/body treatments no longer apply since the image is the whole sprite.',
+    note: 'Now uses a hand-drawn 38x32 sprite (assets/fenwicket-sprite.png -- pre-resized offline from a 1024x1024 AI-generated source via Lanczos + a light sharpen pass, background removed) instead of the procedural rat body -- a tubby, hunched, chip-on-his-shoulder look that fits his "I know why but I don\'t like saying it" weariness. Accessories/body treatments no longer apply since the image is the whole sprite. 38x32 (not the source\'s native size, and not the first size tried -- an initial 29x24 downscale lost whisker/paw detail entirely) is the smallest size that keeps ears, eye, whiskers, and paw shape legible at both his overworld scale and the battle screen\'s 58px CSS width.',
   },
   {
     id: 'dredge', name: 'Dredge', group: 'political',
