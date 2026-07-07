@@ -48,13 +48,13 @@ Before committing any new AI-generated sprite:
   (binary 0/255, confirmed by full-sheet pixel scan) — the sheet's
   magenta key color isn't actually present as opaque pixels anywhere in
   this export, so no color-keying step was needed.
-- **In use as:** pieces assembled into all 8 named locations' custom
+- **In use as:** pieces assembled into all 9 named locations' custom
   exteriors (Rat Town Hall, The Gilded Rat, The Rusty Pipe, Church of
-  the Rat God, Rat School, Rat Gymnasium, Rat Café, Mousque), each
-  measured (pixel-sampled avg. nearest-color distance against the game's
-  13-color Muck-and-Grime-13 palette, same method used for the
-  ruins/sewer tilesets) and retinted only as far as that measurement
-  called for:
+  the Rat God, Rat School, Rat Gymnasium, Rat Café, Mousque, Rat
+  Shopping District), each measured (pixel-sampled avg. nearest-color
+  distance against the game's 13-color Muck-and-Grime-13 palette, same
+  method used for the ruins/sewer tilesets) and retinted only as far as
+  that measurement called for:
   - Stepped/ziggurat roofline (Town Hall's roof cap): 28.5 → 23.7 (15%).
   - Tan window facade (The Gilded Rat's body): 13.2, already close —
     used unretouched.
@@ -72,6 +72,14 @@ Before committing any new AI-generated sprite:
   - Trash bin (a small decay prop at the base of Rat Gymnasium): 17.5,
     already close — used unretouched.
   - Orange/white barrier stripe (Rat Café's awning): 50.8 → 32.9 (35%).
+  - Striped awning (Rat Shopping District's 3 market stalls, hue-shifted
+    to orange/blue/green before retinting, same source piece as Rat
+    Café's awning above): 50.8 raw → 33.1/31.9/32.6 respectively (~35%).
+  - Wooden picket/fence panel, reused as each stall's counter (Rat
+    Shopping District): 46.3 → 25.5 (45%).
+  - Wooden barrel (reused unmodified from The Rusty Pipe's crop above,
+    placed beside the Shopping District's left stall): 35.6 → 28.6
+    (20%, already applied).
 
 ## city_extension.png
 

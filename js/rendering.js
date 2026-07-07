@@ -76,10 +76,12 @@ RatLand.assets.sewerWater.src = 'assets/tile-sewer-water.png';
 // location from cropped pieces of both sheets and retinted toward the
 // game's existing palette (ruins_tileset.png's damaged-brick decal and
 // sewer_1.png's stone tile are reused for Rusty Pipe and Mousque, for
-// material variety beyond the two new sheets). Every named location
-// with hasInterior or a real footprint now has one; Rat Park and Rat
-// Shopping District still fall back to their flat-color placeholder box
-// (see the LOCATIONS.forEach draw loop below).
+// material variety beyond the two new sheets). Rat Shopping District is
+// a market-stall cluster, not a single building -- visual only for now,
+// see map.js's BUILDING_FOOTPRINTS comment on keepEntranceWalkable for
+// how its gap is kept open for a future vendor-area doorway. Rat Park
+// still falls back to its flat-color placeholder box (see the
+// LOCATIONS.forEach draw loop below).
 RatLand.assets.buildingTownhall = new Image();
 RatLand.assets.buildingGildedrat = new Image();
 RatLand.assets.buildingRustypipe = new Image();
@@ -88,6 +90,7 @@ RatLand.assets.buildingSchool = new Image();
 RatLand.assets.buildingGym = new Image();
 RatLand.assets.buildingCafe = new Image();
 RatLand.assets.buildingMousque = new Image();
+RatLand.assets.buildingShopping = new Image();
 RatLand.assets.buildingTownhall.src = 'assets/building-townhall.png';
 RatLand.assets.buildingGildedrat.src = 'assets/building-gildedrat.png';
 RatLand.assets.buildingRustypipe.src = 'assets/building-rustypipe.png';
@@ -96,6 +99,7 @@ RatLand.assets.buildingSchool.src = 'assets/building-school.png';
 RatLand.assets.buildingGym.src = 'assets/building-gym.png';
 RatLand.assets.buildingCafe.src = 'assets/building-cafe.png';
 RatLand.assets.buildingMousque.src = 'assets/building-mousque.png';
+RatLand.assets.buildingShopping.src = 'assets/building-shopping.png';
 RatLand.BUILDING_SPRITES = {
   townhall: 'buildingTownhall',
   gildedrat: 'buildingGildedrat',
@@ -105,6 +109,7 @@ RatLand.BUILDING_SPRITES = {
   gym: 'buildingGym',
   cafe: 'buildingCafe',
   mousque: 'buildingMousque',
+  shopping: 'buildingShopping',
 };
 // "Rodents (Rat Rework)" (CREDITS.md), CC-BY: the default sprite for the
 // player and every NPC except Fen Wicket (who keeps his own hand-picked

@@ -85,6 +85,14 @@ RatLand.locationAt = function (col, row) {
 //   - gym [-1,0,1] rather than its full ~4-tile visual width: Sooty
 //     (21,11) and Corporal Nettle (25,11) both sit right at the visual
 //     edges the wider footprint would have covered.
+//
+// keepEntranceWalkable does the same anchor-tile exclusion hasInterior
+// locations get, but for a location that ISN'T hasInterior yet: Rat
+// Shopping District's stall cluster flanks the anchor tile with a
+// visible gap (see building-shopping.png) reserved for a future
+// vendor-area doorway. Solidity already treats that gap tile as open
+// ground today, so wiring up a real entrance later is just flipping
+// hasInterior + adding an INTERIORS entry -- no art or footprint rework.
 RatLand.BUILDING_FOOTPRINTS = {
   townhall: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
   gildedrat: { colOffsets: [0, 1], rowOffsets: [-1, 0] },
@@ -94,15 +102,17 @@ RatLand.BUILDING_FOOTPRINTS = {
   gym: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
   cafe: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
   mousque: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
+  shopping: { colOffsets: [-1, 0, 1], rowOffsets: [0], keepEntranceWalkable: true },
 };
 
 RatLand._buildingSolidTiles = {};
 RatLand.LOCATIONS.forEach(function (loc) {
   var fp = RatLand.BUILDING_FOOTPRINTS[loc.id];
   if (!fp) return;
+  var keepAnchorWalkable = loc.hasInterior || fp.keepEntranceWalkable;
   fp.colOffsets.forEach(function (co) {
     fp.rowOffsets.forEach(function (ro) {
-      if (loc.hasInterior && co === 0 && ro === 0) return; // keep the door tile walkable
+      if (keepAnchorWalkable && co === 0 && ro === 0) return; // keep the door/entrance tile walkable
       RatLand._buildingSolidTiles[(loc.col + co) + ',' + (loc.row + ro)] = true;
     });
   });
@@ -222,7 +232,14 @@ RatLand.isSolidOverworldTile = function (col, row) {
   if (tile === RatLand.TILE.WALL || tile === RatLand.TILE.WATER) return true;
   if (RatLand.isBuildingSolidTile(col, row)) return true;
   var loc = RatLand.locationAt(col, row);
-  if (loc && !loc.hasInterior) return true; // placeholder buildings block entry
+  // Still-flat-color placeholder buildings (no BUILDING_FOOTPRINTS entry)
+  // block their whole single tile, same as always. Locations with a real
+  // footprint (custom sprite) rely on that footprint alone for solidity
+  // instead -- for most of them the footprint already covers the anchor
+  // tile too, but Rat Shopping District's keepEntranceWalkable footprint
+  // deliberately doesn't, and this blanket rule would silently override
+  // that and reseal the entrance gap.
+  if (loc && !loc.hasInterior && !RatLand.BUILDING_FOOTPRINTS[loc.id]) return true;
   return false;
 };
 
