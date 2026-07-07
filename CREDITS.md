@@ -14,13 +14,25 @@ AI-generated character sprites.
   (binary 0/255, confirmed by full-sheet pixel scan) — the sheet's
   magenta key color isn't actually present as opaque pixels anywhere in
   this export, so no color-keying step was needed.
-- **In use as:** a stepped/ziggurat roofline piece cropped for Rat Town
-  Hall's roof cap. Measured avg. nearest-color distance 28.5 against the
-  game's 13-color Muck-and-Grime-13 reference palette before retinting
-  (pixel-sampled, same method used for the ruins/sewer tilesets) — close
-  enough that only a light blend (15% toward each pixel's nearest
-  palette color) was applied, landing at 23.7. More pieces to follow as
-  the rest of the named locations' exteriors are built.
+- **In use as:** pieces assembled into all 8 named locations' custom
+  exteriors (Rat Town Hall, The Gilded Rat, The Rusty Pipe, Church of
+  the Rat God, Rat School, Rat Gymnasium, Rat Café, Mousque), each
+  measured (pixel-sampled avg. nearest-color distance against the game's
+  13-color Muck-and-Grime-13 palette, same method used for the
+  ruins/sewer tilesets) and retinted only as far as that measurement
+  called for:
+  - Stepped/ziggurat roofline (Town Hall's roof cap): 28.5 → 23.7 (15%).
+  - Tan window facade (The Gilded Rat's body): 13.2, already close —
+    used unretouched.
+  - Gold barrier-post finials (The Gilded Rat's roofline accent): 60.9
+    → 47.4 (22%) — deliberately kept far short of a full palette match.
+    "Gaudy gold trim" is the whole point of this piece; retinting it all
+    the way to the muted palette would have defeated the request, so
+    only a light grounding blend was applied and the rest of the gap is
+    intentional, not an oversight.
+  - Wooden barrel (The Rusty Pipe's exterior prop): 35.6 → 28.6 (20%).
+  - Red brick facade (Church of the Rat God's body): 39.4 → 27.9 (30%).
+  - Orange/white barrier stripe (Rat Café's awning): 50.8 → 32.9 (35%).
 
 ## city_extension.png
 
@@ -31,15 +43,21 @@ AI-generated character sprites.
 - **Note:** Several tiles in the lower-right of the sheet carry a
   repeated "JVBot Inc." text watermark. A full-sheet pixel scan for the
   watermark's saturated blue found it confined to y=594–734 (of a
-  736px-tall sheet); that entire row band is treated as off-limits and
-  nothing has been (or will be) cropped from it, watermarked or not.
-- **In use as:** a wall-facade texture and an arched door, both
-  assembled into Rat Town Hall's exterior. Measured avg. nearest-color
-  distance 36.6 (facade) and 52.5 (door) against the Muck-and-Grime-13
-  palette before retinting — both moderate enough to need it — and
-  landed at 25.7 and 26.6 respectively after a 30%/50% blend toward
-  each pixel's nearest palette color. More pieces to follow as the rest
-  of the named locations' exteriors are built.
+  736px-tall sheet); that entire row band was treated as off-limits and
+  nothing was cropped from it, watermarked or not.
+- **In use as:** pieces assembled into all 8 named locations' custom
+  exteriors, same measure-then-retint-as-needed method as above:
+  - Dark teal-blue window facade (Town Hall's body): 36.6 → 25.7 (30%).
+  - Tan arched door (Town Hall's entrance): 52.5 → 26.6 (50%).
+  - Grey arched door (The Gilded Rat, Mousque): 50.6 → 27.7 (45%).
+  - Plain square door/window (The Rusty Pipe, Rat School, Rat Café):
+    54.3 → 27.5 (50%).
+  - Plain grey facade (Rat School's body): 24.2, already close → 21.7
+    (a light 10% blend regardless, since it's used entirely
+    unornamented and every pixel needed to read cleanly).
+  - Lightest teal facade (Rat Gymnasium's body): 30.8 → 24.4 (20%).
+  - Medium teal-green facade (Rat Café's body): 30.3 → 26.0 (15%).
+  - Garage-door/shutter icon (Rat Gymnasium's gate): 35.4 → 24.8 (28%).
 
 ## buildings.png
 
@@ -79,6 +97,10 @@ AI-generated character sprites.
   existing Muck-and-Grime-13 palette, ~25-30%) since their original
   red tone sat noticeably off that palette; the clean pavement and
   weeds crops were already close enough to use unretouched.
+  `assets/decal-brick-damage.png` is also reused (unmodified, already
+  on-palette from the pass above) as The Rusty Pipe's exterior wall
+  texture, and `assets/decal-weeds.png`'s round-bush shape is reused,
+  hue-shifted from green to a warm stone-tan, as Mousque's dome.
 
 ## sewer_1.png
 
@@ -96,12 +118,13 @@ AI-generated character sprites.
   that search, and are trustworthy; only the artist's name is pending.
 - **In use as:** the sheet's non-lava stone/water region, cropped as
   `assets/tile-sewer-stone.png` (building interior walls/floors — Town
-  Hall, The Rusty Pipe) and `assets/tile-sewer-water.png` (the
-  overworld Sewer River tile, replacing its old flat fill). The stone
-  crop was already close to the game's existing palette and used
-  unretouched. The water crop's ripple/bubble detail is the original
-  sheet's, but recolored from clean teal to a murky sickly-green sludge
-  (hue retargeted, saturation/value scaled down, contrast preserved) to
+  Hall, The Rusty Pipe; also reused, unmodified, as Mousque's exterior
+  body) and `assets/tile-sewer-water.png` (the overworld Sewer River
+  tile, replacing its old flat fill). The stone crop was already close
+  to the game's existing palette and used unretouched. The water crop's
+  ripple/bubble detail is the original sheet's, but recolored from
+  clean teal to a murky sickly-green sludge (hue retargeted,
+  saturation/value scaled down, contrast preserved) to
   read as stagnant polluted water rather than a clean tunnel stream.
   The sheet's lava tiles are excluded from this integration entirely —
   not used anywhere, recolored or otherwise.

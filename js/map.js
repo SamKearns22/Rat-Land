@@ -61,6 +61,58 @@ RatLand.locationAt = function (col, row) {
   return RatLand._locationLookup[col + ',' + row] || null;
 };
 
+// Custom building sprites (js/rendering.js) stand much taller than the
+// single tile they're anchored to, but only their base -- one row north
+// of the anchor, plus the anchor row itself -- is made physically solid,
+// not their full visual height. The tall decorative upper portion (roof,
+// upper floors) stays walkable-into on purpose: that's exactly the
+// "player occluded behind a tall building" case rendering.js's white
+// outline handles, and making the whole visual footprint solid would
+// turn every tall sprite into a much bigger dead zone than its actual
+// footprint on the ground.
+//
+// colOffsets/rowOffsets are relative to the location's own col/row (0 =
+// the anchor tile). For a hasInterior location the anchor tile (offset
+// 0) is deliberately excluded from the solid set even if listed, since
+// that's the door tile checkTransitions expects to stay walkable.
+//
+// Column widths default to a 3-tile span centered on the anchor
+// (matching each sprite's actual pixel width), except where that would
+// land on an existing NPC's tile -- checked directly against every
+// NPC_ROSTER position, not assumed:
+//   - gildedrat [0,1] instead of [-1,0,1]: Barry Gutt stands at (8,6),
+//     one tile west of the anchor (9,7); a full 3-wide footprint would
+//     have trapped him against the building.
+//   - gym [-1,0,1] rather than its full ~4-tile visual width: Sooty
+//     (21,11) and Corporal Nettle (25,11) both sit right at the visual
+//     edges the wider footprint would have covered.
+RatLand.BUILDING_FOOTPRINTS = {
+  townhall: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
+  gildedrat: { colOffsets: [0, 1], rowOffsets: [-1, 0] },
+  rustypipe: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
+  church: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
+  school: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
+  gym: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
+  cafe: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
+  mousque: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
+};
+
+RatLand._buildingSolidTiles = {};
+RatLand.LOCATIONS.forEach(function (loc) {
+  var fp = RatLand.BUILDING_FOOTPRINTS[loc.id];
+  if (!fp) return;
+  fp.colOffsets.forEach(function (co) {
+    fp.rowOffsets.forEach(function (ro) {
+      if (loc.hasInterior && co === 0 && ro === 0) return; // keep the door tile walkable
+      RatLand._buildingSolidTiles[(loc.col + co) + ',' + (loc.row + ro)] = true;
+    });
+  });
+});
+
+RatLand.isBuildingSolidTile = function (col, row) {
+  return !!RatLand._buildingSolidTiles[col + ',' + row];
+};
+
 // --- Overworld generation ---
 
 RatLand.buildOverworldMap = function () {
@@ -167,6 +219,7 @@ RatLand.isSolidOverworldTile = function (col, row) {
   if (col < 0 || row < 0 || col >= RatLand.OVERWORLD_COLS || row >= RatLand.OVERWORLD_ROWS) return true;
   var tile = RatLand.overworldGrid[row][col];
   if (tile === RatLand.TILE.WALL || tile === RatLand.TILE.WATER) return true;
+  if (RatLand.isBuildingSolidTile(col, row)) return true;
   var loc = RatLand.locationAt(col, row);
   if (loc && !loc.hasInterior) return true; // placeholder buildings block entry
   return false;

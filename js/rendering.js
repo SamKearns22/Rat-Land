@@ -70,14 +70,37 @@ RatLand.assets.sewerWater.src = 'assets/tile-sewer-water.png';
 // Custom exterior building sprites (CREDITS.md: Kenney's "Roguelike/Modern
 // City" pack + a CC0 "city_extension" building sheet), assembled per
 // location from cropped pieces of both sheets and retinted toward the
-// game's existing palette. Test case: Rat Town Hall only, for now -- the
-// rest of RatLand.LOCATIONS still fall back to their flat-color
-// placeholder box (see the LOCATIONS.forEach draw loop below) until each
-// location's sprite is built.
+// game's existing palette (ruins_tileset.png's damaged-brick decal and
+// sewer_1.png's stone tile are reused for Rusty Pipe and Mousque, for
+// material variety beyond the two new sheets). Every named location
+// with hasInterior or a real footprint now has one; Rat Park, Rat Beach,
+// and Rat Shopping District still fall back to their flat-color
+// placeholder box (see the LOCATIONS.forEach draw loop below).
 RatLand.assets.buildingTownhall = new Image();
+RatLand.assets.buildingGildedrat = new Image();
+RatLand.assets.buildingRustypipe = new Image();
+RatLand.assets.buildingChurch = new Image();
+RatLand.assets.buildingSchool = new Image();
+RatLand.assets.buildingGym = new Image();
+RatLand.assets.buildingCafe = new Image();
+RatLand.assets.buildingMousque = new Image();
 RatLand.assets.buildingTownhall.src = 'assets/building-townhall.png';
+RatLand.assets.buildingGildedrat.src = 'assets/building-gildedrat.png';
+RatLand.assets.buildingRustypipe.src = 'assets/building-rustypipe.png';
+RatLand.assets.buildingChurch.src = 'assets/building-church.png';
+RatLand.assets.buildingSchool.src = 'assets/building-school.png';
+RatLand.assets.buildingGym.src = 'assets/building-gym.png';
+RatLand.assets.buildingCafe.src = 'assets/building-cafe.png';
+RatLand.assets.buildingMousque.src = 'assets/building-mousque.png';
 RatLand.BUILDING_SPRITES = {
   townhall: 'buildingTownhall',
+  gildedrat: 'buildingGildedrat',
+  rustypipe: 'buildingRustypipe',
+  church: 'buildingChurch',
+  school: 'buildingSchool',
+  gym: 'buildingGym',
+  cafe: 'buildingCafe',
+  mousque: 'buildingMousque',
 };
 // "Rodents (Rat Rework)" (CREDITS.md), CC-BY: the default sprite for the
 // player and every NPC except Fen Wicket (who keeps his own hand-picked
@@ -615,6 +638,40 @@ function applyAccessories(ctx, cx, cy, r, accessories) {
   });
 }
 
+// Custom building sprites stand much taller than their own tile, and
+// their upper (non-solid, see map.js's BUILDING_FOOTPRINTS comment)
+// portion is walkable-into from behind/above -- so the player can end
+// up visually behind a tall roofline with nothing marking where they
+// went. ensureBuildingSilhouette lazily renders a solid-white cutout of
+// an already-loaded building image (cached on the image itself), used
+// by drawBuildingWithOutline to halo the sprite in white behind itself
+// -- a clear "you're behind this" cue -- whenever the player's own
+// bounding box overlaps the building's.
+function ensureBuildingSilhouette(img) {
+  if (img._silhouette) return img._silhouette;
+  var oc = document.createElement('canvas');
+  oc.width = img.naturalWidth;
+  oc.height = img.naturalHeight;
+  var octx = oc.getContext('2d');
+  octx.drawImage(img, 0, 0);
+  octx.globalCompositeOperation = 'source-in';
+  octx.fillStyle = '#ffffff';
+  octx.fillRect(0, 0, oc.width, oc.height);
+  img._silhouette = oc;
+  return oc;
+}
+
+function drawBuildingWithOutline(ctx, img, x, y) {
+  var sil = ensureBuildingSilhouette(img);
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(function (o) {
+    ctx.drawImage(sil, x + o[0], y + o[1]);
+  });
+  ctx.drawImage(img, x, y);
+  ctx.restore();
+}
+
 // Draws a raster-image NPC sprite (currently just Fen Wicket) centered on
 // the tile at its native resolution, which is already sized to match the
 // procedural sprites' body footprint. Same green glow treatment as the
@@ -871,6 +928,13 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   // their original 1-tile size -- they're real, entered locations, not
   // placeholders, so they were never part of this complaint.
   var PLACEHOLDER_BUILDING_SCALE = 1.5;
+  var player = game.player;
+  // Buildings the player's own bounding box currently overlaps get drawn
+  // AFTER the player (with the white outline treatment), so a tall
+  // sprite's roofline can actually cover the player instead of the
+  // player always painting over every building regardless of position.
+  // Everything else draws now, before the player, as always.
+  var occludingBuildings = [];
   RatLand.LOCATIONS.forEach(function (loc) {
     var wx = loc.col * ts, wy = loc.row * ts;
 
@@ -883,6 +947,12 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
     if (img && img.complete && img.naturalWidth) {
       var bx = wx + ts / 2 - img.naturalWidth / 2;
       var by = wy + ts - img.naturalHeight;
+      var overlaps = player.x < bx + img.naturalWidth && player.x + player.size > bx &&
+        player.y < by + img.naturalHeight && player.y + player.size > by;
+      if (overlaps) {
+        occludingBuildings.push({ loc: loc, img: img, bx: bx, by: by, wx: wx });
+        return;
+      }
       ctx.save();
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(img, bx, by);
@@ -969,6 +1039,14 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   });
 
   RatLand.drawPlayer(ctx, game.player.x, game.player.y, game.player.size, game.player.facing, game.player.moving);
+
+  // Any building the player is standing behind draws last, outlined in
+  // white so its silhouette still reads clearly over the player sprite
+  // it's now covering.
+  occludingBuildings.forEach(function (b) {
+    drawBuildingWithOutline(ctx, b.img, b.bx, b.by);
+    RatLand.drawLabel(ctx, b.loc.name, b.wx + ts / 2, b.by - 4);
+  });
 
   ctx.restore();
 };
