@@ -73,16 +73,55 @@ window.RatLand = RatLand;
     }
   }
 
-  RatLand.showDialogue = function (name, text) {
+  // The NPC currently turned to face the player for an open conversation,
+  // and the facing they had before that (restored when the dialogue
+  // closes). Only one at a time -- opening a new dialogue while another
+  // is still "faced" (shouldn't normally happen, since every path that
+  // opens a new one closes the old first, but defensive anyway) restores
+  // the previous NPC before turning the new one.
+  var facedNpc = null;
+  var facedNpcOriginalFacing;
+
+  function faceNpcTowardPlayer(npc) {
+    var player = RatLand.game && RatLand.game.player;
+    if (!player) return;
+    var ts = RatLand.TILE_SIZE;
+    var playerCol = Math.floor((player.x + player.size / 2) / ts);
+    var playerRow = Math.floor((player.y + player.size / 2) / ts);
+    var dc = playerCol - npc.col, dr = playerRow - npc.row;
+    var newFacing;
+    if (Math.abs(dc) > Math.abs(dr)) newFacing = dc > 0 ? 'right' : 'left';
+    else if (dr !== 0) newFacing = dr > 0 ? 'down' : 'up';
+    else return; // same tile (edge case) -- nothing to turn toward, leave as-is
+    facedNpcOriginalFacing = npc.facing;
+    facedNpc = npc;
+    npc.facing = newFacing;
+  }
+
+  function unfaceNpc() {
+    if (!facedNpc) return;
+    facedNpc.facing = facedNpcOriginalFacing;
+    facedNpc = null;
+  }
+
+  // npc is optional (third arg) -- the NPC this dialogue belongs to, so it
+  // can turn to face the player for the conversation. Skipped for NPCs
+  // mid-conversation with another NPC (pairId, e.g. Nora & Barry): they
+  // keep facing their scripted partner instead.
+  RatLand.showDialogue = function (name, text, npc) {
     dialogueName.textContent = name;
     dialoguePages = paginateDialogueText(text);
     dialoguePageIndex = 0;
     renderDialoguePage();
     dialogueBox.classList.add('visible');
+
+    if (facedNpc && facedNpc !== npc) unfaceNpc();
+    if (npc && !npc.pairId && facedNpc !== npc) faceNpcTowardPlayer(npc);
   };
 
   RatLand.hideDialogue = function () {
     dialogueBox.classList.remove('visible');
+    unfaceNpc();
   };
 
   RatLand.dialogueNextPage = function () {
@@ -261,15 +300,21 @@ window.RatLand = RatLand;
     // underneath (COMBAT_DESIGN.md §8/§10) — no player movement, no
     // transitions, no camera follow, while either is open.
     if (game.mode === 'overworld' || game.mode === 'interior') {
-      var isSolidFn;
+      var isSolidFn, isBlockedBoxFn;
       if (game.mode === 'overworld') {
-        isSolidFn = RatLand.isOverworldBlocked;
+        // Wall/building/water solidity stays tile-based (isSolidOverworldTile,
+        // no NPCs folded in); NPCs use their own smaller continuous-position
+        // hitbox (see npc.js) checked separately, not the old
+        // isOverworldBlocked's whole-tile NPC block.
+        isSolidFn = RatLand.isSolidOverworldTile;
+        isBlockedBoxFn = RatLand.isNpcBlockingBox;
       } else {
         var interior = RatLand.INTERIORS[game.currentInteriorId];
         isSolidFn = function (col, row) { return RatLand.isSolidInteriorTile(interior, col, row); };
+        isBlockedBoxFn = null; // no roaming NPCs indoors
       }
 
-      RatLand.updatePlayer(game.player, RatLand.input, dt, isSolidFn);
+      RatLand.updatePlayer(game.player, RatLand.input, dt, isSolidFn, isBlockedBoxFn);
       RatLand.checkTransitions(game);
 
       if (game.mode === 'overworld') {

@@ -1063,7 +1063,7 @@ window.RatLand = RatLand;
         var game = RatLand.game;
         var npc = game.preBattleNpc;
         RatLand.closePreBattleMenu(game);
-        if (npc) RatLand.showDialogue(npc.name, RatLand.getNpcLine(npc));
+        if (npc) RatLand.showDialogue(npc.name, RatLand.getNpcLine(npc), npc);
       });
     }
 

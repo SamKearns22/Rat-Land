@@ -17,7 +17,11 @@ RatLand.createPlayer = function (tileCol, tileRow) {
 
 // Checks whether a size x size box at (x, y) overlaps any solid tile,
 // using the supplied isSolidFn(col, row) for the current mode (overworld/interior).
-RatLand.checkCollision = function (x, y, size, isSolidFn) {
+// isBlockedBoxFn is an optional second, continuous-position check (not
+// tile-snapped) -- used for NPCs' shrunk hitboxes (see npc.js), which are
+// smaller than a full tile and so can't be expressed as a per-corner
+// tile lookup the way wall/building solidity is.
+RatLand.checkCollision = function (x, y, size, isSolidFn, isBlockedBoxFn) {
   var ts = RatLand.TILE_SIZE;
   var corners = [
     [x, y],
@@ -30,10 +34,11 @@ RatLand.checkCollision = function (x, y, size, isSolidFn) {
     var row = Math.floor(corners[i][1] / ts);
     if (isSolidFn(col, row)) return true;
   }
+  if (isBlockedBoxFn && isBlockedBoxFn(x, y, size)) return true;
   return false;
 };
 
-RatLand.updatePlayer = function (player, input, dt, isSolidFn) {
+RatLand.updatePlayer = function (player, input, dt, isSolidFn, isBlockedBoxFn) {
   var dx = 0, dy = 0;
   if (input.up) dy -= 1;
   if (input.down) dy += 1;
@@ -57,13 +62,13 @@ RatLand.updatePlayer = function (player, input, dt, isSolidFn) {
 
   if (moveX !== 0) {
     var newX = player.x + moveX;
-    if (!RatLand.checkCollision(newX, player.y, player.size, isSolidFn)) {
+    if (!RatLand.checkCollision(newX, player.y, player.size, isSolidFn, isBlockedBoxFn)) {
       player.x = newX;
     }
   }
   if (moveY !== 0) {
     var newY = player.y + moveY;
-    if (!RatLand.checkCollision(player.x, newY, player.size, isSolidFn)) {
+    if (!RatLand.checkCollision(player.x, newY, player.size, isSolidFn, isBlockedBoxFn)) {
       player.y = newY;
     }
   }

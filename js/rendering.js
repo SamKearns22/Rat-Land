@@ -1112,10 +1112,12 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   var crier = RatLand.townCrier;
   var crierX = crier.col * ts, crierY = crier.row * ts;
   var crierImg = RatLand.assets.rat;
+  // crier.facing (not a hardcoded 'down'): so he turns to face the player
+  // like every other NPC when talked to (js/main.js's faceNpcTowardPlayer).
   if (crierImg && crierImg.complete && crierImg.naturalWidth) {
-    drawRodentSprite(ctx, crierX, crierY, ts, crierImg, 'down', false, talkTarget === crier);
+    drawRodentSprite(ctx, crierX, crierY, ts, crierImg, crier.facing || 'down', false, talkTarget === crier);
   } else {
-    RatLand.drawRat(ctx, crierX, crierY, ts, crier.color, 'down', talkTarget === crier);
+    RatLand.drawRat(ctx, crierX, crierY, ts, crier.color, crier.facing || 'down', talkTarget === crier);
   }
   RatLand.drawLabel(ctx, crier.name, crierX + ts / 2, crierY - 4);
 

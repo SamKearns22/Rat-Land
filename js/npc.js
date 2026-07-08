@@ -88,6 +88,52 @@ RatLand.isOverworldBlocked = function (col, row) {
   return RatLand.isSolidOverworldTile(col, row) || RatLand.isNpcAt(col, row);
 };
 
+// NPCs used to block their *entire* 32px tile (same granularity as a
+// wall), which was noticeably heavy-handed: a single NPC standing on a
+// path -- and every path in Rat Land is exactly one tile wide -- fully
+// closed it, and the player's own 22px box couldn't graze past an NPC
+// standing one tile off to the side either, since any corner landing on
+// that NPC's tile blocked the whole move. NPC collision is now a
+// separate, smaller, continuous-position box (not tile-snapped) centered
+// on each NPC's tile, checked by AABB overlap against the player's own
+// box instead of by tile membership -- shrunk from the full 32px tile
+// down to 18px (out of the player's 22px box, so full overlap still
+// can't happen, but the player can pass within a few pixels of an NPC
+// without being stopped a whole tile away). Wall/building/water
+// solidity is untouched -- still tile-based via isSolidOverworldTile,
+// wired separately in main.js's frame loop.
+RatLand.NPC_HITBOX_SIZE = 18;
+
+RatLand.npcHitbox = function (npc) {
+  var ts = RatLand.TILE_SIZE;
+  var hs = RatLand.NPC_HITBOX_SIZE;
+  return {
+    x: npc.col * ts + (ts - hs) / 2,
+    y: npc.row * ts + (ts - hs) / 2,
+    size: hs,
+  };
+};
+
+// Cached once: no roster NPC ever changes col/row at runtime (all
+// placement is static), so there's no need to recompute this every
+// frame/collision-check.
+RatLand._npcHitboxes = null;
+RatLand.allNpcHitboxes = function () {
+  if (!RatLand._npcHitboxes) {
+    RatLand._npcHitboxes = [RatLand.townCrier].concat(RatLand.NPC_ROSTER).map(RatLand.npcHitbox);
+  }
+  return RatLand._npcHitboxes;
+};
+
+RatLand.isNpcBlockingBox = function (x, y, size) {
+  var boxes = RatLand.allNpcHitboxes();
+  for (var i = 0; i < boxes.length; i++) {
+    var b = boxes[i];
+    if (x < b.x + b.size && x + size > b.x && y < b.y + b.size && y + size > b.y) return true;
+  }
+  return false;
+};
+
 // --- NPC sprite roster --------------------------------------------------
 // One entry per named or distinct NPC in NPC_DIALOGUE.md. Every rat is
 // drawn from the same base rat shape (see rendering.js: drawNpcRat) —
