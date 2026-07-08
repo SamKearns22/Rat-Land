@@ -1,0 +1,58 @@
+# Rat Land -- Grid Reference (32x24 tiles)
+
+Coordinates are `(col,row)`, 0-indexed, matching `grid-reference.png`. Col 0-31 left-to-right, row 0-23 top-to-bottom.
+
+## Buildings
+
+- **Rat Town Hall** (has interior): spans (5,2)-(7,3), anchor/entrance (6,3)
+  - The Parade Gossip @ (6,1)
+  - Wetherby @ (9,2)
+- **The Gilded Rat**: spans (9,6)-(10,7), anchor/entrance (9,7)
+  - Barry Gutt @ (8,6)
+  - Marguerite Thistlewood-Vole @ (9,9)
+- **Church of the Rat God**: spans (2,8)-(4,9), anchor/entrance (3,9)
+  - Sister Bramble @ (3,11)
+  - Colonel Bartholomew Nutkin @ (4,6)
+  - Nan Gribble @ (5,10)
+- **Rat Café**: spans (18,3)-(20,4), anchor/entrance (19,4)
+  - The Queue Complainer @ (18,2)
+  - Doreen @ (19,6)
+  - Kevin @ (21,3)
+- **Rat Shopping District**: spans (23,6)-(25,6), anchor/entrance (24,6)
+  - The Scrap Grumbler @ (22,8)
+  - Twitchy Nostrum @ (24,3)
+  - Old Fenwick @ (25,8)
+- **Rat School**: spans (17,11)-(19,12), anchor/entrance (18,12)
+  - The Bin Day Grumbler @ (18,14)
+- **Rat Gymnasium**: spans (22,11)-(24,12), anchor/entrance (23,12)
+  - Sooty @ (21,11)
+  - Chalky @ (21,14)
+  - Corporal Nettle @ (25,11)
+- **The Rusty Pipe** (has interior): spans (19,18)-(21,19), anchor/entrance (20,19)
+  - Gristle @ (18,18)
+  - Nora Sopwell @ (21,17)
+- **Mousque**: spans (7,14)-(9,15), anchor/entrance (8,15)
+- **Rat Park**: spans (4,15), anchor/entrance (4,15)
+  - The Allotment Bragger @ (4,17)
+  - The Countryside Dreamer @ (6,14)
+
+## Landmarks
+
+- Town Crier @ (8,4)
+- Sewer River: vertical, cols 14-16, full height (0-23); bridges at rows 2-4, 10-12, 18-20 (verified against the tile grid directly, not eyeballed)
+- "20 Years!" sign: near (7,6), on the path between Town Hall (6,3) and Town Crier (8,4)
+
+## NPCs not near a building (open ground / paths)
+
+- Marsh @ (3,1)
+- The Wavering Rat @ (11,1)
+- Bramwell @ (15,3)
+- Mrs. Pemberton-Vole @ (27,4)
+- Crazy Joe @ (13,6)
+- Pip @ (13,9)
+- Fen Wicket @ (14,11)
+- The Drain-Watcher @ (11,13)
+- Reg Cutwater @ (13,17)
+- Barry Trench @ (23,17)
+- Ferdy Cobb @ (11,18)
+- Dredge @ (16,19)
