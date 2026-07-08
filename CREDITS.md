@@ -84,10 +84,27 @@ Before committing any new AI-generated sprite:
     the awning above, desaturated then heavily retinted toward a
     neutral cornice grey rather than kept as a color accent, since a
     school's roofline should read as plain, not decorative): 50.8 →
-    12.6 (roughly 90% blend after desaturation).
+    12.6 (roughly 90% blend after desaturation). The same grey cornice
+    is reused on Rat Gymnasium's and Rat Café's rooflines.
   - Wooden picket fence panel (a short schoolyard fence run beside Rat
     School, desaturated from its original warm-brown and retinted
     toward grey-tan): 46.3 → 8.3.
+  - Wall vent units, fan + grid pair (Rat Gymnasium's facade, fitting
+    a sweaty hall that needs airing): 32.7/29.1 → 22.7/20.3 (30%).
+  - Street-lamp post shaft, colorized to rust-brown and stacked into a
+    segmented drainpipe (The Rusty Pipe's namesake pipe, run down the
+    brick facade from under the shed roof): 32.4 → 28.0.
+  - Wooden crate (small clutter props: by The Rusty Pipe's door and
+    beside a Rat Shopping District stall): 41.7 → ~33 (20%).
+  - Crate planter boxes, one leafy-green and one with produce
+    (The Allotment Bragger's moss plot beside (4,17), the produce one
+    desaturated first): 44.3/50.4 → 28.9/17.6 (35%).
+  - Mossy green tile (the allotment plot's ground bed): 44.3 → ~29
+    (35%).
+  - Round bush and teardrop bush (Mousque's and Rat School's entrance
+    greenery; the allotment plot): 70.2/71.9 → 27.8-42 (50-60% -- these
+    two pieces start much further off-palette than anything else on
+    this sheet, so they take the heaviest blends in the set).
 
 ## city_extension.png
 
@@ -113,6 +130,14 @@ Before committing any new AI-generated sprite:
   - Lightest teal facade (Rat Gymnasium's body): 30.8 → 24.4 (20%).
   - Medium teal-green facade (Rat Café's body): 30.3 → 26.0 (15%).
   - Garage-door/shutter icon (Rat Gymnasium's gate): 35.4 → 24.8 (28%).
+  - Large 6-pane window (Rat Gymnasium's upgraded windows, replacing
+    its original small 4-panes): 37.5 → 25.9 (30%).
+  - Small 4-pane grey window (Rat Café's upper-floor windows,
+    hue-shifted toward the café's teal facade): 35.1 → 25.2 (30%).
+  - Dark shutter-door interior (cropped small and framed as flat
+    boards: Rat Café's menu chalkboard, Rat Town Hall's noticeboard,
+    and The Gilded Rat's door sign -- the last with a gold trim strip
+    in the building's own finial gold): 20.8 raw, 15-25% blends.
 
 ## buildings.png
 

@@ -100,6 +100,14 @@ RatLand.assets.buildingGym.src = 'assets/building-gym.png';
 RatLand.assets.buildingCafe.src = 'assets/building-cafe.png';
 RatLand.assets.buildingMousque.src = 'assets/building-mousque.png';
 RatLand.assets.buildingShopping.src = 'assets/building-shopping.png';
+// Not a building: a small allotment plot (planter boxes on a moss bed,
+// pieces from roguelikeCity_magenta.png) planted beside The Allotment
+// Bragger at (4,17), so their prize-moss dialogue has something physical
+// to point at. Purely decorative scenery -- no LOCATIONS entry, no
+// label, no collision footprint -- drawn once in renderOverworld like
+// the "20 Years!" sign.
+RatLand.assets.allotmentPlot = new Image();
+RatLand.assets.allotmentPlot.src = 'assets/allotment-plot.png';
 RatLand.BUILDING_SPRITES = {
   townhall: 'buildingTownhall',
   gildedrat: 'buildingGildedrat',
@@ -1073,6 +1081,17 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
   // Rat Town Hall and the Town Crier -- close to both without sitting on
   // either one's tile.
   drawAnniversarySign(ctx, 7 * ts + ts / 2, 5 * ts + ts * 0.75);
+
+  // The Allotment Bragger's moss plot, on the grass just west of where
+  // they stand at (4,17). Drawn before NPCs so the Bragger layers in
+  // front of it, like a gardener beside their patch.
+  var plotImg = RatLand.assets.allotmentPlot;
+  if (plotImg && plotImg.complete && plotImg.naturalWidth) {
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(plotImg, 3 * ts - 4, 18 * ts - 2 - plotImg.naturalHeight);
+    ctx.restore();
+  }
 
   // With 31 NPCs, several are deliberately clustered near the same
   // building — showing every name at once turns into an unreadable pile
