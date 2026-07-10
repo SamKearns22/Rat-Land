@@ -596,7 +596,7 @@ RatLand.NPC_ROSTER = [
     col: 22, row: 11, // hand-marked map: green line, south towards Rat School's bridge approach
     lines: [
       "The best part about hauling scrap is that people pay you for tidying up.",
-      "The worst part of hauling scrap is your body hurting all the time.",
+      "The worst part about hauling scrap is your body hurting all the time.",
       "Do you ever wonder where all the scrap we don't dredge to shore ends up? I bet it is a magical place.",
       "I had a dream I was diving into a massive pile of scrap. I had never felt so happy. Then I hit the pile and BOOM. Dead.",
       "A death worth dreaming about. I bloody love scrap.",
@@ -724,7 +724,7 @@ RatLand.NPC_ROSTER = [
     lines: [
       "I forgot to put the bins out and now the wife isn't texting back.",
       "I'd take aggressive over passive-aggressive any day.",
-      "I'd take Grimmal ripping my face off over her particular brand of passive-aggression.",
+      "I'd take Grimmal ripping my face off over her particular brand of passive-aggressive.",
       "A shoulder massage will fix her. Always does.",
       "Oh shit. I didn't take the laundry out either.",
     ],
