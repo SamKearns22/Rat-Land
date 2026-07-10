@@ -40,7 +40,8 @@ RatLand.LOCATIONS = [
   { id: 'gildedrat', name: 'The Gilded Rat', col: 11, row: 7, color: '#d4af37', hasInterior: false },
   { id: 'park', name: 'Mouse Quarter', col: 4, row: 15, color: '#4f9e4f', hasInterior: false },
   { id: 'cafe', name: 'Rat Café', col: 20, row: 3, color: '#c47a3d', hasInterior: false },
-  { id: 'shopping', name: 'Rat Shopping District', col: 24, row: 6, color: '#d9534f', hasInterior: false },
+  // Row 4, not 6: brought up 2 tiles.
+  { id: 'shopping', name: 'Rat Shopping District', col: 24, row: 4, color: '#d9534f', hasInterior: false },
   // col 18, not 17: at col 17 the sprite's own visual width (88px,
   // wider than its 2-tile footprint) crept left into the river/bridge
   // tiles at col 16. Shifted one tile east to clear it -- footprint is
@@ -208,7 +209,8 @@ RatLand.buildOverworldMap = function () {
   carveV(20, 4, 19);
   carveH(4, 19, 20);   // East-spine connector (Rat Café moved to row 3, see below)
   carveH(3, 19, 21);   // Connects to Rat Café's relocated door at row 3
-  carveH(6, 20, 24);   // Rat Shopping District
+  carveH(4, 20, 25);   // Rat Shopping District (brought up 2 tiles, from row 6 to row 4)
+  carveH(6, 20, 24);   // Old Rat Shopping District row -- left in place as a cross-link between the east spine and Rat Gymnasium's approach
   // Extended east from col 23 to col 29 to reach Rat Gymnasium's relocated door.
   carveH(12, 18, 29);  // Rat School <-> Rat Gymnasium
   carveV(18, 10, 11);  // Connects Rat School's relocated door down to Main Street
@@ -225,6 +227,19 @@ RatLand.buildOverworldMap = function () {
   // side effect of their other carves above, so they're not repeated here.
   carveV(4, 3, 4);    // Rat Town Hall
   carveV(27, 12, 13); // Rat Gymnasium
+
+  // The stubs above only connect vertically, through the door tile --
+  // fine topologically, but Town Hall's and The Gilded Rat's stubs sat
+  // one tile short of visibly joining the nearest established road at
+  // their own row (a stray gap at col 5 / cols 8-10), reading as
+  // slightly detached islands rather than a continuous street. Closed
+  // both so the stub runs straight into the nearest existing path
+  // instead of only linking up through the door above it. (The Rusty
+  // Pipe's and Rat Gymnasium's stubs don't have this issue -- there's
+  // no other path at their own row to connect to in the first place,
+  // so the vertical link through the door is already the shortest route.)
+  carveH(4, 4, 7);               // Rat Town Hall's stub -> the west spine
+  carveH(8, 7, 11, TILE.PATH_WORN); // The Gilded Rat's stub -> the second lane
 
   // Main Street: the middle-bridge crossing, tying the two spines together.
   carveH(RatLand.BRIDGE_ROWS[1], 1, COLS - 2);

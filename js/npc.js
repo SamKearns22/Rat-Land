@@ -762,9 +762,11 @@ RatLand.NPC_ROSTER = [
   {
     id: 'kevin', name: 'Ken Choppings', group: 'mouse', species: 'mouse',
     // Moved from (21,3) -- his old tile now falls inside Rat Café's
-    // relocated footprint (20,3)-(21,3) -- to the nearest open tile,
-    // one column further along the same row.
-    col: 23, row: 3,
+    // relocated footprint (20,3)-(21,3) -- to (23,3), then moved again
+    // when Rat Shopping District came up 2 tiles and its sprite's tall
+    // visual box (not just its footprint) newly occluded (23,3) from
+    // behind. One tile further east, past the building's east edge.
+    col: 26, row: 3,
     lines: [
       "Why you staring at me, boss?",
       "Badman trying to get shanked?",
