@@ -28,14 +28,13 @@ new name. A few entries kept their original name outright (no new name
 given): Pip, Twitchy Nostrum, Ferdy Cobb, Reg Cutwater, Sister Bramble,
 Fen Wicket, Barry Gutt, Nora Sopwell.
 
-**Two lines withheld, flagged to Sam rather than shipped:** Annabelle
-Drodd (was Nan Gribble)'s given line 5 was a throwaway endorsement of
-real lynching violence ("Things were better when we could hang
-folk."); Reg Cutwater's given line 4 was a straight-faced
-justification of police violence against an ethnic out-group ("If the
-mouse didn't want to be beaten, he shouldn't have committed a
-crime."). Both characters ship with their other 4 lines only, pending
-a replacement line from Sam.
+**On the harshest lines** (Annabelle Drodd's lynching-nostalgia line,
+Reg Cutwater's police-violence line): flagged to Sam before
+implementation, since they read very differently from the rest of the
+roster's bigotry-as-character-trait writing. Sam's call, with the
+context that these NPCs' views are the ones the battle mode's Debate
+mechanic exists to challenge — the extremity is the point, not an
+oversight. Shipped as originally written.
 
 ---
 
@@ -97,12 +96,13 @@ a replacement line from Sam.
 - "Trust no-one. I learned that from a podcast."
 
 ### Annabelle Drodd (was Nan Gribble)
-**Stance:** Nostalgic and openly xenophobic, elderly. Only 4 of her 5 given lines are in use — see the withheld-line note above.
+**Stance:** Nostalgic and openly xenophobic, elderly. See the note above on her final line.
 
 - "In my day the water was stagnant brown and we didn't make a fuss."
 - "This isn't our country anymore. Nothing works as it should. What's to be proud of?"
 - "Before Mousika and Rat Land there was just 'the wet bit' and 'the wetter bit.'"
 - "You walk down some streets around here and its like you're in Mousika. They don't even bother speaking the language."
+- "Things were better when we could hang folk."
 
 ### Barney Bursk (was Bramwell)
 **Stance:** Separation-sympathetic but conflicted — his own sister married a mouse from Mousika, and it visibly complicates his stated views.
@@ -132,11 +132,12 @@ a replacement line from Sam.
 - "Who am I planning to vote for? Well, Terrance is the type of rat you could have a beer with... only I don't drink."
 
 ### Reg Cutwater
-**Stance:** Dock foreman, now hostile toward the mice after witnessing the shelter riots — a reversal from his previously sympathetic stance. Only 4 of his 5 given lines are in use — see the withheld-line note above.
+**Stance:** Dock foreman, now hostile toward the mice after witnessing the shelter riots — a reversal from his previously sympathetic stance. See the note above on his fourth line.
 
 - "I've worked this river for years and I've never seen anything like what happened last week."
 - "Mice throwing things at police, police marching in on mice. Disgraceful."
 - "Shows they aren't assimilating. They don't understand our culture."
+- "If the mouse didn't want to be beaten, he shouldn't have committed a crime."
 - "I've been beaten plenty by police in my life. Don't see me causing a scene."
 
 ### Sister Bramble

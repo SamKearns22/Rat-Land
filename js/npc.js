@@ -253,10 +253,6 @@ RatLand.NPC_ROSTER = [
     note: 'A direct callback to his own joke about "who\'s really running the cheese supply" — a foil-style tin hat, plus a jittery whisker mark.',
   },
   {
-    // Line 5 from the source file ("Things were better when we could hang
-    // folk.") is deliberately omitted -- a throwaway endorsement of real
-    // lynching violence, flagged to Sam rather than shipped as a punchline.
-    // Only 4 of her 5 given lines are in use pending a replacement line.
     id: 'nangribble', name: 'Annabelle Drodd', group: 'political',
     col: 5, row: 10,
     lines: [
@@ -264,6 +260,7 @@ RatLand.NPC_ROSTER = [
       "This isn't our country anymore. Nothing works as it should. What's to be proud of?",
       "Before Mousika and Rat Land there was just 'the wet bit' and 'the wetter bit.'",
       "You walk down some streets around here and its like you're in Mousika. They don't even bother speaking the language.",
+      "Things were better when we could hang folk.",
     ],
     lineIndex: 0,
     color: '#9c9488',
@@ -327,17 +324,13 @@ RatLand.NPC_ROSTER = [
     note: 'A deliberately unremarkable grey, with a ribbon pinned to only one side — can\'t commit to a position, visually.',
   },
   {
-    // Line 4 from the source file ("If the mouse didn't want to be beaten,
-    // he shouldn't have committed a crime.") is deliberately omitted -- a
-    // straight-faced justification of police violence against an ethnic
-    // out-group, flagged to Sam rather than shipped as-is. Only 4 of his
-    // 5 given lines are in use pending a replacement line.
     id: 'regcutwater', name: 'Reg Cutwater', group: 'political',
     col: 13, row: 17,
     lines: [
       "I've worked this river for years and I've never seen anything like what happened last week.",
       "Mice throwing things at police, police marching in on mice. Disgraceful.",
       "Shows they aren't assimilating. They don't understand our culture.",
+      "If the mouse didn't want to be beaten, he shouldn't have committed a crime.",
       "I've been beaten plenty by police in my life. Don't see me causing a scene.",
     ],
     lineIndex: 0,
