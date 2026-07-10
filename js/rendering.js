@@ -108,6 +108,30 @@ RatLand.assets.buildingShopping.src = 'assets/building-shopping.png';
 // the "20 Years!" sign.
 RatLand.assets.allotmentPlot = new Image();
 RatLand.assets.allotmentPlot.src = 'assets/allotment-plot.png';
+// River/bridge dressing (CREDITS.md). Bridges: plank deck texture, a
+// knothole variant scattered by tileHash, and a picket rail strip drawn
+// along each deck edge that faces open water -- all cropped from
+// Kenney's roguelikeCity sheet and blended 40% toward the game's bridge
+// brown. The outfall grate is sewer_1.png's own barred-arch piece
+// (2x upscale), sitting where the river meets the north wall, with a
+// couple of debris bits baked in at the waterline (the existing
+// river-debris crop, plus a plank fragment) -- the stuff Fen Wicket
+// says floats down. Water dressing from the same sewer sheet, recolored
+// with the exact same murk transform as the river tile itself (hue
+// fixed to 0.167 olive, sat x0.86, val x0.95): a pale current streak
+// (drifting toward the grate) and a foam strip for the banks.
+RatLand.assets.bridgePlanks = new Image();
+RatLand.assets.bridgePlanks.src = 'assets/tile-bridge-planks.png';
+RatLand.assets.bridgePlanksHoled = new Image();
+RatLand.assets.bridgePlanksHoled.src = 'assets/tile-bridge-planks-holed.png';
+RatLand.assets.bridgeRail = new Image();
+RatLand.assets.bridgeRail.src = 'assets/bridge-rail.png';
+RatLand.assets.riverGrate = new Image();
+RatLand.assets.riverGrate.src = 'assets/river-grate.png';
+RatLand.assets.waterStreak = new Image();
+RatLand.assets.waterStreak.src = 'assets/water-flow-streak.png';
+RatLand.assets.waterFoamEdge = new Image();
+RatLand.assets.waterFoamEdge.src = 'assets/water-foam-edge.png';
 RatLand.BUILDING_SPRITES = {
   townhall: 'buildingTownhall',
   gildedrat: 'buildingGildedrat',
@@ -135,6 +159,7 @@ RatLand._pavementCrackWornPattern = null;
 RatLand._brickDamagedPattern = null;
 RatLand._sewerStonePattern = null;
 RatLand._sewerWaterPattern = null;
+RatLand._bridgePlankPattern = null;
 
 function ensureGroundPatterns(ctx) {
   if (!RatLand._mossyPattern && RatLand.assets.mossy.complete && RatLand.assets.mossy.naturalWidth) {
@@ -157,6 +182,9 @@ function ensureGroundPatterns(ctx) {
   }
   if (!RatLand._sewerWaterPattern && RatLand.assets.sewerWater.complete && RatLand.assets.sewerWater.naturalWidth) {
     RatLand._sewerWaterPattern = ctx.createPattern(RatLand.assets.sewerWater, 'repeat');
+  }
+  if (!RatLand._bridgePlankPattern && RatLand.assets.bridgePlanks.complete && RatLand.assets.bridgePlanks.naturalWidth) {
+    RatLand._bridgePlankPattern = ctx.createPattern(RatLand.assets.bridgePlanks, 'repeat');
   }
 }
 
@@ -182,6 +210,7 @@ function overworldFillFor(tile, row, col) {
   var TILE = RatLand.TILE;
   if (tile === TILE.GROUND && RatLand._mossyPattern) return RatLand._mossyPattern;
   if (tile === TILE.WATER && RatLand._sewerWaterPattern) return RatLand._sewerWaterPattern;
+  if (tile === TILE.BRIDGE && RatLand._bridgePlankPattern) return RatLand._bridgePlankPattern;
   if (tile === TILE.PATH && RatLand._pavementCrackCleanPattern) return RatLand._pavementCrackCleanPattern;
   if (tile === TILE.PATH_WORN && RatLand._pavementCrackWornPattern) return RatLand._pavementCrackWornPattern;
   if (tile === TILE.WALL) {
@@ -309,6 +338,95 @@ function paintPathContrast(ctx, tile, row, col, ts) {
 
 function clamp(v, lo, hi) {
   return Math.max(lo, Math.min(v, hi));
+}
+
+// Bridge dressing on top of the plank-pattern fill: an occasional
+// knothole plank variant (same tileHash determinism as every other
+// scatter), and a picket rail strip along any deck edge that faces open
+// water -- so the crossing reads as a built structure with sides, not
+// just a different-colored path. Decks are 3x3; only their outer
+// north/south rows border water, so rails land there and the middle
+// lane stays visually clear.
+var BRIDGE_KNOTHOLE_CHANCE = 0.22;
+function drawBridgeDetail(ctx, row, col, ts) {
+  var TILE = RatLand.TILE;
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+
+  var holed = RatLand.assets.bridgePlanksHoled;
+  if (holed.complete && holed.naturalWidth &&
+      tileHash(row + 21000, col + 21000) < BRIDGE_KNOTHOLE_CHANCE) {
+    ctx.drawImage(holed, col * ts, row * ts);
+  }
+
+  var rail = RatLand.assets.bridgeRail;
+  if (rail.complete && rail.naturalWidth) {
+    if (tileAt(row - 1, col) === TILE.WATER) {
+      // Deck's north edge: dark waterline first so the deck visibly
+      // ends, then the rail on top of it.
+      ctx.fillStyle = 'rgba(10, 12, 6, 0.55)';
+      ctx.fillRect(col * ts, row * ts, ts, 3);
+      ctx.drawImage(rail, col * ts, row * ts);
+    }
+    if (tileAt(row + 1, col) === TILE.WATER) {
+      ctx.fillStyle = 'rgba(10, 12, 6, 0.55)';
+      ctx.fillRect(col * ts, row * ts + ts - 3, ts, 3);
+      ctx.drawImage(rail, col * ts, row * ts + ts - rail.naturalHeight);
+    }
+  }
+  ctx.restore();
+}
+
+// Water dressing on top of the murk-pattern fill: a soft shadow where a
+// bridge deck hangs over the water (south side of each deck, plus a
+// thinner line against its north face), pale foam where the river laps
+// against its banks, and sparse current streaks -- all pointing the
+// same way, downstream toward the outfall grate at the river's north
+// end, so the water reads as moving rather than a flat painted strip.
+var WATER_STREAK_CHANCE = 0.38;
+function drawWaterDetail(ctx, row, col, ts) {
+  var TILE = RatLand.TILE;
+  var x0 = col * ts, y0 = row * ts;
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+
+  // Deck edges: shadow under the deck's south face, a thin line at its
+  // north face.
+  if (tileAt(row - 1, col) === TILE.BRIDGE) {
+    var shade = ctx.createLinearGradient(0, y0, 0, y0 + 7);
+    shade.addColorStop(0, 'rgba(0, 0, 0, 0.5)');
+    shade.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = shade;
+    ctx.fillRect(x0, y0, ts, 7);
+  }
+  if (tileAt(row + 1, col) === TILE.BRIDGE) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillRect(x0, y0 + ts - 3, ts, 3);
+  }
+
+  // Foam along the banks (any side that isn't more water or a deck).
+  var foam = RatLand.assets.waterFoamEdge;
+  if (foam.complete && foam.naturalWidth) {
+    ctx.globalAlpha = 0.4;
+    var west = tileAt(row, col - 1);
+    var east = tileAt(row, col + 1);
+    if (west !== TILE.WATER && west !== TILE.BRIDGE) ctx.drawImage(foam, x0, y0);
+    if (east !== TILE.WATER && east !== TILE.BRIDGE) ctx.drawImage(foam, x0 + ts - foam.naturalWidth, y0);
+    ctx.globalAlpha = 1;
+  }
+
+  // Current streaks, drifting toward the grate.
+  var streak = RatLand.assets.waterStreak;
+  if (streak.complete && streak.naturalWidth) {
+    var h = tileHash(row + 17000, col + 17000);
+    if (h < WATER_STREAK_CHANCE) {
+      ctx.globalAlpha = 0.5;
+      var ox = 4 + Math.floor((h / WATER_STREAK_CHANCE) * (ts - streak.naturalWidth - 8));
+      ctx.drawImage(streak, x0 + ox, y0);
+      ctx.globalAlpha = 1;
+    }
+  }
+  ctx.restore();
 }
 
 // The on-screen controls + dialogue box occupy roughly the bottom
@@ -1018,9 +1136,27 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
         drawGroundDecal(ctx, row, col, ts);
       }
       if (!isPhantomRow && tile === TILE.WATER) {
+        drawWaterDetail(ctx, row, col, ts);
         drawRiverDebris(ctx, row, col, ts);
       }
+      if (!isPhantomRow && tile === TILE.BRIDGE) {
+        drawBridgeDetail(ctx, row, col, ts);
+      }
     }
+  }
+
+  // The outfall grate: where the Sewer River meets the north wall, the
+  // water passes out of town through an arch of metal bars set into the
+  // brick -- with a couple of debris pieces caught against them (baked
+  // into the asset), the stuff Fen Wicket says comes floating down.
+  // Drawn over the wall/water tiles it spans (rows 0-1), slightly wider
+  // than the 3-column river so its masonry reads as set INTO the wall.
+  var grateImg = RatLand.assets.riverGrate;
+  if (grateImg.complete && grateImg.naturalWidth) {
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(grateImg, RatLand.RIVER_COL_START * ts - (grateImg.naturalWidth - 3 * ts) / 2, 0);
+    ctx.restore();
   }
 
   // Placeholder buildings (every location without a working interior) are

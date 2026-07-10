@@ -105,6 +105,19 @@ Before committing any new AI-generated sprite:
     greenery; the allotment plot): 70.2/71.9 → 27.8-42 (50-60% -- these
     two pieces start much further off-palette than anything else on
     this sheet, so they take the heaviest blends in the set).
+  - Plank fence panels (the three river bridges): one full-tile panel
+    rotated 90° into `assets/tile-bridge-planks.png`, the deck's
+    horizontal plank texture (replacing the old flat brown BRIDGE
+    fill); the knothole variant likewise rotated into
+    `assets/tile-bridge-planks-holed.png`, scattered by tileHash with
+    the knothole punched to a dark water-glimpse; and a picket panel's
+    top strip as `assets/bridge-rail.png`, the side rails along each
+    deck edge that faces open water. All blended 40% toward the game's
+    bridge brown (#8a6240); the rail additionally darkened ~40% so it
+    reads as a distinct railing against the deck rather than more of
+    the same planking. A small fragment of the broken-panel variant is
+    also baked into `assets/river-grate.png` (below) as a wood scrap
+    caught against the grate's bars.
 
 ## city_extension.png
 
@@ -210,6 +223,22 @@ Before committing any new AI-generated sprite:
   clean teal to a murky sickly-green sludge (hue retargeted,
   saturation/value scaled down, contrast preserved) to
   read as stagnant polluted water rather than a clean tunnel stream.
+  Three further crops joined in the river-dressing pass, all recolored
+  with the exact same transform as the water tile (hue fixed to 0.167
+  olive, saturation ×0.86, value ×0.95 — verified by locating the water
+  tile's own source crop on the sheet and measuring the applied change):
+  - The barred outfall arch at (168,80)–(224,112), 2× upscaled as
+    `assets/river-grate.png` — the metal grate set into the brick where
+    the river meets the map's north wall, its teal pooling water
+    murk-recolored and its masonry blended 25% toward the game's
+    cracked-brick tone, with two debris pieces baked in at the
+    waterline (the existing river-debris crop, plus a Kenney plank
+    fragment — the stuff Fen Wicket says floats down).
+  - A foam lip strip, rotated vertical as `assets/water-foam-edge.png`,
+    drawn at low alpha where the river laps against its banks.
+  - The same foam pixels thinned and sheared into
+    `assets/water-flow-streak.png`, sparse pale current streaks
+    (tileHash-scattered) drifting toward the grate.
   The sheet's lava tiles are excluded from this integration entirely —
   not used anywhere, recolored or otherwise.
 
