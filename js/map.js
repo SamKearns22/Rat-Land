@@ -47,7 +47,9 @@ RatLand.LOCATIONS = [
   // tiles at col 16. Shifted one tile east to clear it -- footprint is
   // now (18,10)-(19,10), one tile off Sam's original (17,10)-(18,10).
   { id: 'school', name: 'Rat School', col: 18, row: 10, color: '#4f83c9', hasInterior: false },
-  { id: 'gym', name: 'Rat Gymnasium', col: 27, row: 12, color: '#e07b39', hasInterior: false },
+  // Moved from (27,12) to (28,9) per the user's hand-marked map (yellow
+  // circle, north of its old spot, wrapping over the top of the building).
+  { id: 'gym', name: 'Rat Gymnasium', col: 28, row: 9, color: '#e07b39', hasInterior: false },
   { id: 'rustypipe', name: 'The Rusty Pipe', col: 24, row: 19, color: '#8b5a2b', hasInterior: true, interiorId: 'rustypipe' },
   // Moved from its old bottom-right-corner spot (29,21) to sit just east
   // of Rat Park, on the same row-15 branch off the west-bank spine --
@@ -185,6 +187,12 @@ RatLand.buildOverworldMap = function () {
       if (cur === TILE.GROUND || cur === TILE.PATH || cur === TILE.PATH_WORN) grid[r][col] = t;
     }
   }
+  // Reverts a paved tile back to bare ground. Used only for the removals
+  // marked in blue on the user's hand-marked map revision, below.
+  function eraseTile(row, col) {
+    var cur = grid[row][col];
+    if (cur === TILE.PATH || cur === TILE.PATH_WORN) grid[row][col] = TILE.GROUND;
+  }
 
   // West-bank spine, rooted at Town Hall's column (the hub), running the
   // length of the west bank down to the south bridge's row.
@@ -259,6 +267,83 @@ RatLand.buildOverworldMap = function () {
   carveH(19, 20, 25, TILE.PATH_WORN); // final grimy stretch to The Rusty Pipe's relocated door
   carveV(11, 7, 8, TILE.PATH_WORN);   // centre-front door stub, The Gilded Rat
   carveV(24, 19, 20, TILE.PATH_WORN); // centre-front door stub, The Rusty Pipe
+
+  // --- Hand-marked map revision ---
+  // Interpreted from the user's marked-up screenshot: blue = remove the
+  // path at that tile, red = pave a new path tile there.
+
+  // Blue: Rat Shopping District's row-4 connector, west half only.
+  eraseTile(4, 22); eraseTile(4, 23); eraseTile(4, 24); eraseTile(4, 25);
+  // Blue: The Gilded Rat's approach, easternmost tile.
+  eraseTile(7, 12);
+  // Blue: west-bank river path, near Fen Wicket's usual spot.
+  eraseTile(11, 1); eraseTile(11, 2); eraseTile(11, 3);
+  // Blue: Rat Gymnasium's old south-side path stub (building has moved away).
+  eraseTile(13, 27);
+
+  // Red: north-west plaza -- a 6-tile rectangular path space one tile in
+  // from the map's top-left corner, linked down to Rat Town Hall's frontage.
+  carveH(1, 1, 2);
+  carveH(2, 1, 2);
+  carveH(3, 1, 2);
+  carveV(2, 1, 4);
+  carveH(4, 2, 4);
+  // Red: small extension south of Rat Shopping District.
+  carveV(24, 5, 6);
+  // Red: small extension west of Rat Café.
+  carveV(18, 4, 5);
+  // Red: small nub west of Rat School's south-east corner.
+  carveH(12, 17, 18);
+  // Red: reroute around The Rusty Pipe's bottom-left instead of clipping
+  // straight across the building's frontage.
+  carveV(22, 17, 20);
+  carveH(20, 22, 23);
+  // Red: long west stretch tying Mouse Quarter's neighbourhood into the
+  // south bridge crossing.
+  carveH(19, 6, 14);
+
+  // --- Second hand-marked map revision ---
+  // Blue: partially undoes The Rusty Pipe's bottom-left reroute -- the
+  // north half of that detour (col 22, rows 17-18) is removed again.
+  eraseTile(17, 22); eraseTile(18, 22);
+  // Blue: a stray tile of The Rusty Pipe's original approach.
+  eraseTile(19, 25);
+
+  // Red: new path linking Rat Gymnasium's relocated east side down to the
+  // existing east-spine path below it.
+  carveH(10, 28, 29);
+  carveH(11, 28, 29);
+
+  // --- Third hand-marked map revision ---
+  // Yellow: (20,12) sat as a lone PATH_WORN tile breaking up the clean
+  // grey crossing where the east-bank spine meets the Rat School <->
+  // Rat Gymnasium road -- re-laid as plain PATH to match its surroundings.
+  // The rest of the PATH_WORN approach south of it (rows 13-19) is
+  // untouched, since that's meant to read as grimy the whole way to
+  // The Rusty Pipe's door.
+  carveH(12, 20, 20, TILE.PATH);
+
+  // --- Fourth hand-marked map revision ---
+  // Red: connects the north-west plaza down to open ground near the
+  // Church neighbourhood.
+  carveV(1, 4, 5);
+  carveH(5, 1, 2);
+  // Red: Church of the Rat God's frontage, east to Annabelle Drodd.
+  carveH(10, 3, 5);
+  // Red: Mousque's south side, out to the path spine.
+  carveH(16, 7, 9);
+
+  // --- Fifth hand-marked map revision ---
+  // Yellow: three lone PATH_WORN tiles re-laid as plain grey PATH, to
+  // match the surrounding style.
+  carveH(7, 6, 6, TILE.PATH);    // west end of The Gilded Rat's approach
+  carveH(19, 23, 23, TILE.PATH); // beside The Rusty Pipe's south-west corner
+  carveH(20, 24, 24, TILE.PATH); // The Rusty Pipe's centre-front door stub
+
+  // --- Sixth hand-marked map revision ---
+  // Yellow (follow-up): one more lone PATH_WORN tile, the single-tile
+  // notch sticking out past the west edge of The Gilded Rat's worn plaza.
+  carveH(7, 7, 7, TILE.PATH);
 
   return grid;
 };

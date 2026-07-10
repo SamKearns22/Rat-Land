@@ -1077,10 +1077,10 @@ RatLand.renderOverworld = function (ctx, game, viewW, viewH) {
     RatLand.drawLabel(ctx, loc.name, wx + ts / 2, boxY - 4);
   });
 
-  // Faded "20 Years!" commemorative sign, planted on the path between
-  // Rat Town Hall and the Town Crier -- close to both without sitting on
-  // either one's tile.
-  drawAnniversarySign(ctx, 7 * ts + ts / 2, 5 * ts + ts * 0.75);
+  // Faded "20 Years!" commemorative sign, planted on the ground between
+  // Rat Town Hall and Church of the Rat God -- moved here per the user's
+  // hand-marked map (yellow circle), from its old spot at (7,5).
+  drawAnniversarySign(ctx, 4 * ts + ts / 2, 5 * ts + ts * 0.75);
 
   // The Allotment Bragger's moss plot, on the grass just west of where
   // they stand at (4,17). Drawn before NPCs so the Bragger layers in

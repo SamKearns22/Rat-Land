@@ -149,7 +149,7 @@ RatLand.NPC_ROSTER = [
   // --- Group 1: political rats ---
   {
     id: 'nutkin', name: 'Captain Aldus', group: 'political',
-    col: 4, row: 6,
+    col: 8, row: 7, // hand-marked map: green line, Church -> near The Gilded Rat's door
     lines: [
       "Twenty years since we drove out Grimmal and his ilk. We should never forget what it cost us to found Rat Land.",
       "Mind you, sometimes I look around and it's like he never left.",
@@ -223,7 +223,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'drainwatcher', name: 'Bill Arnold', group: 'political',
-    col: 11, row: 13,
+    col: 19, row: 12, // hand-marked map: green line, west bank -> near Rat School's bridge approach
     lines: [
       "Everyone complains, nobody does anything about it.",
       "The whole of Rat Land is a shouting match and everyone's losing.",
@@ -240,8 +240,8 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'twitchy', name: 'Twitchy Nostrum', group: 'political',
-    // Repositioned to the right of Rat Café's relocated building (20,3)-(21,3).
-    col: 22, row: 3,
+    // hand-marked map: green line, sweeping down past Rat Shopping District.
+    col: 23, row: 5, // 2nd revision: short green line, further west
     lines: [
       "Funny that nobody asks where the cheese comes from. Happy to eat it, not happy to ask questions.",
       "They want us angry at the mice so we aren't talking about the money. They want us distracted.",
@@ -295,7 +295,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'ferdycobb', name: 'Ferdy Cobb', group: 'political',
-    col: 11, row: 18,
+    col: 11, row: 18, // 2nd revision: short green line, back north one tile
     lines: [
       "Nothing against them. Fine people, just different. But we're hardly drowning in good work.",
       "Half my crew are mice when there's rats homeless in the streets. Mind you, they were homeless before the mice came...",
@@ -313,7 +313,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'wavering', name: 'Dod Sproggins', group: 'political',
-    col: 11, row: 1,
+    col: 18, row: 2, // 2nd revision: green line, further east along row 2
     lines: [
       "Sometimes I think its best to shut the grate. Othertimes, I wonder what that says about us.",
       "Like, I know a bunch of them have drowned. But you can prevent that by not getting on a crisp packet in the first place.",
@@ -330,7 +330,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'regcutwater', name: 'Reg Cutwater', group: 'political',
-    col: 13, row: 17,
+    col: 14, row: 18, // hand-marked map: short green line, near Mouse Quarter's allotment
     lines: [
       "I've worked this river for years and I've never seen anything like what happened last week.",
       "Mice throwing things at police, police marching in on mice. Disgraceful.",
@@ -420,7 +420,8 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'pembertonvole', name: 'Kathy Vole', group: 'political',
-    col: 27, row: 4,
+    // 3rd revision: green line, down toward Rat School.
+    col: 19, row: 7,
     lines: [
       "Been hearing some interesting things about the smoke emporium in the shopping district.",
       "Apparently, the gentleman who runs it arranges crossings for a fee. Someone should arrange him some time in a cell.",
@@ -476,11 +477,8 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'nettle', name: 'Corporal Nettle', group: 'political',
-    // Moved from (25,11) -- Rat Gymnasium's relocated sprite now stands
-    // tall enough to occlude that tile from behind. South of the
-    // building instead, beside its centre-front door stub, in sight
-    // and close to the path without standing on it.
-    col: 24, row: 13,
+    // hand-marked map: green line, south past The Rusty Pipe's east side.
+    col: 25, row: 20,
     lines: [
       "Half my unit's rations are going to 'the war effort' now. What war effort. I've never seen a cockroach in my life.",
       "They say it's solidarity. Feels like a tax with extra steps.",
@@ -495,8 +493,10 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'barrygutt', name: 'Barry Gutt', group: 'political',
-    // Repositioned to the left of The Gilded Rat's relocated door (11,7).
-    col: 10, row: 7,
+    // hand-marked map: short green line to the door -- (11,7) itself is
+    // inside the building's footprint, so nudged one tile south to the
+    // open ground right in front of it.
+    col: 11, row: 8,
     // Name unchanged (no "New Name" given for him) -- dialogue only.
     lines: [
       "Yeah, I'm voting for Terry. What of it?",
@@ -516,7 +516,8 @@ RatLand.NPC_ROSTER = [
   // --- Group 2: ordinary rats ---
   {
     id: 'doreen', name: 'Doreen Chunderghast', group: 'ordinary',
-    col: 19, row: 6,
+    // 2nd revision: short green line, one tile west.
+    col: 5, row: 13,
     lines: [
       "Isn't it damp out?",
       "I feel sorry for all those without a sturdy roof over their heads. I try and share what I can.",
@@ -534,9 +535,8 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'sooty', name: 'Sooty Lowes', group: 'ordinary',
-    // Moved from (21,11) to stay close to Rat Gymnasium's relocated
-    // door -- was 5+ tiles away after the building moved east.
-    col: 26, row: 13,
+    // 3rd revision: green line, north toward Rat School's side of the gap.
+    col: 21, row: 8,
     lines: [
       "Culvert 6 West Vs Pipe 17 Rovers tonight. The Rusty's gonna be rammed.",
       "I think West has a chance of promotion this season. Say what you want about the mice, but they make them fast.",
@@ -554,9 +554,8 @@ RatLand.NPC_ROSTER = [
   {
     // Sprite switched to the mouse pack per Sam's request.
     id: 'chalky', name: 'Chalky Stubbs', group: 'ordinary', species: 'mouse',
-    // Moved from (21,14) to stay close to Rat Gymnasium's relocated
-    // door -- was well out of sight of the building after it moved east.
-    col: 29, row: 13,
+    // 3rd revision: green line, west onto the main east-west road.
+    col: 25, row: 12,
     lines: [
       "Here's a tip for you. If Lowes puts a gander on something, do the complete opposite.",
       "It's my get rich quick scheme.",
@@ -573,7 +572,11 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'oldfenwick', name: 'Maisey Gray', group: 'ordinary',
-    col: 25, row: 8,
+    // 2nd revision, corrected: green line runs top-left to bottom-right
+    // as a single diagonal, ending with a small leftward hook -- not a
+    // checkmark back up into the nook (that was a second, separate line
+    // crossing it, which belongs to a different NPC).
+    col: 29, row: 12,
     lines: [
       "Have you seen the price of cheddar? It's enough to make you faint.",
       "We used to consider ourselves pretty middle class. Now we're shopping for discounts like everyone else.",
@@ -591,7 +594,7 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'scrapgrumbler', name: 'Vinnie Sputtings', group: 'ordinary',
-    col: 22, row: 8,
+    col: 22, row: 11, // hand-marked map: green line, south towards Rat School's bridge approach
     lines: [
       "The best part about hauling scrap is that people pay you for tidying up.",
       "The worst part of hauling scrap is your body hurting all the time.",
@@ -608,7 +611,9 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'countrysidedreamer', name: 'Les Drainshaw', group: 'ordinary',
-    col: 6, row: 14,
+    // 2nd revision: the line crossing Maisey Gray's near Rat Gymnasium --
+    // this is its other end, up into the building's east-side nook.
+    col: 29, row: 10,
     lines: [
       "Keeping a garden in a sewer isn't for everyone. But little in this life is more rewarding.",
       "One day, I'll save up me pennies and go up top and see it all. Proper grass, proper flowers. That's the dream.",
@@ -658,9 +663,8 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'queuecomplainer', name: 'Emily Cricket', group: 'ordinary',
-    // Repositioned outside Rat Café's relocated door (20,3)-(21,3), on
-    // the ground row just south of it.
-    col: 20, row: 4,
+    // hand-marked map: short green line, one tile east.
+    col: 21, row: 4,
     lines: [
       "I love waiting twenty minutes for a latte.",
       "It's my favourite thing to do.",
@@ -683,7 +687,7 @@ RatLand.NPC_ROSTER = [
     // changes were requested; flagged to Sam in case it should move or
     // change to fit Zippy's new theme.
     id: 'allotmentbragger', name: 'Zippy Shacks', group: 'ordinary',
-    col: 4, row: 17,
+    col: 7, row: 17, // hand-marked map: short green line, east past the path spine
     lines: [
       "The first season of Sewer Gods was when TV peaked.",
       "When Rattikan struck down the king of the cockroaches in his own court? Out of nowhere? I vomited.",
