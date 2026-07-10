@@ -35,15 +35,19 @@ RatLand.BRIDGE_ROWS = [3, 11, 19];
 // Locations from WORLD.md. Only townhall and rustypipe have working interiors;
 // the rest are visually distinct but solid (walkable-up-to) placeholders.
 RatLand.LOCATIONS = [
-  { id: 'townhall', name: 'Rat Town Hall', col: 6, row: 3, color: '#c9a227', hasInterior: true, interiorId: 'townhall' },
+  { id: 'townhall', name: 'Rat Town Hall', col: 4, row: 3, color: '#c9a227', hasInterior: true, interiorId: 'townhall' },
   { id: 'church', name: 'Church of the Rat God', col: 3, row: 9, color: '#7a4fae', hasInterior: false },
-  { id: 'gildedrat', name: 'The Gilded Rat', col: 9, row: 7, color: '#d4af37', hasInterior: false },
-  { id: 'park', name: 'Rat Park', col: 4, row: 15, color: '#4f9e4f', hasInterior: false },
-  { id: 'cafe', name: 'Rat Café', col: 19, row: 4, color: '#c47a3d', hasInterior: false },
+  { id: 'gildedrat', name: 'The Gilded Rat', col: 11, row: 7, color: '#d4af37', hasInterior: false },
+  { id: 'park', name: 'Mouse Quarter', col: 4, row: 15, color: '#4f9e4f', hasInterior: false },
+  { id: 'cafe', name: 'Rat Café', col: 20, row: 3, color: '#c47a3d', hasInterior: false },
   { id: 'shopping', name: 'Rat Shopping District', col: 24, row: 6, color: '#d9534f', hasInterior: false },
-  { id: 'school', name: 'Rat School', col: 18, row: 12, color: '#4f83c9', hasInterior: false },
-  { id: 'gym', name: 'Rat Gymnasium', col: 23, row: 12, color: '#e07b39', hasInterior: false },
-  { id: 'rustypipe', name: 'The Rusty Pipe', col: 20, row: 19, color: '#8b5a2b', hasInterior: true, interiorId: 'rustypipe' },
+  // col 18, not 17: at col 17 the sprite's own visual width (88px,
+  // wider than its 2-tile footprint) crept left into the river/bridge
+  // tiles at col 16. Shifted one tile east to clear it -- footprint is
+  // now (18,10)-(19,10), one tile off Sam's original (17,10)-(18,10).
+  { id: 'school', name: 'Rat School', col: 18, row: 10, color: '#4f83c9', hasInterior: false },
+  { id: 'gym', name: 'Rat Gymnasium', col: 27, row: 12, color: '#e07b39', hasInterior: false },
+  { id: 'rustypipe', name: 'The Rusty Pipe', col: 24, row: 19, color: '#8b5a2b', hasInterior: true, interiorId: 'rustypipe' },
   // Moved from its old bottom-right-corner spot (29,21) to sit just east
   // of Rat Park, on the same row-15 branch off the west-bank spine --
   // connected to the path network like every other building, instead of
@@ -61,30 +65,21 @@ RatLand.locationAt = function (col, row) {
 };
 
 // Custom building sprites (js/rendering.js) stand much taller than the
-// single tile they're anchored to, but only their base -- one row north
-// of the anchor, plus the anchor row itself -- is made physically solid,
-// not their full visual height. The tall decorative upper portion (roof,
-// upper floors) stays walkable-into on purpose: that's exactly the
-// "player occluded behind a tall building" case rendering.js's white
-// outline handles, and making the whole visual footprint solid would
-// turn every tall sprite into a much bigger dead zone than its actual
-// footprint on the ground.
+// single tile they're anchored to, but only their bottom row of tiles is
+// made physically solid -- not their full visual height or, as of this
+// pass, even their full base width in some cases. The tall decorative
+// upper portion (roof, upper floors) stays walkable-into on purpose:
+// that's exactly the "player occluded behind a tall building" case
+// rendering.js's white outline handles, and making the whole visual
+// footprint solid would turn every tall sprite into a much bigger dead
+// zone than its actual footprint on the ground.
 //
 // colOffsets/rowOffsets are relative to the location's own col/row (0 =
-// the anchor tile). For a hasInterior location the anchor tile (offset
-// 0) is deliberately excluded from the solid set even if listed, since
-// that's the door tile checkTransitions expects to stay walkable.
-//
-// Column widths default to a 3-tile span centered on the anchor
-// (matching each sprite's actual pixel width), except where that would
-// land on an existing NPC's tile -- checked directly against every
-// NPC_ROSTER position, not assumed:
-//   - gildedrat [0,1] instead of [-1,0,1]: Barry Gutt stands at (8,6),
-//     one tile west of the anchor (9,7); a full 3-wide footprint would
-//     have trapped him against the building.
-//   - gym [-1,0,1] rather than its full ~4-tile visual width: Sooty
-//     (21,11) and Corporal Nettle (25,11) both sit right at the visual
-//     edges the wider footprint would have covered.
+// the anchor tile); rowOffsets is [0] for every building now -- solidity
+// wraps only the bottom row, not the row above it too. For a hasInterior
+// location the anchor tile (offset 0) is deliberately excluded from the
+// solid set even if listed, since that's the door tile checkTransitions
+// expects to stay walkable.
 //
 // keepEntranceWalkable does the same anchor-tile exclusion hasInterior
 // locations get, but for a location that ISN'T hasInterior yet: Rat
@@ -93,15 +88,25 @@ RatLand.locationAt = function (col, row) {
 // vendor-area doorway. Solidity already treats that gap tile as open
 // ground today, so wiring up a real entrance later is just flipping
 // hasInterior + adding an INTERIORS entry -- no art or footprint rework.
+//
+// colOffsets for the 6 relocated buildings are derived from the new
+// bottom-row tile ranges Sam gave (in (col,row) form): townhall
+// (4,3)-(5,3), gildedrat (11,7)-(12,7), rustypipe (24,19)-(25,19), gym
+// (26,12)-(29,12), cafe (20,3)-(21,3), school (17,10)-(18,10). Anchor
+// col is chosen as close to the true center of that range as an
+// integer allows (leftCol + floor((width-1)/2)), so the sprite's
+// existing center-on-anchor draw math lands as close to centered over
+// the new footprint as possible -- same convention already used for
+// gildedrat's asymmetric [0,1] footprint before this pass.
 RatLand.BUILDING_FOOTPRINTS = {
-  townhall: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
-  gildedrat: { colOffsets: [0, 1], rowOffsets: [-1, 0] },
-  rustypipe: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
-  church: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
-  school: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
-  gym: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
-  cafe: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
-  mousque: { colOffsets: [-1, 0, 1], rowOffsets: [-1, 0] },
+  townhall: { colOffsets: [0, 1], rowOffsets: [0] },
+  gildedrat: { colOffsets: [0, 1], rowOffsets: [0] },
+  rustypipe: { colOffsets: [0, 1], rowOffsets: [0] },
+  church: { colOffsets: [-1, 0, 1], rowOffsets: [0] },
+  school: { colOffsets: [0, 1], rowOffsets: [0] },
+  gym: { colOffsets: [-1, 0, 1, 2], rowOffsets: [0] },
+  cafe: { colOffsets: [0, 1], rowOffsets: [0] },
+  mousque: { colOffsets: [-1, 0, 1], rowOffsets: [0] },
   shopping: { colOffsets: [-1, 0, 1], rowOffsets: [0], keepEntranceWalkable: true },
 };
 
@@ -184,42 +189,61 @@ RatLand.buildOverworldMap = function () {
   // length of the west bank down to the south bridge's row.
   carveV(6, 3, 19);
   // Town Hall's own row, running east across the top bridge to Rat Café.
-  carveH(3, 6, 19);
+  // Extended west from col 6 to col 4 to reach Town Hall's relocated door.
+  carveH(3, 4, 19);
 
   // Branches off the west spine to each west-bank location.
   carveH(9, 3, 6);    // Church of the Rat God
-  carveH(7, 6, 9);    // The Gilded Rat
-  carveH(15, 4, 8);   // Rat Park <-> Mousque
+  // Extended east from col 9 to col 12 to reach The Gilded Rat's relocated door.
+  carveH(7, 6, 12);   // The Gilded Rat
+  carveH(15, 4, 8);   // Mouse Quarter <-> Mousque
 
   // South bridge crossing, linking the bridge itself to The Rusty Pipe's
-  // approach on the east bank. (This used to run all the way to col 11
-  // for a Rat Beach spur; with Rat Beach removed, it starts at the
-  // bridge instead of dead-ending in open ground with nothing at its
-  // west end.)
-  carveH(19, 14, 20);
+  // approach on the east bank. Extended east from col 20 to col 25 to
+  // reach The Rusty Pipe's relocated door.
+  carveH(19, 14, 25);
 
   // East-bank spine, running past Rat School and Rat Gymnasium down to
   // The Rusty Pipe.
   carveV(20, 4, 19);
-  carveH(4, 19, 20);   // Rat Café
+  carveH(4, 19, 20);   // East-spine connector (Rat Café moved to row 3, see below)
+  carveH(3, 19, 21);   // Connects to Rat Café's relocated door at row 3
   carveH(6, 20, 24);   // Rat Shopping District
-  carveH(12, 18, 23);  // Rat School <-> Rat Gymnasium
+  // Extended east from col 23 to col 29 to reach Rat Gymnasium's relocated door.
+  carveH(12, 18, 29);  // Rat School <-> Rat Gymnasium
+  carveV(18, 10, 11);  // Connects Rat School's relocated door down to Main Street
+
+  // Centre-front door stubs: a one-tile path segment running straight
+  // south from each relocated building's own anchor column, into the
+  // tile directly in front of its (future) door -- not just an approach
+  // from the side. Matters most for Rat Town Hall and The Rusty Pipe,
+  // whose hasInterior door-exit logic (transitions.js's returnTile,
+  // `{col: loc.col, row: loc.row + 1}`) already assumes that exact tile
+  // is where the player reappears leaving the building, so it needs to
+  // read as "in front of the door," not just adjacent open ground.
+  // Rat Café and Rat School already had a centre-front connection as a
+  // side effect of their other carves above, so they're not repeated here.
+  carveV(4, 3, 4);    // Rat Town Hall
+  carveV(27, 12, 13); // Rat Gymnasium
 
   // Main Street: the middle-bridge crossing, tying the two spines together.
   carveH(RatLand.BRIDGE_ROWS[1], 1, COLS - 2);
 
   // Civic widening: the roads that lead straight to Town Hall get a second
   // lane, reflecting its importance. The spine narrows back to a single
-  // lane south of Main Street, on its way out to the quieter Rat Park and
-  // Mousque.
+  // lane south of Main Street, on its way out to the quieter Mouse Quarter
+  // and Mousque.
   carveV(7, 3, 11);  // second lane alongside the Town Hall spine
   carveH(2, 6, 19);  // second lane alongside Town Hall's frontage road
 
   // Foot traffic: the routes to The Gilded Rat and The Rusty Pipe get worn
   // down and grimy from heavy use, in contrast to the cleaner stone leading
   // to the Church and the School.
-  carveH(7, 6, 9, TILE.PATH_WORN);    // approach to The Gilded Rat
+  carveH(7, 6, 12, TILE.PATH_WORN);   // approach to The Gilded Rat (extended for its new door)
   carveV(20, 12, 19, TILE.PATH_WORN); // approach to The Rusty Pipe
+  carveH(19, 20, 25, TILE.PATH_WORN); // final grimy stretch to The Rusty Pipe's relocated door
+  carveV(11, 7, 8, TILE.PATH_WORN);   // centre-front door stub, The Gilded Rat
+  carveV(24, 19, 20, TILE.PATH_WORN); // centre-front door stub, The Rusty Pipe
 
   return grid;
 };

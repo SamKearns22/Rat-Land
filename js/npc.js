@@ -4,8 +4,12 @@ window.RatLand = RatLand;
 
 RatLand.townCrier = {
   name: 'Town Crier',
-  col: 8,
-  row: 4,
+  // Repositioned to the right of Rat Town Hall's relocated door (4,3);
+  // the building's own footprint now covers (5,3), so "right of the
+  // door" lands just past its east edge, at (6,3) -- Town Hall's own
+  // former anchor tile, now open ground.
+  col: 6,
+  row: 3,
   color: '#b0463c',
   lines: [
     'Hear ye, hear ye! Twenty glorious years of Rat Land!',
@@ -236,7 +240,8 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'twitchy', name: 'Twitchy Nostrum', group: 'political',
-    col: 24, row: 3,
+    // Repositioned to the right of Rat Café's relocated building (20,3)-(21,3).
+    col: 22, row: 3,
     lines: [
       "Funny that nobody asks where the cheese comes from. Happy to eat it, not happy to ask questions.",
       "They want us angry at the mice so we aren't talking about the money. They want us distracted.",
@@ -390,7 +395,14 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'dredge', name: 'Giselle Tomiyak', group: 'political',
-    col: 16, row: 19,
+    // Moved from (16,19) to stay close to The Rusty Pipe's relocated
+    // door -- beside its worn approach path (row 19), not blocking it.
+    // North of the path rather than south: rows 21+ are the documented
+    // danger zone for the south camera clamp overlapping the dialogue
+    // box (see rendering.js's CAMERA_BOTTOM_UI_BAND comment) -- she's
+    // also this project's standing south-clamp regression-test subject
+    // (tests/check-dialogue-layout.js), so this isn't just theoretical.
+    col: 22, row: 18,
     lines: [
       "I wasn't originally from this part of the network. I stood in line. I suffered years of scrutiny and checks. Who knew I needn't have bothered!",
       "You can just show up now: here's a home and some money, off you go.",
@@ -426,7 +438,10 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'marsh', name: 'Marsh Holsworth', group: 'political',
-    col: 3, row: 1,
+    // Moved from (3,1) -- Rat Town Hall's relocated sprite now visually
+    // stands tall enough to occlude that tile from behind. One column
+    // further west clears it while staying in the same spot otherwise.
+    col: 2, row: 1,
     lines: [
       "Twenty years! Marvellous. Everyone's poor, there's a riot near the docks, everyone's at each other's throats, might as well throw a parade!",
       "And not a cheap parade, no! The whole shabang! Flags on everything! Flags attached to flags!",
@@ -461,7 +476,11 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'nettle', name: 'Corporal Nettle', group: 'political',
-    col: 25, row: 11,
+    // Moved from (25,11) -- Rat Gymnasium's relocated sprite now stands
+    // tall enough to occlude that tile from behind. South of the
+    // building instead, beside its centre-front door stub, in sight
+    // and close to the path without standing on it.
+    col: 24, row: 13,
     lines: [
       "Half my unit's rations are going to 'the war effort' now. What war effort. I've never seen a cockroach in my life.",
       "They say it's solidarity. Feels like a tax with extra steps.",
@@ -476,17 +495,8 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'barrygutt', name: 'Barry Gutt', group: 'political',
-    // Near the player's spawn (createPlayer(5, 6) in save.js) so he's one
-    // of the very first rats a new player meets. col 8 (not 6) specifically
-    // because Nutkin's unusually long name ("Colonel Bartholomew Nutkin")
-    // still collides with Barry's label at only a 2-tile gap -- measured
-    // via the game's actual label font/padding (10px monospace, drawLabel's
-    // +3px box padding in rendering.js): at col 6 the two label boxes
-    // overlap by ~50px; col 8 clears Nutkin's box by ~14px. Same underlying
-    // pattern as the Nora Sopwell/Barry Trench label fix, just needing a
-    // wider gap here since Nutkin's title-heavy name is much longer than
-    // either of theirs.
-    col: 8, row: 6,
+    // Repositioned to the left of The Gilded Rat's relocated door (11,7).
+    col: 10, row: 7,
     // Name unchanged (no "New Name" given for him) -- dialogue only.
     lines: [
       "Yeah, I'm voting for Terry. What of it?",
@@ -524,7 +534,9 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'sooty', name: 'Sooty Lowes', group: 'ordinary',
-    col: 21, row: 11,
+    // Moved from (21,11) to stay close to Rat Gymnasium's relocated
+    // door -- was 5+ tiles away after the building moved east.
+    col: 26, row: 13,
     lines: [
       "Culvert 6 West Vs Pipe 17 Rovers tonight. The Rusty's gonna be rammed.",
       "I think West has a chance of promotion this season. Say what you want about the mice, but they make them fast.",
@@ -542,7 +554,9 @@ RatLand.NPC_ROSTER = [
   {
     // Sprite switched to the mouse pack per Sam's request.
     id: 'chalky', name: 'Chalky Stubbs', group: 'ordinary', species: 'mouse',
-    col: 21, row: 14,
+    // Moved from (21,14) to stay close to Rat Gymnasium's relocated
+    // door -- was well out of sight of the building after it moved east.
+    col: 29, row: 13,
     lines: [
       "Here's a tip for you. If Lowes puts a gander on something, do the complete opposite.",
       "It's my get rich quick scheme.",
@@ -615,7 +629,11 @@ RatLand.NPC_ROSTER = [
     // targets both together and cycles the shared exchange in
     // RatLand.NPC_PAIRS.weatherpair rather than her own independent lines.
     id: 'nora', name: 'Nora Sopwell', group: 'ordinary', pairId: 'weatherpair',
-    col: 21, row: 17, facing: 'right', // faces Barry, across the gap tile between them
+    // Nivvey (below) swapped to Nora's west side so he'd clear The Rusty
+    // Pipe's relocated visual footprint -- Nora's own position and the
+    // one-tile gap between them is unchanged, just facing flipped to
+    // still face him.
+    col: 21, row: 17, facing: 'left', // faces Nivvey, across the gap tile between them
     color: '#8a8a82',
     accessories: [
       { type: 'neck', style: 'scarf', color: '#6a6a5c' },
@@ -625,8 +643,13 @@ RatLand.NPC_ROSTER = [
   {
     // Placeholder id/comment — was "Rat B (weather)", display name now Nivvey
     // Trench. See Nora's note on pairId.
+    // Moved from (23,17) to (19,17) -- The Rusty Pipe's relocated sprite
+    // now visually occludes (23,17) from behind. Swapped to Nora's west
+    // side instead of just shifting sideways, so the one-tile "facing
+    // each other across a gap" relationship is preserved rather than
+    // collapsed into standing shoulder to shoulder.
     id: 'barry', name: 'Nivvey Trench', group: 'ordinary', pairId: 'weatherpair',
-    col: 23, row: 17, facing: 'left', // faces Nora
+    col: 19, row: 17, facing: 'right', // faces Nora
     color: '#8a7c6a',
     accessories: [
       { type: 'prop', style: 'dripgauge', color: '#5a5a52' },
@@ -635,7 +658,9 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'queuecomplainer', name: 'Emily Cricket', group: 'ordinary',
-    col: 18, row: 2,
+    // Repositioned outside Rat Café's relocated door (20,3)-(21,3), on
+    // the ground row just south of it.
+    col: 20, row: 4,
     lines: [
       "I love waiting twenty minutes for a latte.",
       "It's my favourite thing to do.",
@@ -736,7 +761,10 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'kevin', name: 'Ken Choppings', group: 'mouse', species: 'mouse',
-    col: 21, row: 3,
+    // Moved from (21,3) -- his old tile now falls inside Rat Café's
+    // relocated footprint (20,3)-(21,3) -- to the nearest open tile,
+    // one column further along the same row.
+    col: 23, row: 3,
     lines: [
       "Why you staring at me, boss?",
       "Badman trying to get shanked?",
