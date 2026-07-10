@@ -264,7 +264,7 @@ RatLand.NPC_ROSTER = [
       "In my day the water was stagnant brown and we didn't make a fuss.",
       "This isn't our country anymore. Nothing works as it should. What's to be proud of?",
       "Before Mousika and Rat Land there was just 'the wet bit' and 'the wetter bit.'",
-      "You walk down some streets around here and its like you're in Mousika. They don't even bother speaking the language.",
+      "You walk down some streets around here and it's like you're in Mousika. They don't even bother speaking the language.",
       "Things were better when we could hang folk.",
     ],
     lineIndex: 0,
@@ -315,7 +315,7 @@ RatLand.NPC_ROSTER = [
     id: 'wavering', name: 'Dod Sproggins', group: 'political',
     col: 18, row: 2, // 2nd revision: green line, further east along row 2
     lines: [
-      "Sometimes I think its best to shut the grate. Othertimes, I wonder what that says about us.",
+      "Sometimes I think it's best to shut the grate. Other times, I wonder what that says about us.",
       "Like, I know a bunch of them have drowned. But you can prevent that by not getting on a crisp packet in the first place.",
       "Honestly, I just nod along with whoever's talking. Saves an argument.",
       "My boss was saying some pretty nasty things the other day but I'm really fond of paying my rent. I just smiled and said 'yeah!' a lot.",
@@ -445,7 +445,7 @@ RatLand.NPC_ROSTER = [
     col: 2, row: 1,
     lines: [
       "Twenty years! Marvellous. Everyone's poor, there's a riot near the docks, everyone's at each other's throats, might as well throw a parade!",
-      "And not a cheap parade, no! The whole shabang! Flags on everything! Flags attached to flags!",
+      "And not a cheap parade, no! The whole shebang! Flags on everything! Flags attached to flags!",
       "I think we should all stand in a big circle amongst the rubbish and the boarded-up shops and sing the national anthem.",
       "To have national pride, you ought to have something to be proud of. But I guess that doesn't matter to most.",
       "I hope the new mayor cancels the whole thing and instead opens a pub that isn't wank.",
@@ -493,9 +493,14 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'barrygutt', name: 'Barry Gutt', group: 'political',
-    // Shifted one tile east so he's beside the pub's door instead of
-    // standing right in front of it.
-    col: 12, row: 8,
+    // Shifted east so he's beside the pub's door instead of standing
+    // right in front of it. Row 9, not 8: (12,8) tied for closest-NPC at
+    // the Crazy Joe pagination regression test's fixed talk-approach
+    // tile (13,7) -- Chebyshev distance 1 from both -- and findTalkTarget
+    // (js/npc.js) breaks distance ties by roster order, so Barry Gutt
+    // (earlier in NPC_ROSTER) was silently stealing that Talk press
+    // instead of Crazy Joe. One row further south clears the tie.
+    col: 12, row: 9,
     // Name unchanged (no "New Name" given for him) -- dialogue only.
     lines: [
       "Yeah, I'm voting for Terry. What of it?",

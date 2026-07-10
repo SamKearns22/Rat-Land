@@ -101,7 +101,7 @@ oversight. Shipped as originally written.
 - "In my day the water was stagnant brown and we didn't make a fuss."
 - "This isn't our country anymore. Nothing works as it should. What's to be proud of?"
 - "Before Mousika and Rat Land there was just 'the wet bit' and 'the wetter bit.'"
-- "You walk down some streets around here and its like you're in Mousika. They don't even bother speaking the language."
+- "You walk down some streets around here and it's like you're in Mousika. They don't even bother speaking the language."
 - "Things were better when we could hang folk."
 
 ### Barney Bursk (was Bramwell)
@@ -125,7 +125,7 @@ oversight. Shipped as originally written.
 ### Dod Sproggins (was The Wavering Rat)
 **Stance:** Conflict-averse moderate — privately uneasy, never willing to actually say so out loud.
 
-- "Sometimes I think its best to shut the grate. Othertimes, I wonder what that says about us."
+- "Sometimes I think it's best to shut the grate. Other times, I wonder what that says about us."
 - "Like, I know a bunch of them have drowned. But you can prevent that by not getting on a crisp packet in the first place."
 - "Honestly, I just nod along with whoever's talking. Saves an argument."
 - "My boss was saying some pretty nasty things the other day but I'm really fond of paying my rent. I just smiled and said 'yeah!' a lot."
@@ -180,7 +180,7 @@ oversight. Shipped as originally written.
 **Stance:** 20th anniversary, disgusted angle. Bitter and sardonic about the town celebrating amid unrest and poverty.
 
 - "Twenty years! Marvellous. Everyone's poor, there's a riot near the docks, everyone's at each other's throats, might as well throw a parade!"
-- "And not a cheap parade, no! The whole shabang! Flags on everything! Flags attached to flags!"
+- "And not a cheap parade, no! The whole shebang! Flags on everything! Flags attached to flags!"
 - "I think we should all stand in a big circle amongst the rubbish and the boarded-up shops and sing the national anthem."
 - "To have national pride, you ought to have something to be proud of. But I guess that doesn't matter to most."
 - "I hope the new mayor cancels the whole thing and instead opens a pub that isn't wank."
@@ -297,7 +297,7 @@ independent lines.
 - "She looks so stressed, bless her. I want to put her out of her misery."
 
 ### Zippy Shacks (was The Allotment Bragger)
-**Stance:** TV obsessive, re-themed this pass from moss-gardening to binge-watching a in-universe show called Sewer Gods. **Note:** the small planter-box/moss scenery plot placed beside his tile (4,17) in an earlier session no longer matches his dialogue — left in place since only dialogue/rename changes were requested this round; flag to Sam if it should move or change.
+**Stance:** TV obsessive, re-themed this pass from moss-gardening to binge-watching an in-universe show called Sewer Gods. **Note:** the small planter-box/moss scenery plot placed beside his tile (4,17) in an earlier session no longer matches his dialogue — left in place since only dialogue/rename changes were requested this round; flag to Sam if it should move or change.
 
 - "The first season of Sewer Gods was when TV peaked."
 - "When Rattikan struck down the King of the Cockroaches in his own court? Out of nowhere? I vomited."
