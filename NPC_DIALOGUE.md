@@ -109,7 +109,7 @@ oversight. Shipped as originally written.
 
 - "Twenty years ago, we kicked 'em out. Well, they're back now all right, and they're signing up for benefits."
 - "My sister went to Mousika and went native. Married some bloke up there. Well, it's her life..."
-- "They say they are refugees — what refugee do you know that has a MiPhone? Nonsense."
+- "They say they are refugees — what refugee do you know has a MiPhone? Nonsense."
 - "I met my sister's husband once when they visited, proper bloke he is. Still, they aren't all like that, are they?"
 - "Can't even speak to my daughter these days. Try to tell her some sense and she starts calling me a bigot. Who teaches them this stuff?"
 
@@ -190,7 +190,7 @@ oversight. Shipped as originally written.
 
 - "You should've seen the old mayor's face when his own team voted him out. Looked like he was choking on a rind."
 - "Some say good riddance. To be honest, I say good riddance. But this constant turnover of leadership is no good for any of us."
-- "He never signed a contract without first ensuring that the people carrying out the work were a bunch of feckless oaths."
+- "He never signed a contract without first ensuring that the people carrying out the work were a bunch of feckless oafs."
 - "I took the minutes that day. My favourite line: 'You bastards. You utter backstabbing bastards!'"
 - "My feet aren't that little."
 
@@ -300,7 +300,7 @@ independent lines.
 **Stance:** TV obsessive, re-themed this pass from moss-gardening to binge-watching a in-universe show called Sewer Gods. **Note:** the small planter-box/moss scenery plot placed beside his tile (4,17) in an earlier session no longer matches his dialogue — left in place since only dialogue/rename changes were requested this round; flag to Sam if it should move or change.
 
 - "The first season of Sewer Gods was when TV peaked."
-- "When Rattikan struck down the king of the cockroaches in his own court? Out of nowhere? I vomited."
+- "When Rattikan struck down the King of the Cockroaches in his own court? Out of nowhere? I vomited."
 - "Memes for days."
 - "You know what was better than season one of Sewer Gods? Season two of Sewer Gods."
 - "Shame about seasons three to twelve."

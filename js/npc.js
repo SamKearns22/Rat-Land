@@ -282,7 +282,7 @@ RatLand.NPC_ROSTER = [
     lines: [
       "Twenty years ago, we kicked 'em out. Well, they're back now all right, and they're signing up for benefits.",
       "My sister went to Mousika and went native. Married some bloke up there. Well, it's her life...",
-      "They say they are refugees — what refugee do you know that has a MiPhone? Nonsense.",
+      "They say they are refugees — what refugee do you know has a MiPhone? Nonsense.",
       "I met my sister's husband once when they visited, proper bloke he is. Still, they aren't all like that, are they?",
       "Can't even speak to my daughter these days. Try to tell her some sense and she starts calling me a bigot. Who teaches them this stuff?",
     ],
@@ -463,7 +463,7 @@ RatLand.NPC_ROSTER = [
     lines: [
       "You should've seen the old mayor's face when his own team voted him out. Looked like he was choking on a rind.",
       "Some say good riddance. To be honest, I say good riddance. But this constant turnover of leadership is no good for any of us.",
-      "He never signed a contract without first ensuring that the people carrying out the work were a bunch of feckless oaths.",
+      "He never signed a contract without first ensuring that the people carrying out the work were a bunch of feckless oafs.",
       "I took the minutes that day. My favourite line: 'You bastards. You utter backstabbing bastards!'",
       "My feet aren't that little.",
     ],
@@ -493,10 +493,9 @@ RatLand.NPC_ROSTER = [
   },
   {
     id: 'barrygutt', name: 'Barry Gutt', group: 'political',
-    // hand-marked map: short green line to the door -- (11,7) itself is
-    // inside the building's footprint, so nudged one tile south to the
-    // open ground right in front of it.
-    col: 11, row: 8,
+    // Shifted one tile east so he's beside the pub's door instead of
+    // standing right in front of it.
+    col: 12, row: 8,
     // Name unchanged (no "New Name" given for him) -- dialogue only.
     lines: [
       "Yeah, I'm voting for Terry. What of it?",
@@ -690,7 +689,7 @@ RatLand.NPC_ROSTER = [
     col: 7, row: 17, // hand-marked map: short green line, east past the path spine
     lines: [
       "The first season of Sewer Gods was when TV peaked.",
-      "When Rattikan struck down the king of the cockroaches in his own court? Out of nowhere? I vomited.",
+      "When Rattikan struck down the King of the Cockroaches in his own court? Out of nowhere? I vomited.",
       "Memes for days.",
       "You know what was better than season one of Sewer Gods? Season two of Sewer Gods.",
       "Shame about seasons three to twelve.",
