@@ -132,6 +132,37 @@ RatLand.assets.waterStreak = new Image();
 RatLand.assets.waterStreak.src = 'assets/water-flow-streak.png';
 RatLand.assets.waterFoamEdge = new Image();
 RatLand.assets.waterFoamEdge.src = 'assets/water-foam-edge.png';
+// Zoned ground detail (CREDITS.md): neighbourhood-flavoured scatter on
+// GROUND tiles, all cropped from Kenney's roguelikeCity sheet and
+// retinted like every prior crop from it. Moss patches and a mossy
+// stone ornament for the Church of the Rat God's overgrown churchyard;
+// tires, a rusted barrel stack, and an old tin can for The Rusty
+// Pipe's industrial corner; bottle litter and binbags around Rat
+// Café / Rat Shopping District. See GROUND_ZONES below for placement.
+RatLand.assets.decalMossA = new Image();
+RatLand.assets.decalMossA.src = 'assets/decal-moss-a.png';
+RatLand.assets.decalMossB = new Image();
+RatLand.assets.decalMossB.src = 'assets/decal-moss-b.png';
+RatLand.assets.decalMossStatue = new Image();
+RatLand.assets.decalMossStatue.src = 'assets/decal-moss-statue.png';
+RatLand.assets.decalTire = new Image();
+RatLand.assets.decalTire.src = 'assets/decal-tire.png';
+RatLand.assets.decalTireStack = new Image();
+RatLand.assets.decalTireStack.src = 'assets/decal-tire-stack.png';
+RatLand.assets.decalTirePile = new Image();
+RatLand.assets.decalTirePile.src = 'assets/decal-tire-pile.png';
+RatLand.assets.decalRustBarrel = new Image();
+RatLand.assets.decalRustBarrel.src = 'assets/decal-rust-barrel.png';
+RatLand.assets.decalTinCan = new Image();
+RatLand.assets.decalTinCan.src = 'assets/decal-tin-can.png';
+RatLand.assets.decalBottleA = new Image();
+RatLand.assets.decalBottleA.src = 'assets/decal-bottle-a.png';
+RatLand.assets.decalBottleB = new Image();
+RatLand.assets.decalBottleB.src = 'assets/decal-bottle-b.png';
+RatLand.assets.decalBag = new Image();
+RatLand.assets.decalBag.src = 'assets/decal-bag.png';
+RatLand.assets.decalBagPile = new Image();
+RatLand.assets.decalBagPile.src = 'assets/decal-bag-pile.png';
 RatLand.BUILDING_SPRITES = {
   townhall: 'buildingTownhall',
   gildedrat: 'buildingGildedrat',
@@ -244,8 +275,86 @@ function inQuietZone(row, col) {
     row >= QUIET_ZONE_ROWS[0] && row <= QUIET_ZONE_ROWS[1];
 }
 
+// Neighbourhood-flavoured ground detail: each named zone swaps the
+// generic rubble/weeds scatter for its own themed pool, at a density
+// capped to roughly the rubble decal's own 5% (the market strip runs
+// lighter still -- it's the "clean" end of town, litter should be
+// occasional, not carpeted). Outside every zone the generic scatter
+// runs unchanged, so open ground far from the buildings stays as
+// sparse as it's always been. Zone decals never land on paths (this
+// whole function only runs for GROUND tiles) or on an NPC's own tile.
+var GROUND_ZONES = [
+  // Overgrown churchyard around Church of the Rat God.
+  { pool: ['decalMossA', 'decalMossB', 'decalMossStatue'],
+    col: 3, row: 9, radius: 5, chance: 0.05 },
+  // Industrial decay around The Rusty Pipe.
+  { pool: ['decalTire', 'decalTireStack', 'decalTirePile', 'decalRustBarrel', 'decalTinCan'],
+    col: 24, row: 19, radius: 5, chance: 0.05 },
+  // Occasional litter along the Rat Cafe / Rat Shopping District strip.
+  { pool: ['decalBottleA', 'decalBottleB', 'decalBag', 'decalBagPile'],
+    c0: 17, r0: 1, c1: 28, r1: 8, chance: 0.035 },
+];
+// The stone ornament reads wrong sideways/upside-down; everything else
+// (moss blobs, tires, bottles-as-litter, bags) can land any way up.
+var DECAL_UPRIGHT_ONLY = { decalMossStatue: true };
+
+function zoneFor(row, col) {
+  for (var i = 0; i < GROUND_ZONES.length; i++) {
+    var z = GROUND_ZONES[i];
+    if (z.radius !== undefined) {
+      if (Math.max(Math.abs(col - z.col), Math.abs(row - z.row)) <= z.radius) return z;
+    } else if (col >= z.c0 && col <= z.c1 && row >= z.r0 && row <= z.r1) {
+      return z;
+    }
+  }
+  return null;
+}
+
+// NPCs never change tile, so the occupancy set is built once on first
+// use (all scripts are loaded by the time anything renders).
+var _npcTileSet = null;
+function npcOccupied(col, row) {
+  if (!_npcTileSet) {
+    _npcTileSet = {};
+    var all = [RatLand.townCrier].concat(RatLand.NPC_ROSTER || []);
+    all.forEach(function (n) { if (n) _npcTileSet[n.col + ',' + n.row] = true; });
+  }
+  return !!_npcTileSet[col + ',' + row];
+}
+
+// Draws one zone decal with a deterministic per-tile orientation (0/90/
+// 180/270 plus optional mirror), so the same crop never repeats
+// identically on nearby tiles. Returns true if this tile is inside a
+// zone at all (decal or not), telling the caller to skip the generic
+// scatter there -- the zone's own chance IS that area's density cap.
+function drawZoneDecal(ctx, row, col, ts) {
+  var z = zoneFor(row, col);
+  if (!z) return false;
+  if (npcOccupied(col, row)) return true;
+  if (tileHash(row + 29000, col + 29000) >= z.chance) return true;
+
+  var pick = z.pool[Math.floor(tileHash(row + 31000, col + 31000) * z.pool.length)];
+  var img = RatLand.assets[pick];
+  if (!img || !img.complete || !img.naturalWidth) return true;
+
+  var o = tileHash(row + 37000, col + 37000);
+  var quarterTurns = DECAL_UPRIGHT_ONLY[pick] ? 0 : Math.floor(o * 4);
+  var mirror = (o * 8) % 1 >= 0.5;
+
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.translate(col * ts + ts / 2, row * ts + ts / 2);
+  if (quarterTurns) ctx.rotate(quarterTurns * Math.PI / 2);
+  if (mirror) ctx.scale(-1, 1);
+  ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+  ctx.restore();
+  return true;
+}
+
 function drawGroundDecal(ctx, row, col, ts) {
+  if (drawZoneDecal(ctx, row, col, ts)) return;
   if (inQuietZone(row, col)) return;
+  if (npcOccupied(col, row)) return;
   var h = tileHash(row + 5000, col + 5000); // offset so it doesn't correlate with the WALL-damage hash
   var img = null;
   if (h < GROUND_DECAL_RUBBLE_CHANCE) {
