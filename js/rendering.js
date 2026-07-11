@@ -283,20 +283,38 @@ function inQuietZone(row, col) {
 // runs unchanged, so open ground far from the buildings stays as
 // sparse as it's always been. Zone decals never land on paths (this
 // whole function only runs for GROUND tiles) or on an NPC's own tile.
+// Each zone carries its own `salt`: the placement roll below hashes
+// absolute map coordinates, so without a per-zone salt every zone would
+// sample the same fixed pseudorandom landscape at the same offset --
+// whether a zone gets any decals at all would depend on where it
+// happens to sit on the map rather than on its chance. (Caught when the
+// churchyard, radius 5 around (3,9), rolled zero hits across all 121
+// tiles at chance 0.05 -- ~0.2% likely by chance, i.e. a landscape
+// collision, not the intended density.)
 var GROUND_ZONES = [
   // Overgrown churchyard around Church of the Rat God.
   { pool: ['decalMossA', 'decalMossB', 'decalMossStatue'],
-    col: 3, row: 9, radius: 5, chance: 0.05 },
+    col: 3, row: 9, radius: 5, chance: 0.05, salt: 51827 },
   // Industrial decay around The Rusty Pipe.
   { pool: ['decalTire', 'decalTireStack', 'decalTirePile', 'decalRustBarrel', 'decalTinCan'],
-    col: 24, row: 19, radius: 5, chance: 0.05 },
+    col: 24, row: 19, radius: 5, chance: 0.05, salt: 104729 },
   // Occasional litter along the Rat Cafe / Rat Shopping District strip.
   { pool: ['decalBottleA', 'decalBottleB', 'decalBag', 'decalBagPile'],
-    c0: 17, r0: 1, c1: 28, r1: 8, chance: 0.035 },
+    c0: 17, r0: 1, c1: 28, r1: 8, chance: 0.035, salt: 224737 },
 ];
 // The stone ornament reads wrong sideways/upside-down; everything else
 // (moss blobs, tires, bottles-as-litter, bags) can land any way up.
 var DECAL_UPRIGHT_ONLY = { decalMossStatue: true };
+
+// A couple of decals are hand-placed instead of left to the hash roll --
+// a landmark ornament reads better as a deliberate choice than as one
+// lucky hit among many, and the churchyard's roll kept landing the
+// statue under the church's own roof overhang (see buildingOccupied)
+// where it never rendered visibly. Still subject to the same
+// NPC/building occlusion checks as everything else.
+var FIXED_DECALS = {
+  '1,8': 'decalMossStatue', // west side of the church, inside the walled yard
+};
 
 function zoneFor(row, col) {
   for (var i = 0; i < GROUND_ZONES.length; i++) {
@@ -322,6 +340,37 @@ function npcOccupied(col, row) {
   return !!_npcTileSet[col + ',' + row];
 }
 
+// Custom building sprites are bottom-anchored and centered on their tile
+// (see the drawImage(img, bx, by) call below) but drawn well larger than
+// one tile -- e.g. the church's roof/spire reaches upward several rows
+// past its own footprint. A zone decal landing on a GROUND tile under
+// that overhang is real (it draws) but invisible, painted over when the
+// building sprite renders afterward. Same bx/by math as the draw call,
+// so this stays in sync with it automatically.
+var _buildingRects = null;
+function buildingOccupied(col, row) {
+  if (!_buildingRects) {
+    _buildingRects = [];
+    var ts = RatLand.TILE_SIZE;
+    (RatLand.LOCATIONS || []).forEach(function (loc) {
+      var spriteKey = RatLand.BUILDING_SPRITES[loc.id];
+      var img = spriteKey && RatLand.assets[spriteKey];
+      if (!img || !img.complete || !img.naturalWidth) return;
+      var wx = loc.col * ts, wy = loc.row * ts;
+      var bx = wx + ts / 2 - img.naturalWidth / 2;
+      var by = wy + ts - img.naturalHeight;
+      _buildingRects.push({ x0: bx, y0: by, x1: bx + img.naturalWidth, y1: by + img.naturalHeight });
+    });
+  }
+  var ts = RatLand.TILE_SIZE;
+  var tx0 = col * ts, ty0 = row * ts, tx1 = tx0 + ts, ty1 = ty0 + ts;
+  for (var i = 0; i < _buildingRects.length; i++) {
+    var r = _buildingRects[i];
+    if (tx0 < r.x1 && tx1 > r.x0 && ty0 < r.y1 && ty1 > r.y0) return true;
+  }
+  return false;
+}
+
 // Draws one zone decal with a deterministic per-tile orientation (0/90/
 // 180/270 plus optional mirror), so the same crop never repeats
 // identically on nearby tiles. Returns true if this tile is inside a
@@ -331,9 +380,13 @@ function drawZoneDecal(ctx, row, col, ts) {
   var z = zoneFor(row, col);
   if (!z) return false;
   if (npcOccupied(col, row)) return true;
-  if (tileHash(row + 29000, col + 29000) >= z.chance) return true;
+  if (buildingOccupied(col, row)) return true;
 
-  var pick = z.pool[Math.floor(tileHash(row + 31000, col + 31000) * z.pool.length)];
+  var pick = FIXED_DECALS[col + ',' + row];
+  if (!pick) {
+    if (tileHash(row + 29000 + z.salt, col + 29000 + z.salt) >= z.chance) return true;
+    pick = z.pool[Math.floor(tileHash(row + 31000 + z.salt, col + 31000 + z.salt) * z.pool.length)];
+  }
   var img = RatLand.assets[pick];
   if (!img || !img.complete || !img.naturalWidth) return true;
 

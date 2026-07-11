@@ -118,6 +118,35 @@ Before committing any new AI-generated sprite:
     the same planking. A small fragment of the broken-panel variant is
     also baked into `assets/river-grate.png` (below) as a wood scrap
     caught against the grate's bars.
+  - Zone ground-detail decals (12 crops, all 2x upscaled to game texel
+    density, contextual to three named zones): two moss patches,
+    ellipse-masked and autocropped from a single grass tile each
+    (source tiles (35,0) and (36,1)), blended 35% toward the game's
+    ground green (`decal-moss-a.png` / `decal-moss-b.png`); a mossy
+    stone ornament (35,2), its grass backdrop keyed out by hue
+    (0.2-0.45, sat > 0.25) rather than a flat color-key, blended 15%
+    toward a neutral stone grey (`decal-moss-statue.png`) — these three
+    dress the churchyard around Church of the Rat God, the statue
+    hand-placed beside the building rather than randomly rolled (see
+    `FIXED_DECALS` in js/rendering.js) since the zone's hash roll kept
+    landing it under the church's own roof overhang. Three tire crops
+    — single (14,13), stacked (13,14), piled (14,14) — each blended
+    10% toward a dark junk tone (`decal-tire.png` /
+    `decal-tire-stack.png` / `decal-tire-pile.png`); a rust barrel
+    (32,3), blended 30% toward rust brown and darkened 15%
+    (`decal-rust-barrel.png`); and a tin can (34,3), blended 20%
+    toward the same rust brown and darkened 10% (`decal-tin-can.png`)
+    — these dress the industrial decay around The Rusty Pipe. Two
+    dropped bottles (28,7) and (29,7), blended 30% toward the ground
+    green and darkened 10% (`decal-bottle-a.png` / `decal-bottle-b.png`),
+    and two trash bags (13,13) and (12,13), blended 10% toward the dark
+    junk tone (`decal-bag.png` / `decal-bag-pile.png`) — occasional
+    litter along the Rat Café / Rat Shopping District strip. All are
+    scattered by a per-zone density cap (5% near the church and Rusty
+    Pipe, 3.5% along the café/shopping strip, matching the existing
+    rubble decal's own rate) with deterministic per-tile rotation and
+    mirroring for variety, and are never placed on a path tile or an
+    NPC's own tile; see `GROUND_ZONES` in js/rendering.js.
 
 ## city_extension.png
 
