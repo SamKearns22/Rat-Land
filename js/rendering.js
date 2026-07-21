@@ -137,14 +137,18 @@ RatLand.assets.waterFoamEdge.src = 'assets/water-foam-edge.png';
 // retinted like every prior crop from it. Moss patches and a mossy
 // stone ornament for the Church of the Rat God's overgrown churchyard;
 // tires, a rusted barrel stack, and an old tin can for The Rusty
-// Pipe's industrial corner; bottle litter and binbags around Rat
-// Café / Rat Shopping District. See GROUND_ZONES below for placement.
+// Pipe's industrial corner; trash cans and binbags around Rat Café /
+// Rat Shopping District. See GROUND_ZONES below for placement. Each
+// zone also gets one larger hand-placed "focal" piece (see
+// FIXED_DECALS) built by combining two of these same crops.
 RatLand.assets.decalMossA = new Image();
 RatLand.assets.decalMossA.src = 'assets/decal-moss-a.png';
 RatLand.assets.decalMossB = new Image();
 RatLand.assets.decalMossB.src = 'assets/decal-moss-b.png';
 RatLand.assets.decalMossStatue = new Image();
 RatLand.assets.decalMossStatue.src = 'assets/decal-moss-statue.png';
+RatLand.assets.decalMossFocal = new Image();
+RatLand.assets.decalMossFocal.src = 'assets/decal-moss-focal.png';
 RatLand.assets.decalTire = new Image();
 RatLand.assets.decalTire.src = 'assets/decal-tire.png';
 RatLand.assets.decalTireStack = new Image();
@@ -155,14 +159,18 @@ RatLand.assets.decalRustBarrel = new Image();
 RatLand.assets.decalRustBarrel.src = 'assets/decal-rust-barrel.png';
 RatLand.assets.decalTinCan = new Image();
 RatLand.assets.decalTinCan.src = 'assets/decal-tin-can.png';
-RatLand.assets.decalBottleA = new Image();
-RatLand.assets.decalBottleA.src = 'assets/decal-bottle-a.png';
-RatLand.assets.decalBottleB = new Image();
-RatLand.assets.decalBottleB.src = 'assets/decal-bottle-b.png';
+RatLand.assets.decalJunkFocal = new Image();
+RatLand.assets.decalJunkFocal.src = 'assets/decal-junk-focal.png';
+RatLand.assets.decalTrashCanA = new Image();
+RatLand.assets.decalTrashCanA.src = 'assets/decal-trash-can-a.png';
+RatLand.assets.decalTrashCanB = new Image();
+RatLand.assets.decalTrashCanB.src = 'assets/decal-trash-can-b.png';
 RatLand.assets.decalBag = new Image();
 RatLand.assets.decalBag.src = 'assets/decal-bag.png';
 RatLand.assets.decalBagPile = new Image();
 RatLand.assets.decalBagPile.src = 'assets/decal-bag-pile.png';
+RatLand.assets.decalLitterFocal = new Image();
+RatLand.assets.decalLitterFocal.src = 'assets/decal-litter-focal.png';
 RatLand.BUILDING_SPRITES = {
   townhall: 'buildingTownhall',
   gildedrat: 'buildingGildedrat',
@@ -291,29 +299,43 @@ function inQuietZone(row, col) {
 // churchyard, radius 5 around (3,9), rolled zero hits across all 121
 // tiles at chance 0.05 -- ~0.2% likely by chance, i.e. a landscape
 // collision, not the intended density.)
+// Chances raised a second pass (5/5/3.5% -> 9/8/6%) after Sam found the
+// three zones too subtle to read as distinct areas at a glance -- still
+// below the point of looking cluttered, per his density note, but each
+// zone should now be legible without hunting for it.
 var GROUND_ZONES = [
   // Overgrown churchyard around Church of the Rat God.
   { pool: ['decalMossA', 'decalMossB', 'decalMossStatue'],
-    col: 3, row: 9, radius: 5, chance: 0.05, salt: 51827 },
+    col: 3, row: 9, radius: 5, chance: 0.09, salt: 51827 },
   // Industrial decay around The Rusty Pipe.
   { pool: ['decalTire', 'decalTireStack', 'decalTirePile', 'decalRustBarrel', 'decalTinCan'],
-    col: 24, row: 19, radius: 5, chance: 0.05, salt: 104729 },
+    col: 24, row: 19, radius: 5, chance: 0.08, salt: 104729 },
   // Occasional litter along the Rat Cafe / Rat Shopping District strip.
-  { pool: ['decalBottleA', 'decalBottleB', 'decalBag', 'decalBagPile'],
-    c0: 17, r0: 1, c1: 28, r1: 8, chance: 0.035, salt: 224737 },
+  { pool: ['decalTrashCanA', 'decalTrashCanB', 'decalBag', 'decalBagPile'],
+    c0: 17, r0: 1, c1: 28, r1: 8, chance: 0.06, salt: 224737 },
 ];
-// The stone ornament reads wrong sideways/upside-down; everything else
-// (moss blobs, tires, bottles-as-litter, bags) can land any way up.
-var DECAL_UPRIGHT_ONLY = { decalMossStatue: true };
+// The stone ornament and the three composited focal pieces read wrong
+// sideways/upside-down; everything else (moss blobs, tires, trash cans,
+// bags) can land any way up.
+var DECAL_UPRIGHT_ONLY = {
+  decalMossStatue: true, decalMossFocal: true, decalJunkFocal: true, decalLitterFocal: true
+};
 
-// A couple of decals are hand-placed instead of left to the hash roll --
-// a landmark ornament reads better as a deliberate choice than as one
-// lucky hit among many, and the churchyard's roll kept landing the
-// statue under the church's own roof overhang (see buildingOccupied)
-// where it never rendered visibly. Still subject to the same
-// NPC/building occlusion checks as everything else.
+// A few decals are hand-placed instead of left to the hash roll -- a
+// landmark ornament or focal piece reads better as a deliberate choice
+// than as one lucky hit among many, and the churchyard's roll kept
+// landing the statue under the church's own roof overhang (see
+// buildingOccupied) where it never rendered visibly. Still subject to
+// the same NPC/building occlusion checks as everything else. The three
+// *Focal pieces are the one guaranteed-visible larger detail per zone
+// Sam asked for -- built by combining existing crops (see
+// tools/build_zone_decals.py), not new art, and placed a few tiles away
+// from any small scattered hit so they don't just double up on one spot.
 var FIXED_DECALS = {
   '1,8': 'decalMossStatue', // west side of the church, inside the walled yard
+  '2,11': 'decalMossFocal', // open churchyard ground, south of the building
+  '26,17': 'decalJunkFocal', // beside The Rusty Pipe, east of the building
+  '25,5': 'decalLitterFocal', // east of Rat Shopping District's stalls
 };
 
 function zoneFor(row, col) {
@@ -539,13 +561,63 @@ function drawBridgeDetail(ctx, row, col, ts) {
   ctx.restore();
 }
 
+// Whitewater where the current meets a bridge's pilings. The river
+// flows south-to-north (toward the outfall grate -- see drawWaterDetail
+// below), so a water tile whose NORTH neighbor is the deck is the
+// upstream face where the current first hits the structure (strongest,
+// churned foam); a water tile whose SOUTH neighbor is the deck is the
+// downstream face where the flow has just passed under it (lighter
+// trailing wake). Foam dabs are tileHash-placed so they're stable frame
+// to frame instead of jittering.
+var BRIDGE_FOAM_COLOR = '226, 232, 214';
+function drawBridgeFoam(ctx, row, col, ts, x0, y0) {
+  var TILE = RatLand.TILE;
+  var upstream = tileAt(row - 1, col) === TILE.BRIDGE;
+  var downstream = tileAt(row + 1, col) === TILE.BRIDGE;
+  if (!upstream && !downstream) return;
+
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+
+  if (upstream) {
+    var g = ctx.createLinearGradient(0, y0, 0, y0 + 14);
+    g.addColorStop(0, 'rgba(' + BRIDGE_FOAM_COLOR + ', 0.8)');
+    g.addColorStop(1, 'rgba(' + BRIDGE_FOAM_COLOR + ', 0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x0, y0, ts, 14);
+
+    ctx.fillStyle = 'rgba(' + BRIDGE_FOAM_COLOR + ', 0.7)';
+    var dabs = 2 + Math.floor(tileHash(row + 45000, col + 45000) * 3);
+    for (var i = 0; i < dabs; i++) {
+      var dh = tileHash(row + 47000 + i * 7, col + 47000 + i * 11);
+      var dx = x0 + 3 + dh * (ts - 10);
+      var dy = y0 + 2 + ((dh * 5) % 1) * 7;
+      ctx.beginPath();
+      ctx.ellipse(dx, dy, 2.5, 1.8, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  if (downstream) {
+    var g2 = ctx.createLinearGradient(0, y0 + ts - 9, 0, y0 + ts);
+    g2.addColorStop(0, 'rgba(' + BRIDGE_FOAM_COLOR + ', 0)');
+    g2.addColorStop(1, 'rgba(' + BRIDGE_FOAM_COLOR + ', 0.45)');
+    ctx.fillStyle = g2;
+    ctx.fillRect(x0, y0 + ts - 9, ts, 9);
+  }
+  ctx.restore();
+}
+
 // Water dressing on top of the murk-pattern fill: a soft shadow where a
 // bridge deck hangs over the water (south side of each deck, plus a
 // thinner line against its north face), pale foam where the river laps
-// against its banks, and sparse current streaks -- all pointing the
-// same way, downstream toward the outfall grate at the river's north
-// end, so the water reads as moving rather than a flat painted strip.
-var WATER_STREAK_CHANCE = 0.38;
+// against its banks, whitewater where the current hits a bridge's
+// pilings, and current streaks -- all pointing the same way, downstream
+// toward the outfall grate at the river's north end, so the water reads
+// as moving rather than a flat painted strip. The streak asset itself
+// was repainted pale/desaturated (from a dim olive close to the water's
+// own tone to a near-white khaki) since low-contrast streaks read as
+// noise, not current -- see water-flow-streak.png.
+var WATER_STREAK_CHANCE = 0.42;
 function drawWaterDetail(ctx, row, col, ts) {
   var TILE = RatLand.TILE;
   var x0 = col * ts, y0 = row * ts;
@@ -577,12 +649,14 @@ function drawWaterDetail(ctx, row, col, ts) {
     ctx.globalAlpha = 1;
   }
 
+  drawBridgeFoam(ctx, row, col, ts, x0, y0);
+
   // Current streaks, drifting toward the grate.
   var streak = RatLand.assets.waterStreak;
   if (streak.complete && streak.naturalWidth) {
     var h = tileHash(row + 17000, col + 17000);
     if (h < WATER_STREAK_CHANCE) {
-      ctx.globalAlpha = 0.5;
+      ctx.globalAlpha = 0.85;
       var ox = 4 + Math.floor((h / WATER_STREAK_CHANCE) * (ts - streak.naturalWidth - 8));
       ctx.drawImage(streak, x0 + ox, y0);
       ctx.globalAlpha = 1;

@@ -345,6 +345,26 @@ RatLand.buildOverworldMap = function () {
   // notch sticking out past the west edge of The Gilded Rat's worn plaza.
   carveH(7, 7, 7, TILE.PATH);
 
+  // --- Seventh revision: east-side back route ---
+  // New path linking Rat Gymnasium's south side down to The Rusty
+  // Pipe's north side, through the open ground east of the river --
+  // Sam's requested (28,12)-ish to (25,17)-ish route. A single-tile-wide
+  // stair-step (south, west, south) through open ground, same shape as
+  // the existing reroute around The Rusty Pipe's bottom-left above, so
+  // it reads as a real secondary route rather than a straight-line
+  // shortcut. Starts on the existing Rat School <-> Rat Gymnasium road
+  // (row 12 already spans this column). The building's own sprite (see
+  // js/rendering.js's buildingOccupied) is drawn well past its 2-tile
+  // footprint -- its visual bounding box covers cols 23-25 at rows
+  // 17-19 -- so the final descent runs down col 22, not col 24 (col 24
+  // was tried first and disappeared straight into the brick wall,
+  // reading as a dead end instead of an approach), landing exactly on
+  // the existing reroute path at (22,19)-(22,20) instead of stopping
+  // short in open ground.
+  carveV(28, 12, 14);
+  carveH(14, 22, 28);
+  carveV(22, 14, 19);
+
   return grid;
 };
 

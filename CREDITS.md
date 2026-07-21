@@ -118,7 +118,7 @@ Before committing any new AI-generated sprite:
     the same planking. A small fragment of the broken-panel variant is
     also baked into `assets/river-grate.png` (below) as a wood scrap
     caught against the grate's bars.
-  - Zone ground-detail decals (12 crops, all 2x upscaled to game texel
+  - Zone ground-detail decals (15 crops, all 2x upscaled to game texel
     density, contextual to three named zones): two moss patches,
     ellipse-masked and autocropped from a single grass tile each
     (source tiles (35,0) and (36,1)), blended 35% toward the game's
@@ -136,17 +136,29 @@ Before committing any new AI-generated sprite:
     (32,3), blended 30% toward rust brown and darkened 15%
     (`decal-rust-barrel.png`); and a tin can (34,3), blended 20%
     toward the same rust brown and darkened 10% (`decal-tin-can.png`)
-    — these dress the industrial decay around The Rusty Pipe. Two
-    dropped bottles (28,7) and (29,7), blended 30% toward the ground
-    green and darkened 10% (`decal-bottle-a.png` / `decal-bottle-b.png`),
-    and two trash bags (13,13) and (12,13), blended 10% toward the dark
-    junk tone (`decal-bag.png` / `decal-bag-pile.png`) — occasional
-    litter along the Rat Café / Rat Shopping District strip. All are
-    scattered by a per-zone density cap (5% near the church and Rusty
-    Pipe, 3.5% along the café/shopping strip, matching the existing
-    rubble decal's own rate) with deterministic per-tile rotation and
-    mirroring for variety, and are never placed on a path tile or an
-    NPC's own tile; see `GROUND_ZONES` in js/rendering.js.
+    — these dress the industrial decay around The Rusty Pipe. Two small
+    trash cans (17,13) and (18,13), blended 15% toward the dark junk
+    tone (`decal-trash-can-a.png` / `decal-trash-can-b.png`), and two
+    trash bags (13,13) and (12,13), blended 10% toward the same tone
+    (`decal-bag.png` / `decal-bag-pile.png`) — occasional litter along
+    the Rat Café / Rat Shopping District strip. (An earlier pass had
+    labeled (28,7)/(29,7) as "bottle litter"; those crops turned out to
+    be the market-stall roof piece retinted, with no actual bottle
+    sprite anywhere on this sheet — replaced with the trash cans above
+    once the mislabel was caught.) All are scattered by a per-zone
+    density cap (9% near the church, 8% near Rusty Pipe, 6% along the
+    café/shopping strip — raised from an initial 5/5/3.5% once Sam found
+    that too subtle to read as distinct areas) with deterministic
+    per-tile rotation and mirroring for variety, and are never placed on
+    a path tile or an NPC's own tile; see `GROUND_ZONES` in
+    js/rendering.js. Each zone also gets one larger hand-placed "focal"
+    piece built by fusing two of the crops above side by side rather
+    than cropping anything new: the two moss patches into a wider
+    overgrowth clump (`decal-moss-focal.png`), the rust barrel against
+    the tire pile into a small dumped-junk cluster
+    (`decal-junk-focal.png`), and the trash bag pile against a trash can
+    into a small dumped-litter cluster (`decal-litter-focal.png`) — see
+    `FIXED_DECALS`.
 
 ## city_extension.png
 
@@ -267,7 +279,16 @@ Before committing any new AI-generated sprite:
     drawn at low alpha where the river laps against its banks.
   - The same foam pixels thinned and sheared into
     `assets/water-flow-streak.png`, sparse pale current streaks
-    (tileHash-scattered) drifting toward the grate.
+    (tileHash-scattered) drifting toward the grate. Repainted a second
+    time after the streaks read as too close to the water tile's own
+    tone to notice: desaturated further (×0.35) and pushed much
+    brighter (value ×0.35+0.72) off the same hue, plus its draw alpha
+    raised from 0.5 to 0.85 in js/rendering.js, for a paler,
+    higher-contrast streak against the dark water. Whitewater at each
+    bridge's pilings (`drawBridgeFoam` in js/rendering.js) reuses this
+    same pale tone procedurally (canvas gradients + dabs, no new crop)
+    rather than a new asset — strongest on the upstream face where the
+    current first meets the deck, a lighter trailing wake downstream.
   The sheet's lava tiles are excluded from this integration entirely —
   not used anywhere, recolored or otherwise.
 
